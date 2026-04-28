@@ -6,11 +6,13 @@ import { motion } from 'framer-motion';
 import { Mail, User, Building2, Check, AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { teamAPI } from '@/lib/api';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Invitation {
   workspaceName: string;
   inviterName: string;
   inviterEmail: string;
+  email: string;
   role: string;
   expiresAt: string;
 }
@@ -18,6 +20,7 @@ interface Invitation {
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
+  const { t, isRTL } = useLanguage();
   const token = params.token as string;
 
   const [invitation, setInvitation] = useState<Invitation | null>(null);
@@ -30,15 +33,15 @@ export default function InvitePage() {
     const load = async () => {
       try {
         const res = await teamAPI.getInvitation(token);
-        setInvitation(res.data.data.invitation);
+        setInvitation(res.data.data);
       } catch (err: any) {
-        setError(err.response?.data?.error?.message || 'Invalid or expired invitation');
+        setError(err.response?.data?.error?.message || t.invalidOrExpiredInvitation);
       } finally {
         setIsLoading(false);
       }
     };
     load();
-  }, [token]);
+  }, [token, t]);
 
   const handleAccept = async () => {
     setIsAccepting(true);
@@ -48,7 +51,7 @@ export default function InvitePage() {
       setAccepted(true);
       setTimeout(() => router.push('/dashboard'), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to accept invitation');
+      setError(err.response?.data?.error?.message || t.failedToAcceptInvitation);
     } finally {
       setIsAccepting(false);
     }
@@ -69,10 +72,10 @@ export default function InvitePage() {
           <div className="w-16 h-16 rounded-2xl bg-tz-red/10 flex items-center justify-center mx-auto mb-4">
             <AlertTriangle className="w-8 h-8 text-tz-red" />
           </div>
-          <h1 className="text-xl font-bold text-tz-espresso mb-2">Invitation Error</h1>
+          <h1 className="text-xl font-bold text-tz-espresso mb-2">{t.invitationError}</h1>
           <p className="text-muted-foreground mb-6">{error}</p>
           <Button onClick={() => router.push('/login')} className="bg-tz-primary hover:bg-tz-primary-dark text-white">
-            Go to Login
+            {t.goToLogin}
           </Button>
         </div>
       </div>
@@ -90,8 +93,10 @@ export default function InvitePage() {
           <div className="w-16 h-16 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-4">
             <Check className="w-8 h-8 text-tz-green" />
           </div>
-          <h1 className="text-xl font-bold text-tz-espresso mb-2">Welcome!</h1>
-          <p className="text-muted-foreground">You have joined {invitation?.workspaceName}. Redirecting...</p>
+          <h1 className="text-xl font-bold text-tz-espresso mb-2">{t.welcome}</h1>
+          <p className="text-muted-foreground">
+            {t.joinedWorkspace} {invitation?.workspaceName}. {t.redirecting}
+          </p>
         </motion.div>
       </div>
     );
@@ -108,24 +113,24 @@ export default function InvitePage() {
           <div className="w-16 h-16 rounded-2xl bg-tz-primary/10 flex items-center justify-center mx-auto mb-4">
             <Mail className="w-8 h-8 text-tz-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-tz-espresso">Team Invitation</h1>
-          <p className="text-muted-foreground mt-1">You have been invited to join</p>
+          <h1 className="text-2xl font-bold text-tz-espresso">{t.teamInvitation}</h1>
+          <p className="text-muted-foreground mt-1">{t.invitedToJoin}</p>
         </div>
 
         <div className="space-y-4 mb-8">
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-tz-cream">
-            <Building2 className="w-5 h-5 text-tz-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Workspace</p>
-              <p className="font-bold">{invitation?.workspaceName}</p>
+            <Building2 className="w-5 h-5 text-tz-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">{t.workspace}</p>
+              <p className="font-bold truncate">{invitation?.workspaceName}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 p-4 rounded-2xl bg-tz-cream">
-            <User className="w-5 h-5 text-tz-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Invited by</p>
-              <p className="font-bold">{invitation?.inviterName}</p>
+            <User className="w-5 h-5 text-tz-primary shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground">{t.invitedBy}</p>
+              <p className="font-bold truncate">{invitation?.inviterName}</p>
             </div>
           </div>
         </div>
@@ -140,7 +145,7 @@ export default function InvitePage() {
           ) : (
             <>
               <Check className="w-4 h-4 mr-2" />
-              Accept Invitation
+              {t.acceptInvite}
             </>
           )}
         </Button>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle } from 'lucide-react';
+import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -18,10 +18,20 @@ interface Member {
   joinedAt: string;
 }
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export default function TeamPage() {
   const router = useRouter();
   const { t, isRTL } = useLanguage();
   const [members, setMembers] = useState<Member[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
+  const [totalStaffSeats, setTotalStaffSeats] = useState(1);
+  const [memberCount, setMemberCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -36,7 +46,11 @@ export default function TeamPage() {
       setWorkspaceId(ws.id);
 
       const res = await teamAPI.getMembers(ws.id);
-      setMembers(res.data.data.members);
+      const data = res.data.data;
+      setMembers(data.members || []);
+      setPendingInvites(data.pendingInvites || []);
+      setTotalStaffSeats(data.totalStaffSeats || 1);
+      setMemberCount(data.memberCount || 0);
     } catch (err: any) {
       if (err.response?.status === 404) {
         router.push('/create-workspace');
@@ -78,6 +92,25 @@ export default function TeamPage() {
     }
   };
 
+  const handleCancelInvite = async (invitationId: string) => {
+    if (!confirm(isRTL ? 'هل أنت متأكد من إلغاء هذه الدعوة؟' : 'Are you sure you want to cancel this invitation?')) return;
+    try {
+      await teamAPI.cancelInvite(workspaceId, invitationId);
+      fetchMembers();
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || t.error);
+    }
+  };
+
+  const handleResendInvite = async (invitationId: string) => {
+    try {
+      await teamAPI.resendInvite(workspaceId, invitationId);
+      fetchMembers();
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || t.error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
@@ -85,6 +118,8 @@ export default function TeamPage() {
       </div>
     );
   }
+
+  const seatUsageText = `${memberCount + pendingInvites.length} / ${totalStaffSeats} ${isRTL ? 'مقاعد' : 'seats'}`;
 
   return (
     <div>
@@ -94,12 +129,16 @@ export default function TeamPage() {
           <div className="w-10 h-10 rounded-xl bg-tz-primary/10 flex items-center justify-center">
             <Users className="w-5 h-5 text-tz-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-tz-espresso">{t.members}</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-tz-espresso">{t.members}</h1>
+            <p className="text-xs text-muted-foreground">{seatUsageText}</p>
+          </div>
         </div>
 
         <Button
           onClick={() => setShowInvite(true)}
           className="bg-tz-primary hover:bg-tz-primary-dark text-white h-11 px-5"
+          disabled={memberCount + pendingInvites.length >= totalStaffSeats}
         >
           <Plus className="w-4 h-4 mr-1.5" />
           {t.inviteMember}
@@ -150,11 +189,9 @@ export default function TeamPage() {
                       {t.owner}
                     </span>
                   )}
-                  {member.status === 'pending' && (
-                    <span className="px-2 py-0.5 rounded-full bg-tz-blue/10 text-tz-blue text-[10px] font-bold">
-                      {t.pending}
-                    </span>
-                  )}
+                  <span className="px-2 py-0.5 rounded-full bg-tz-green/10 text-tz-green text-[10px] font-bold">
+                    {t.active}
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">{member.email}</p>
               </div>
@@ -171,7 +208,58 @@ export default function TeamPage() {
               )}
             </motion.div>
           ))}
+
+          {/* Pending Invites */}
+          {pendingInvites.map((invite, index) => (
+            <motion.div
+              key={invite.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (members.length + index) * 0.05 }}
+              className="bg-white rounded-2xl p-5 shadow-sm border border-dashed border-tz-blue/30 flex items-center gap-4"
+            >
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br from-tz-blue/20 to-tz-blue/10">
+                <Mail className="w-5 h-5 text-tz-blue" />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-sm">{invite.email}</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-tz-blue/10 text-tz-blue text-[10px] font-bold">
+                    {t.pending}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {isRTL ? 'تنتهي في' : 'Expires'} {new Date(invite.expiresAt).toLocaleDateString(isRTL ? 'ar-SA' : 'en-US')}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleResendInvite(invite.id)}
+                  className="p-2 rounded-xl text-tz-primary hover:bg-tz-primary/10 transition-colors"
+                  title={t.resend}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handleCancelInvite(invite.id)}
+                  className="p-2 rounded-xl text-tz-red hover:bg-tz-red/10 transition-colors"
+                  title={t.cancelInvite}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          ))}
         </AnimatePresence>
+
+        {members.length === 0 && pendingInvites.length === 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p>{isRTL ? 'لا يوجد أعضاء بعد' : 'No members yet'}</p>
+          </div>
+        )}
       </div>
 
       {/* Invite Modal */}
