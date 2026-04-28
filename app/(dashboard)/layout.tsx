@@ -47,8 +47,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = isAdmin
     ? [
+        { href: '/admin', icon: LayoutDashboard, label: isRTL ? 'لوحة التحكم' : 'Dashboard' },
         { href: '/settings', icon: Settings, label: t.settings },
-        { href: '/admin', icon: Shield, label: isRTL ? 'المدير' : 'Admin' },
       ]
     : [
         { href: '/dashboard', icon: LayoutDashboard, label: t.dashboard },
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         style={{ right: isRTL ? 0 : 'auto', left: isRTL ? 'auto' : 0 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-tz-cream-dark dark:border-gray-800">
-          <Link href="/dashboard" className="flex items-center gap-3 overflow-hidden">
+          <Link href={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
             <img src="/logo-icon.svg" alt="" className="w-8 h-8 shrink-0" />
             <AnimatePresence>
               {sidebarOpen && (

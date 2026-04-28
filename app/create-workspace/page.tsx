@@ -23,8 +23,12 @@ export default function CreateWorkspacePage() {
   });
 
   useEffect(() => {
-    if (!authLoading && user?.hasWorkspace) {
-      router.push('/dashboard');
+    if (!authLoading && user) {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else if (user.hasWorkspace) {
+        router.push('/dashboard');
+      }
     }
   }, [authLoading, user, router]);
 

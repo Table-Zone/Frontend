@@ -10,6 +10,7 @@ import TableListView from '@/components/tables/TableListView';
 import TableCompactView from '@/components/tables/TableCompactView';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { tableAPI, workspaceAPI } from '@/lib/api';
 
 type DashboardView = 'grid' | 'list' | 'compact';
@@ -39,6 +40,7 @@ const viewOptions: { value: DashboardView; icon: typeof LayoutGrid; labelAr: str
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const [tables, setTables] = useState<Table[]>([]);
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
@@ -85,7 +87,11 @@ export default function DashboardPage() {
       } catch (error: any) {
         console.error('Failed to load dashboard:', error);
         if (error.response?.status === 404) {
-          router.push('/create-workspace');
+          if (user?.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push('/create-workspace');
+          }
           return;
         }
       } finally {

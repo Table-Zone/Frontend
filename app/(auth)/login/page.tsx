@@ -28,7 +28,9 @@ export default function LoginPage() {
     try {
       const user = await login(form.email, form.password);
       console.log('[Login] Success — redirecting');
-      if (user.hasWorkspace) {
+      if (user.role === 'admin') {
+        router.push('/admin');
+      } else if (user.hasWorkspace) {
         router.push('/dashboard');
       } else {
         router.push('/create-workspace');

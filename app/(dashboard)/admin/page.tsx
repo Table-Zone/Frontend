@@ -1,11 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Shield, CreditCard, Check, X, Search, Clock, AlertTriangle } from 'lucide-react';
+import {
+  Shield, CreditCard, Check, X, Search, Clock, AlertTriangle,
+  Building2, Users, TrendingUp, Ban,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { adminAPI } from '@/lib/api';
 
 interface Request {
@@ -22,20 +27,52 @@ interface Request {
   userEmail: string;
 }
 
+interface Stats {
+  totalWorkspaces: number;
+  pendingRequests: number;
+  approvedRequests: number;
+  rejectedRequests: number;
+}
+
 export default function AdminPage() {
+  const router = useRouter();
+  const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const [requests, setRequests] = useState<Request[]>([]);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [stats, setStats] = useState<Stats>({
+    totalWorkspaces: 0,
+    pendingRequests: 0,
+    approvedRequests: 0,
+    rejectedRequests: 0,
+  });
 
-  const fetchRequests = async () => {
+  const fetchData = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const res = await adminAPI.getPendingRequests(filter === 'all' ? undefined : filter);
-      setRequests(res.data.data.requests || []);
+      // Fetch subscription requests
+      const reqRes = await adminAPI.getPendingRequests(filter === 'all' ? undefined : filter);
+      const reqs = reqRes.data.data.requests || [];
+      setRequests(reqs);
+
+      // Fetch workspaces count (limit 1, we just need total)
+      const wsRes = await adminAPI.getWorkspaces({ limit: 1 });
+      const totalWorkspaces = wsRes.data.data.total || 0;
+
+      // Fetch all requests for stats
+      const allReqRes = await adminAPI.getPendingRequests();
+      const allReqs = allReqRes.data.data.requests || [];
+
+      setStats({
+        totalWorkspaces,
+        pendingRequests: allReqs.filter((r: Request) => r.status === 'pending').length,
+        approvedRequests: allReqs.filter((r: Request) => r.status === 'approved').length,
+        rejectedRequests: allReqs.filter((r: Request) => r.status === 'rejected').length,
+      });
     } catch (err: any) {
       if (err.response?.status === 403) {
         setError(isRTL ? 'غير مصرح — يتطلب صلاحية مدير' : 'Unauthorized — admin access required');
@@ -48,13 +85,17 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    fetchRequests();
-  }, [filter]);
+    if (user && user.role !== 'admin') {
+      router.push('/dashboard');
+      return;
+    }
+    fetchData();
+  }, [filter, user]);
 
   const handleApprove = async (id: string) => {
     try {
       await adminAPI.approveRequest(id);
-      fetchRequests();
+      fetchData();
     } catch (err: any) {
       setError(err.response?.data?.error?.message || t.error);
     }
@@ -63,7 +104,7 @@ export default function AdminPage() {
   const handleReject = async (id: string) => {
     try {
       await adminAPI.rejectRequest(id);
-      fetchRequests();
+      fetchData();
     } catch (err: any) {
       setError(err.response?.data?.error?.message || t.error);
     }
@@ -73,8 +114,6 @@ export default function AdminPage() {
     r.workspaceName.toLowerCase().includes(search.toLowerCase()) ||
     r.userEmail.toLowerCase().includes(search.toLowerCase())
   );
-
-  const pendingCount = requests.filter((r) => r.status === 'pending').length;
 
   if (isLoading) {
     return (
@@ -92,7 +131,7 @@ export default function AdminPage() {
           <Shield className="w-5 h-5 text-tz-primary" />
         </div>
         <h1 className="text-2xl font-bold text-tz-espresso">
-          {isRTL ? 'إدارة الاشتراكات' : 'Subscription Management'}
+          {isRTL ? 'لوحة تحكم المدير' : 'Admin Dashboard'}
         </h1>
       </div>
 
@@ -107,13 +146,13 @@ export default function AdminPage() {
         </motion.div>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         {[
-          { label: isRTL ? 'معلقة' : 'Pending', count: pendingCount, color: 'bg-tz-amber/10 text-tz-amber' },
-          { label: isRTL ? 'الكل' : 'Total', count: requests.length, color: 'bg-tz-blue/10 text-tz-blue' },
-          { label: isRTL ? 'مقبولة' : 'Approved', count: requests.filter((r) => r.status === 'approved').length, color: 'bg-tz-green/10 text-tz-green' },
-          { label: isRTL ? 'مرفوضة' : 'Rejected', count: requests.filter((r) => r.status === 'rejected').length, color: 'bg-tz-red/10 text-tz-red' },
+          { label: isRTL ? 'إجمالي المساحات' : 'Total Workspaces', count: stats.totalWorkspaces, icon: Building2, color: 'bg-tz-blue/10 text-tz-blue' },
+          { label: isRTL ? 'طلبات معلقة' : 'Pending Requests', count: stats.pendingRequests, icon: Clock, color: 'bg-tz-amber/10 text-tz-amber' },
+          { label: isRTL ? 'مقبولة' : 'Approved', count: stats.approvedRequests, icon: Check, color: 'bg-tz-green/10 text-tz-green' },
+          { label: isRTL ? 'مرفوضة' : 'Rejected', count: stats.rejectedRequests, icon: Ban, color: 'bg-tz-red/10 text-tz-red' },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -122,10 +161,21 @@ export default function AdminPage() {
             transition={{ delay: i * 0.1 }}
             className={`rounded-2xl p-4 ${stat.color} border border-current/10`}
           >
-            <p className="text-2xl font-bold">{stat.count}</p>
+            <div className="flex items-center justify-between mb-2">
+              <stat.icon className="w-5 h-5 opacity-60" />
+              <p className="text-2xl font-bold">{stat.count}</p>
+            </div>
             <p className="text-sm font-medium opacity-80">{stat.label}</p>
           </motion.div>
         ))}
+      </div>
+
+      {/* Subscription Requests Section */}
+      <div className="flex items-center gap-3 mb-4">
+        <CreditCard className="w-5 h-5 text-tz-primary" />
+        <h2 className="text-lg font-bold text-tz-espresso">
+          {isRTL ? 'طلبات الاشتراك' : 'Subscription Requests'}
+        </h2>
       </div>
 
       {/* Filter + Search */}
@@ -181,7 +231,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <CreditCard className="w-3.5 h-3.5" />
-                    {req.plan === 'monthly' ? t.monthly : t.quarterly} · {req.priceSar} SAR
+                    {req.plan === 'monthly' ? t.monthly : req.plan === 'quarterly' ? t.quarterly : req.plan} · {req.priceSar} SAR
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
