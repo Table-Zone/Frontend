@@ -159,11 +159,7 @@ export default function InvitePage() {
   if (accepted) {
     return (
       <div className="min-h-screen bg-tz-cream flex items-center justify-center p-4">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-3xl p-8 shadow-xl max-w-md w-full text-center"
-        >
+        <div className="bg-white rounded-3xl p-8 shadow-xl max-w-md w-full text-center animate-in fade-in zoom-in duration-300">
           <div className="w-16 h-16 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-4">
             <Check className="w-8 h-8 text-tz-green" />
           </div>
@@ -171,7 +167,7 @@ export default function InvitePage() {
           <p className="text-muted-foreground">
             {t.joinedWorkspace} {invitation?.workspaceName}. {t.redirecting}
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
