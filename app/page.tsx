@@ -9,10 +9,10 @@ export default function LandingPage() {
   const { t, isRTL } = useLanguage();
 
   const features = [
-    { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'مؤقتات عد تنازلي مع تنبيهات مرئية لكل طاولة' : 'Automated countdown timers with visual alerts for each table' },
-    { icon: Users, title: isRTL ? 'إدارة الفريق' : 'Team Management', desc: isRTL ? 'دعوة الموظفين وإدارة المقاعد مع التواجد الفوري' : 'Invite staff members and manage seats with real-time presence' },
-    { icon: Zap, title: isRTL ? 'مزامنة فورية' : 'Real-Time Sync', desc: isRTL ? 'تحديثات حية عبر WebSocket على جميع الأجهزة' : 'WebSocket-powered live updates across all devices' },
-    { icon: Coffee, title: isRTL ? 'للمقاهي' : 'Cafe-Focused', desc: isRTL ? 'مبني خصيصاً للمقاهي وصالات الشيشة' : 'Built specifically for coffee shops and shisha lounges' },
+    { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'تتبع وقت كل طاولة بتنبيهات لونية' : 'Track every table with color-coded alerts' },
+    { icon: Users, title: isRTL ? 'إدارة الفريق' : 'Team Management', desc: isRTL ? 'إدارة الموظفين والمقاعد في الوقت الفعلي' : 'Manage staff and seats in real-time' },
+    { icon: Zap, title: isRTL ? 'مزامنة فورية' : 'Real-Time Sync', desc: isRTL ? 'تحديثات لحظية على جميع الأجهزة' : 'Instant updates across all devices' },
+    { icon: Globe, title: isRTL ? 'عربي وإنجليزي' : 'Arabic & English', desc: isRTL ? 'دعم كامل للغتين مع تخطيط RTL' : 'Full bilingual support with RTL layout' },
   ];
 
   return (
@@ -57,8 +57,8 @@ export default function LandingPage() {
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
           >
             {isRTL
-              ? 'تتبع إشغال الطاولات والمؤقتات ونشاط الموظفين في جميع فروعك. مبني للمقاهي السعودية والمطاعم'
-              : 'Track table occupancy, timers, and staff activity across all your branches. Built for Saudi coffee shops and restaurants'}
+              ? 'تتبع إشغال الطاولات والمؤقتات ونشاط الموظفين.'
+              : 'Track table occupancy, timers, and staff activity.'}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
