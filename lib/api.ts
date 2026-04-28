@@ -25,9 +25,13 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        // Don't auto-redirect on invite page — let it handle 401 gracefully
+        if (currentPath.startsWith('/invite/')) {
+          return Promise.reject(error);
+        }
         localStorage.removeItem('access_token');
         document.cookie = 'access_token=; path=/; max-age=0';
-        const currentPath = window.location.pathname;
         if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
           window.location.href = '/login';
         }

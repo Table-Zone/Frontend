@@ -98,8 +98,24 @@ export default function InvitePage() {
       setTimeout(() => router.push('/dashboard'), 2000);
     } catch (err: any) {
       console.error('[Invite] Accept error:', err);
-      const msg = err.response?.data?.error?.message || t.failedToAcceptInvitation;
-      setError(msg);
+      const status = err.response?.status;
+      const msg = err.response?.data?.error?.message;
+
+      if (status === 401) {
+        // Token expired or invalid — clear and show login option
+        localStorage.removeItem('access_token');
+        document.cookie = 'access_token=; path=/; max-age=0';
+        setIsLoggedIn(false);
+        setError(isRTL ? 'انتهت صلاحية الجلسة. يرجى تسجيل الدخول مرة أخرى.' : 'Session expired. Please log in again.');
+      } else if (status === 404) {
+        setError(msg || (isRTL ? 'الدعوة غير موجودة' : 'Invitation not found'));
+      } else if (status === 409 || status === 422) {
+        setError(msg || t.failedToAcceptInvitation);
+      } else if (status >= 500) {
+        setError(isRTL ? 'خطأ في الخادم. يرجى المحاولة لاحقاً.' : 'Server error. Please try again later.');
+      } else {
+        setError(msg || t.failedToAcceptInvitation);
+      }
     } finally {
       setIsAccepting(false);
     }
