@@ -7,15 +7,24 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authAPI } from '@/lib/api';
 
 export default function RegisterPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '', workspaceName: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +39,7 @@ export default function RegisterPage() {
         password: form.password,
         workspaceName: form.workspaceName,
       });
-      router.push('/login');
+      setShowVerifyModal(true);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || t.error);
     } finally {
@@ -135,6 +144,35 @@ export default function RegisterPage() {
           </div>
         </div>
       </motion.div>
+
+      <Dialog open={showVerifyModal} onOpenChange={setShowVerifyModal}>
+        <DialogContent className="sm:rounded-2xl" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader className="text-center">
+            <div className="mx-auto w-12 h-12 rounded-full bg-tz-green/10 flex items-center justify-center mb-3">
+              <Mail className="w-6 h-6 text-tz-green" />
+            </div>
+            <DialogTitle className="text-xl font-bold">
+              {lang === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'Verify Your Email'}
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
+              {lang === 'ar'
+                ? `تم إنشاء حسابك بنجاح. أرسلنا رابط التحقق إلى ${form.email}. يرجى التحقق من بريدك والضغط على الرابط لتفعيل حسابك.`
+                : `Your account has been created. We sent a verification link to ${form.email}. Please check your inbox and click the link to activate your account.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-center mt-4">
+            <Button
+              onClick={() => {
+                setShowVerifyModal(false);
+                router.push('/login');
+              }}
+              className="bg-tz-primary hover:bg-tz-primary-dark text-white px-8"
+            >
+              {lang === 'ar' ? 'حسناً' : 'OK'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
