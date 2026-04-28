@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Table Zone — Design Preview v2</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --tz-primary: #C75B12;
+      --tz-primary-light: #E87E3A;
+      --tz-primary-dark: #9A4309;
+      --tz-espresso: #1E1B18;
+      --tz-cream: #FAF7F2;
+      --tz-cream-dark: #F0EBE3;
+      --tz-green: #2E7D52;
+      --tz-green-light: #4CAF7A;
+      --tz-blue: #2563A8;
+      --tz-blue-light: #4A90D9;
+      --tz-amber: #B45309;
+      --tz-amber-light: #D97706;
+      --tz-red: #B91C1C;
+      --tz-red-light: #DC2626;
+      --radius: 24px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Tajawal', 'Inter', system-ui, sans-serif;
+      background: #f0f0f0;
+      color: var(--tz-espresso);
+      line-height: 1.6;
+    }
+
+    .preview-container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; }
+    .preview-header { text-align: center; margin-bottom: 60px; }
+    .preview-header h1 {
+      font-size: 48px; font-weight: 800; margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .preview-header p { color: #666; font-size: 18px; }
+
+    .screen-section { margin-bottom: 80px; }
+    .screen-title {
+      font-size: 24px; font-weight: 700; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .screen-title::before {
+      content: ''; width: 4px; height: 28px;
+      background: var(--tz-primary); border-radius: 2px;
+    }
+
+    .device-frame {
+      background: white; border-radius: 24px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.12);
+      overflow: hidden; border: 1px solid #e5e5e5;
+    }
+    .device-frame.mobile { max-width: 390px; margin: 0 auto; }
+    .device-frame.tablet { max-width: 820px; margin: 0 auto; }
+    .device-frame.desktop { max-width: 1200px; margin: 0 auto; }
+    .device-label { text-align: center; margin-top: 12px; font-size: 14px; color: #888; font-weight: 500; }
+
+    /* ===== CREATIVE TABLE CARDS v2 ===== */
+    .table-grid-v2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .table-card-v2 {
+      background: white;
+      border-radius: 28px;
+      padding: 0;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+
+    .table-card-v2:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+
+    /* Top color bar based on status */
+    .table-card-v2 .status-bar-top {
+      height: 6px;
+      width: 100%;
+      border-radius: 28px 28px 0 0;
+    }
+
+    .table-card-v2.free .status-bar-top { background: linear-gradient(90deg, var(--tz-green), var(--tz-green-light)); }
+    .table-card-v2.occupied .status-bar-top { background: linear-gradient(90deg, var(--tz-blue), var(--tz-blue-light)); }
+    .table-card-v2.warning .status-bar-top { background: linear-gradient(90deg, var(--tz-amber), var(--tz-amber-light)); }
+    .table-card-v2.alert .status-bar-top { background: linear-gradient(90deg, var(--tz-red), var(--tz-red-light)); }
+
+    /* Floating status glow behind */
+    .table-card-v2::before {
+      content: '';
+      position: absolute;
+      top: -30px; right: -30px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      opacity: 0.08;
+      filter: blur(30px);
+      transition: all 0.4s;
+    }
+
+    .table-card-v2.free::before { background: var(--tz-green); }
+    .table-card-v2.occupied::before { background: var(--tz-blue); }
+    .table-card-v2.warning::before { background: var(--tz-amber); }
+    .table-card-v2.alert::before { background: var(--tz-red); }
+
+    .table-card-v2:hover::before {
+      opacity: 0.15;
+      transform: scale(1.3);
+    }
+
+    .card-content {
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Table number in circle */
+    .table-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .table-name-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .table-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+      position: relative;
+    }
+
+    .table-card-v2.free .table-avatar { background: linear-gradient(135deg, var(--tz-green), var(--tz-green-light)); }
+    .table-card-v2.occupied .table-avatar { background: linear-gradient(135deg, var(--tz-blue), var(--tz-blue-light)); }
+    .table-card-v2.warning .table-avatar { background: linear-gradient(135deg, var(--tz-amber), var(--tz-amber-light)); }
+    .table-card-v2.alert .table-avatar { background: linear-gradient(135deg, var(--tz-red), var(--tz-red-light)); }
+
+    /* Pulse ring for free tables */
+    .table-card-v2.free .table-avatar::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 20px;
+      border: 2px solid var(--tz-green);
+      opacity: 0;
+      animation: avatarPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes avatarPulse {
+      0%, 100% { transform: scale(1); opacity: 0; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+    }
+
+    .table-info h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .table-info .table-id {
+      font-size: 11px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    /* Status pill */
+    .status-pill-v2 {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-pill-v2.free { background: rgba(46, 125, 82, 0.1); color: var(--tz-green); }
+    .status-pill-v2.occupied { background: rgba(37, 99, 168, 0.1); color: var(--tz-blue); }
+    .status-pill-v2.warning { background: rgba(180, 83, 9, 0.1); color: var(--tz-amber); }
+    .status-pill-v2.alert { background: rgba(185, 28, 28, 0.1); color: var(--tz-red); }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .status-pill-v2.free .status-dot { background: var(--tz-green); }
+    .status-pill-v2.occupied .status-dot { background: var(--tz-blue); }
+    .status-pill-v2.warning .status-dot { background: var(--tz-amber); }
+    .status-pill-v2.alert .status-dot { background: var(--tz-red); }
+
+    /* Timer Circle */
+    .timer-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+    }
+
+    .timer-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 12px;
+      background: linear-gradient(145deg, #fafafa, #f0f0f0);
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .timer-circle::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .table-card-v2.free .timer-circle::before { border-color: rgba(46, 125, 82, 0.2); }
+    .table-card-v2.occupied .timer-circle::before { border-color: rgba(37, 99, 168, 0.2); }
+    .table-card-v2.warning .timer-circle::before { border-color: rgba(180, 83, 9, 0.2); }
+    .table-card-v2.alert .timer-circle::before { border-color: rgba(185, 28, 28, 0.2); }
+
+    .timer-value {
+      font-size: 32px;
+      font-weight: 800;
+      font-family: 'SF Mono', 'Courier New', monospace;
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+
+    .timer-value.free { color: var(--tz-green); }
+    .timer-value.occupied { color: var(--tz-blue); }
+    .timer-value.warning { color: var(--tz-amber); }
+    .timer-value.alert { color: var(--tz-red); }
+
+    .timer-label {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Note */
+    .card-note {
+      background: var(--tz-cream);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #777;
+      margin-bottom: 16px;
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Action Buttons - Brand matching */
+    .card-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-action-v2 {
+      flex: 1;
+      height: 48px;
+      border: none;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-action-v2::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-action-v2:hover::before { opacity: 0.1; }
+    .btn-action-v2:active { transform: scale(0.96); }
+
+    /* START button — uses brand primary */
+    .btn-action-v2.start {
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      color: white;
+      box-shadow: 0 4px 16px rgba(199, 91, 18, 0.35);
+    }
+
+    .btn-action-v2.start:hover {
+      box-shadow: 0 8px 24px rgba(199, 91, 18, 0.45);
+      transform: translateY(-2px);
+    }
+
+    .btn-action-v2.start::before { background: white; }
+
+    /* STOP button — warm red, matches brand */
+    .btn-action-v2.stop {
+      background: linear-gradient(135deg, var(--tz-red), var(--tz-red-light));
+      color: white;
+      box-shadow: 0 4px 16px rgba(185, 28, 28, 0.3);
+    }
+
+    .btn-action-v2.stop:hover {
+      box-shadow: 0 8px 24px rgba(185, 28, 28, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-action-v2.stop::before { background: white; }
+
+    /* Secondary action */
+    .btn-action-v2.secondary {
+      background: var(--tz-cream-dark);
+      color: var(--tz-espresso);
+    }
+
+    .btn-action-v2.secondary:hover {
+      background: var(--tz-cream);
+    }
+
+    /* Overtime badge */
+    .overtime-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: linear-gradient(135deg, var(--tz-red), var(--tz-red-light));
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 10px;
+      z-index: 2;
+      animation: overtimeShake 2s ease-in-out infinite;
+    }
+
+    @keyframes overtimeShake {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2deg); }
+    }
+
+    /* ===== DASHBOARD LAYOUT ===== */
+    .dashboard-layout { display: flex; min-height: 800px; }
+
+    .sidebar {
+      width: 260px;
+      background: white;
+      border-left: 1px solid var(--tz-cream-dark);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      margin-bottom: 24px;
+    }
+
+    .sidebar-logo img { width: 36px; height: 36px; }
+    .sidebar-logo span { font-size: 18px; font-weight: 700; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      margin-bottom: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      color: white;
+      box-shadow: 0 4px 16px rgba(199, 91, 18, 0.3);
+    }
+
+    .nav-item:hover:not(.active) { background: var(--tz-cream); color: var(--tz-espresso); }
+    .nav-item svg { width: 20px; height: 20px; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid var(--tz-cream-dark);
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .user-info { flex: 1; }
+    .user-info .name { font-size: 13px; font-weight: 600; }
+    .user-info .email { font-size: 11px; color: #888; }
+
+    .main-content { flex: 1; padding: 32px; background: var(--tz-cream); }
+
+    .dashboard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .dashboard-header h1 { font-size: 28px; font-weight: 700; }
+
+    .stats-row-v2 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-pill-v2 {
+      padding: 20px;
+      border-radius: 20px;
+      text-align: center;
+      background: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      transition: all 0.3s;
+    }
+
+    .stat-pill-v2:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+
+    .stat-pill-v2 .count { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+    .stat-pill-v2.green .count { color: var(--tz-green); }
+    .stat-pill-v2.blue .count { color: var(--tz-blue); }
+    .stat-pill-v2.amber .count { color: var(--tz-amber); }
+    .stat-pill-v2.red .count { color: var(--tz-red); }
+    .stat-pill-v2 .label { font-size: 13px; font-weight: 500; color: #888; }
+
+    .mobile-header { display: none; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .stats-row-v2 { grid-template-columns: repeat(2, 1fr); }
+      .table-grid-v2 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .table-grid-v2 { grid-template-columns: 1fr; }
+      .stats-row-v2 { grid-template-columns: repeat(2, 1fr); }
+      .sidebar { display: none; }
+      .mobile-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: white;
+        border-bottom: 1px solid var(--tz-cream-dark);
+      }
+      .mobile-header h1 { font-size: 18px; font-weight: 700; }
+      .main-content { padding: 16px; }
+      .timer-circle { width: 120px; height: 120px; }
+      .timer-value { font-size: 26px; }
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Other reused styles */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      color: white;
+      padding: 14px 32px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(199, 91, 18, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(199, 91, 18, 0.4);
+    }
+
+    .login-bg {
+      background: linear-gradient(135deg, var(--tz-cream) 0%, white 50%, var(--tz-cream-dark) 100%);
+      min-height: 700px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 28px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    }
+
+    .login-header { text-align: center; margin-bottom: 32px; }
+
+    .login-header .icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 24px rgba(199, 91, 18, 0.3);
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+    .form-input {
+      width: 100%; height: 52px; padding: 0 16px;
+      border: 2px solid var(--tz-cream-dark); border-radius: 16px;
+      font-size: 15px; font-family: inherit;
+      transition: all 0.2s;
+    }
+    .form-input:focus { outline: none; border-color: var(--tz-primary); box-shadow: 0 0 0 4px rgba(199, 91, 18, 0.1); }
+
+    .btn-full {
+      width: 100%; height: 52px;
+      background: linear-gradient(135deg, var(--tz-primary), var(--tz-primary-light));
+      color: white; border: none; border-radius: 16px;
+      font-size: 16px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: all 0.3s;
+      box-shadow: 0 4px 16px rgba(199, 91, 18, 0.3);
+    }
+
+    .btn-full:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(199, 91, 18, 0.4);
+    }
+
+    /* Popup */
+    .popup-overlay {
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      min-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .popup-card {
+      background: white;
+      border-radius: 28px;
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+    }
+
+    .popup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 24px 24px 16px;
+      border-bottom: 1px solid var(--tz-cream-dark);
+    }
+
+    .popup-header h3 { font-size: 18px; font-weight: 700; }
+    .popup-body { padding: 24px; }
+
+    .plan-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      border: 2px solid var(--tz-cream-dark);
+      border-radius: 20px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .plan-option:hover { border-color: var(--tz-primary); }
+    .plan-option.selected {
+      border-color: var(--tz-primary);
+      background: rgba(199, 91, 18, 0.05);
+      box-shadow: 0 4px 16px rgba(199, 91, 18, 0.1);
+    }
+
+    .plan-option .plan-name { font-size: 16px; font-weight: 700; }
+    .plan-option .plan-desc { font-size: 13px; color: #888; margin-top: 4px; }
+    .plan-option .plan-price { font-size: 24px; font-weight: 800; color: var(--tz-primary); }
+
+    .success-state { text-align: center; padding: 40px 24px; }
+    .success-icon {
+      width: 80px; height: 80px;
+      background: rgba(46, 125, 82, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="preview-container">
+
+  <div class="preview-header">
+    <h1>Table Zone v2</h1>
+    <p>Design Preview — بطاقات جديدة + ألوان متناسقة</p>
+  </div>
+
+  <!-- NEW CARDS SHOWCASE -->
+  <div class="screen-section">
+    <h2 class="screen-title">New Table Cards — البطاقات الجديدة</h2>
+    <div class="device-frame desktop">
+      <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+          <div class="sidebar-logo">
+            <svg width="36" height="36" viewBox="0 0 48 48">
+              <rect x="4" y="4" width="40" height="40" rx="12" fill="#C75B12"/>
+              <ellipse cx="24" cy="20" rx="14" ry="5" fill="white"/>
+              <rect x="12" y="20" width="3" height="16" rx="1.5" fill="white" opacity="0.9"/>
+              <rect x="33" y="20" width="3" height="16" rx="1.5" fill="white" opacity="0.9"/>
+              <circle cx="34" cy="14" r="7" fill="white" opacity="0.3"/>
+              <line x1="34" y1="14" x2="34" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="34" y1="14" x2="37" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span>Table Zone</span>
+          </div>
+          <div class="nav-item active">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            لوحة التحكم
+          </div>
+          <div class="nav-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            الإعدادات
+          </div>
+          <div class="nav-item">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            الفريق
+          </div>
+          <div class="sidebar-footer">
+            <div class="user-row">
+              <div class="user-avatar">أ</div>
+              <div class="user-info">
+                <div class="name">أحمد</div>
+                <div class="email">ahmed@cafe.sa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main -->
+        <div class="main-content">
+          <div class="mobile-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            <h1>Table Zone</h1>
+          </div>
+
+          <div class="dashboard-header">
+            <div>
+              <h1>لوحة التحكم</h1>
+              <p style="font-size: 14px; color: #888; margin-top: 4px;">6 طاولات · <span style="color: var(--tz-green);">●</span> متصل</p>
+            </div>
+          </div>
+
+          <div class="stats-row-v2">
+            <div class="stat-pill-v2 green">
+              <div class="count">2</div>
+              <div class="label">متاح</div>
+            </div>
+            <div class="stat-pill-v2 blue">
+              <div class="count">2</div>
+              <div class="label">مشغول</div>
+            </div>
+            <div class="stat-pill-v2 amber">
+              <div class="count">1</div>
+              <div class="label">تحذير</div>
+            </div>
+            <div class="stat-pill-v2 red">
+              <div class="count">1</div>
+              <div class="label">تنبيه</div>
+            </div>
+          </div>
+
+          <!-- ===== NEW CREATIVE CARDS ===== -->
+          <div class="table-grid-v2">
+
+            <!-- FREE TABLE -->
+            <div class="table-card-v2 free">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">1</div>
+                    <div class="table-info">
+                      <h3>طاولة 1</h3>
+                      <div class="table-id">#TABLE-001</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 free">
+                    <span class="status-dot"></span>
+                    متاح
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value free">00:00</div>
+                    <div class="timer-label">جاهز</div>
+                  </div>
+                </div>
+
+                <div class="card-note">مجموعة أطفال — يحتاجون كراسي إضافية</div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 start">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    بدء
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- OCCUPIED TABLE -->
+            <div class="table-card-v2 occupied">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">2</div>
+                    <div class="table-info">
+                      <h3>طاولة 2</h3>
+                      <div class="table-id">#TABLE-002</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 occupied">
+                    <span class="status-dot"></span>
+                    مشغول
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value occupied">32:15</div>
+                    <div class="timer-label">متبقي 27 دقيقة</div>
+                  </div>
+                </div>
+
+                <div class="card-note">عيد ميلاد — 8 أشخاص</div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 stop">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                    إيقاف
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- WARNING TABLE -->
+            <div class="table-card-v2 warning">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">VIP</div>
+                    <div class="table-info">
+                      <h3>VIP</h3>
+                      <div class="table-id">#TABLE-003</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 warning">
+                    <span class="status-dot"></span>
+                    تحذير
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value warning">04:30</div>
+                    <div class="timer-label">5 دقائق متبقية!</div>
+                  </div>
+                </div>
+
+                <div class="card-note">بدون ملاحظات</div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 stop">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                    إيقاف
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ALERT TABLE (OVERTIME) -->
+            <div class="table-card-v2 alert">
+              <div class="overtime-badge">تجاوز!</div>
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">4</div>
+                    <div class="table-info">
+                      <h3>طاولة 4</h3>
+                      <div class="table-id">#TABLE-004</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 alert">
+                    <span class="status-dot"></span>
+                    تنبيه
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value alert">+12:45</div>
+                    <div class="timer-label">تجاوز الوقت</div>
+                  </div>
+                </div>
+
+                <div class="card-note">العميل طلب التمديد</div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 stop">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                    إيقاف
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ANOTHER FREE -->
+            <div class="table-card-v2 free">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">5</div>
+                    <div class="table-info">
+                      <h3>خارجي 1</h3>
+                      <div class="table-id">#TABLE-005</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 free">
+                    <span class="status-dot"></span>
+                    متاح
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value free">00:00</div>
+                    <div class="timer-label">جاهز</div>
+                  </div>
+                </div>
+
+                <div class="card-note"></div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 start">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    بدء
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ANOTHER OCCUPIED -->
+            <div class="table-card-v2 occupied">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">6</div>
+                    <div class="table-info">
+                      <h3>خارجي 2</h3>
+                      <div class="table-id">#TABLE-006</div>
+                    </div>
+                  </div>
+                  <div class="status-pill-v2 occupied">
+                    <span class="status-dot"></span>
+                    مشغول
+                  </div>
+                </div>
+
+                <div class="timer-section">
+                  <div class="timer-circle">
+                    <div class="timer-value occupied">45:20</div>
+                    <div class="timer-label">متبقي 14 دقيقة</div>
+                  </div>
+                </div>
+
+                <div class="card-note">شيشة — طلب تبغ تفاحتين</div>
+
+                <div class="card-actions">
+                  <button class="btn-action-v2 stop">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                    إيقاف
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="device-label">Desktop — البطاقات الجديدة (rounded, soft shadows, gradient buttons)</p>
+  </div>
+
+  <!-- MOBILE VIEW -->
+  <div class="screen-section">
+    <h2 class="screen-title">Mobile Cards — البطاقات على الجوال</h2>
+    <div class="device-frame mobile">
+      <div style="background: var(--tz-cream); min-height: 800px;">
+        <div class="mobile-header" style="display: flex;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          <h1>Table Zone</h1>
+        </div>
+        <div style="padding: 16px;">
+          <div class="stats-row-v2" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 16px;">
+            <div class="stat-pill-v2 green" style="padding: 14px;"><div class="count" style="font-size: 22px;">2</div><div class="label">متاح</div></div>
+            <div class="stat-pill-v2 blue" style="padding: 14px;"><div class="count" style="font-size: 22px;">2</div><div class="label">مشغول</div></div>
+            <div class="stat-pill-v2 amber" style="padding: 14px;"><div class="count" style="font-size: 22px;">1</div><div class="label">تحذير</div></div>
+            <div class="stat-pill-v2 red" style="padding: 14px;"><div class="count" style="font-size: 22px;">1</div><div class="label">تنبيه</div></div>
+          </div>
+
+          <div class="table-grid-v2" style="grid-template-columns: 1fr;">
+            <div class="table-card-v2 occupied">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">2</div>
+                    <div class="table-info"><h3>طاولة 2</h3></div>
+                  </div>
+                  <div class="status-pill-v2 occupied"><span class="status-dot"></span>مشغول</div>
+                </div>
+                <div class="timer-section">
+                  <div class="timer-circle" style="width: 120px; height: 120px;">
+                    <div class="timer-value occupied" style="font-size: 26px;">32:15</div>
+                    <div class="timer-label">27 دقيقة</div>
+                  </div>
+                </div>
+                <button class="btn-action-v2 stop">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                  إيقاف
+                </button>
+              </div>
+            </div>
+
+            <div class="table-card-v2 alert">
+              <div class="overtime-badge">تجاوز!</div>
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">4</div>
+                    <div class="table-info"><h3>طاولة 4</h3></div>
+                  </div>
+                  <div class="status-pill-v2 alert"><span class="status-dot"></span>تنبيه</div>
+                </div>
+                <div class="timer-section">
+                  <div class="timer-circle" style="width: 120px; height: 120px;">
+                    <div class="timer-value alert" style="font-size: 26px;">+12:45</div>
+                    <div class="timer-label">تجاوز</div>
+                  </div>
+                </div>
+                <button class="btn-action-v2 stop">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16"/></svg>
+                  إيقاف
+                </button>
+              </div>
+            </div>
+
+            <div class="table-card-v2 free">
+              <div class="status-bar-top"></div>
+              <div class="card-content">
+                <div class="table-header-row">
+                  <div class="table-name-section">
+                    <div class="table-avatar">1</div>
+                    <div class="table-info"><h3>طاولة 1</h3></div>
+                  </div>
+                  <div class="status-pill-v2 free"><span class="status-dot"></span>متاح</div>
+                </div>
+                <div class="timer-section">
+                  <div class="timer-circle" style="width: 120px; height: 120px;">
+                    <div class="timer-value free" style="font-size: 26px;">00:00</div>
+                    <div class="timer-label">جاهز</div>
+                  </div>
+                </div>
+                <button class="btn-action-v2 start">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  بدء
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="device-label">iPhone — الجوال</p>
+  </div>
+
+  <!-- LOGIN (updated with new buttons) -->
+  <div class="screen-section">
+    <h2 class="screen-title">Login — تسجيل الدخول</h2>
+    <div class="two-col">
+      <div>
+        <div class="device-frame desktop">
+          <div class="login-bg">
+            <div class="login-card">
+              <div class="login-header">
+                <div class="icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                </div>
+                <h3 style="font-size: 22px; font-weight: 700;">تسجيل الدخول</h3>
+                <p style="color: #888; font-size: 14px;">Table Zone</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">البريد الإلكتروني</label>
+                <input type="email" class="form-input" placeholder="your@email.com" style="text-align: right;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">كلمة المرور</label>
+                <input type="password" class="form-input" placeholder="••••••••" style="text-align: right;">
+              </div>
+              <button class="btn-full" style="margin-bottom: 16px;">تسجيل الدخول</button>
+              <p style="text-align: center; font-size: 14px; color: #888;">
+                ليس لديك حساب؟ <a href="#" style="color: var(--tz-primary); text-decoration: none; font-weight: 700;">إنشاء حساب</a>
+              </p>
+            </div>
+          </div>
+        </div>
+        <p class="device-label">Desktop — الكمبيوتر</p>
+      </div>
+      <div>
+        <div class="device-frame mobile">
+          <div class="login-bg" style="min-height: 700px;">
+            <div class="login-card" style="padding: 32px;">
+              <div class="login-header">
+                <div class="icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                </div>
+                <h3 style="font-size: 20px;">تسجيل الدخول</h3>
+              </div>
+              <div class="form-group">
+                <input type="email" class="form-input" placeholder="البريد الإلكتروني" style="text-align: right; font-size: 14px;">
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-input" placeholder="كلمة المرور" style="text-align: right; font-size: 14px;">
+              </div>
+              <button class="btn-full">تسجيل الدخول</button>
+            </div>
+          </div>
+        </div>
+        <p class="device-label">Mobile — الجوال</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUBSCRIPTION POPUP -->
+  <div class="screen-section">
+    <h2 class="screen-title">Subscription Flow — خطوات الاشتراك</h2>
+    <div class="two-col">
+      <div>
+        <div class="device-frame desktop">
+          <div class="popup-overlay">
+            <div class="popup-card">
+              <div class="popup-header">
+                <h3>الاشتراك مطلوب</h3>
+                <span style="cursor: pointer;">✕</span>
+              </div>
+              <div class="popup-body">
+                <p style="font-size: 14px; color: #666; margin-bottom: 16px;">يجب الاشتراك لاستخدام المؤقت</p>
+                <div class="plan-option selected">
+                  <div>
+                    <div class="plan-name">شهري</div>
+                    <div class="plan-desc">30 يوم · 1 مقعد موظف</div>
+                  </div>
+                  <div class="plan-price">70</div>
+                </div>
+                <div class="plan-option">
+                  <div>
+                    <div class="plan-name">3 أشهر</div>
+                    <div class="plan-desc">90 يوم · 1 مقعد موظف</div>
+                  </div>
+                  <div class="plan-price">200</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="device-label">Step 1 — اختيار الخطة</p>
+      </div>
+      <div>
+        <div class="device-frame desktop">
+          <div class="popup-overlay">
+            <div class="popup-card">
+              <div class="popup-header">
+                <h3>شكراً لشرائك</h3>
+                <span style="cursor: pointer;">✕</span>
+              </div>
+              <div class="popup-body">
+                <div class="success-state">
+                  <div class="success-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2E7D52" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">تم بنجاح</h3>
+                  <p style="color: #888; margin-bottom: 24px;">سيتم تفعيل اشتراكك قريباً</p>
+                  <button class="btn-primary">إغلاق</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="device-label">Success — شاشة النجاح</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, var(--tz-espresso), #2a2622); border-radius: 28px; margin-top: 40px;">
+    <svg width="64" height="64" viewBox="0 0 48 48" style="margin-bottom: 16px;">
+      <rect x="4" y="4" width="40" height="40" rx="12" fill="#C75B12"/>
+      <ellipse cx="24" cy="20" rx="14" ry="5" fill="white"/>
+      <rect x="12" y="20" width="3" height="16" rx="1.5" fill="white" opacity="0.9"/>
+      <rect x="33" y="20" width="3" height="16" rx="1.5" fill="white" opacity="0.9"/>
+      <circle cx="34" cy="14" r="7" fill="white" opacity="0.3"/>
+      <line x1="34" y1="14" x2="34" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="34" y1="14" x2="37" y2="14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <h2 style="color: white; font-size: 28px; font-weight: 700; margin-bottom: 8px;">Table Zone</h2>
+    <p style="color: rgba(255,255,255,0.5);">Design Preview v2 — New Cards + Brand Colors</p>
+  </div>
+
+</div>
+
+</body>
+</html>
