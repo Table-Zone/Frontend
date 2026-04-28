@@ -65,7 +65,7 @@ export const userAPI = {
 export const workspaceAPI = {
   checkSlug: (slug: string) => api.get(`/workspaces/check-slug?slug=${slug}`),
   create: (data: any) => api.post('/workspaces', data),
-  getMyWorkspace: () => api.get('/workspaces/me'),
+  getMyWorkspace: (slug?: string) => api.get(`/workspaces/me${slug ? `?slug=${encodeURIComponent(slug)}` : ''}`),
   update: (id: string, data: any) => api.patch(`/workspaces/${id}`, data),
   updateWorkspace: (data: any) => api.patch('/workspaces/me', data),
   updateMe: (data: any) => api.patch('/workspaces/me', data),

@@ -1,7 +1,9 @@
 'use client';
 
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Wifi, Plus, LayoutGrid, List, Grip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,6 +44,8 @@ const viewOptions: { value: DashboardView; icon: typeof LayoutGrid; labelAr: str
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const workspaceSlug = searchParams.get('workspaceSlug');
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const [tables, setTables] = useState<Table[]>([]);
@@ -80,7 +84,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const wsRes = await workspaceAPI.getMyWorkspace();
+        const wsRes = await workspaceAPI.getMyWorkspace(workspaceSlug || undefined);
         const ws = wsRes.data.data.workspace;
         setWorkspace(ws);
 

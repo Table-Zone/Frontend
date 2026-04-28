@@ -94,8 +94,15 @@ export default function InvitePage() {
       console.log('[Invite] Accepting invitation...', token);
       const res = await teamAPI.acceptInvitation(token);
       console.log('[Invite] Accept response:', res.data);
+      const workspaceSlug = res.data?.data?.workspace?.slug;
       setAccepted(true);
-      setTimeout(() => router.push('/dashboard'), 2000);
+      setTimeout(() => {
+        if (workspaceSlug) {
+          router.push(`/dashboard?workspaceSlug=${encodeURIComponent(workspaceSlug)}`);
+        } else {
+          router.push('/dashboard');
+        }
+      }, 2000);
     } catch (err: any) {
       console.error('[Invite] Accept error:', err);
       const status = err.response?.status;
