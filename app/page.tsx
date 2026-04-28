@@ -11,9 +11,7 @@ export default function LandingPage() {
   const features = [
     { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'مؤقتات عد تنازلي مع تنبيهات مرئية لكل طاولة' : 'Automated countdown timers with visual alerts for each table' },
     { icon: Users, title: isRTL ? 'إدارة الفريق' : 'Team Management', desc: isRTL ? 'دعوة الموظفين وإدارة المقاعد مع التواجد الفوري' : 'Invite staff members and manage seats with real-time presence' },
-    { icon: Shield, title: isRTL ? 'التحكم بالاشتراك' : 'Subscription Control', desc: isRTL ? 'موافقة التحويل البنكي اليدوي مع رفع الإيصال' : 'Manual bank transfer approval with receipt upload' },
     { icon: Zap, title: isRTL ? 'مزامنة فورية' : 'Real-Time Sync', desc: isRTL ? 'تحديثات حية عبر WebSocket على جميع الأجهزة' : 'WebSocket-powered live updates across all devices' },
-    { icon: Globe, title: isRTL ? 'ثنائي اللغة' : 'Bilingual', desc: isRTL ? 'دعم كامل للعربية والإنجليزية مع تخطيط RTL' : 'Full Arabic and English support with RTL layout' },
     { icon: Coffee, title: isRTL ? 'للمقاهي' : 'Cafe-Focused', desc: isRTL ? 'مبني خصيصاً للمقاهي وصالات الشيشة' : 'Built specifically for coffee shops and shisha lounges' },
   ];
 
