@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Wifi, Plus, LayoutGrid, List, Grip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ const viewOptions: { value: DashboardView; icon: typeof LayoutGrid; labelAr: str
 ];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { t, isRTL } = useLanguage();
   const [tables, setTables] = useState<Table[]>([]);
