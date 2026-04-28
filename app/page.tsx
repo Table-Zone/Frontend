@@ -94,20 +94,20 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 max-w-4xl mx-auto gap-5">
             {features.map((f, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark hover:shadow-md transition-shadow"
+                className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark hover:shadow-lg hover:-translate-y-1 transition-all text-center"
               >
-                <div className="w-11 h-11 rounded-2xl bg-tz-primary/10 flex items-center justify-center mb-4">
-                  <f.icon className="w-5 h-5 text-tz-primary" />
+                <div className="w-12 h-12 rounded-2xl bg-tz-primary/10 flex items-center justify-center mb-4 mx-auto">
+                  <f.icon className="w-6 h-6 text-tz-primary" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">{f.title}</h3>
-                <p className="text-sm text-muted-foreground">{f.desc}</p>
+                <h3 className="font-bold text-lg mb-1">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
