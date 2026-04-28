@@ -96,8 +96,8 @@ export const teamAPI = {
   getMembers: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/members`),
   invite: (workspaceId: string, email: string) =>
     api.post(`/workspaces/${workspaceId}/invitations`, { email }),
-  inviteMember: (workspaceId: string, data: { email: string }) =>
-    api.post(`/workspaces/${workspaceId}/invitations`, data),
+  inviteMember: (workspaceId: string, data?: { email?: string }) =>
+    api.post(`/workspaces/${workspaceId}/invitations`, data || {}),
   cancelInvite: (workspaceId: string, invitationId: string) =>
     api.delete(`/workspaces/${workspaceId}/invitations/${invitationId}`),
   resendInvite: (workspaceId: string, invitationId: string) =>

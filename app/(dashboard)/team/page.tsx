@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle, RefreshCw, X, Link2, Check, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { teamAPI, workspaceAPI } from '@/lib/api';
 
@@ -33,14 +32,11 @@ export default function TeamPage() {
   const [totalStaffSeats, setTotalStaffSeats] = useState(1);
   const [memberCount, setMemberCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [showInvite, setShowInvite] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [showShare, setShowShare] = useState(false);
   const [isInviting, setIsInviting] = useState(false);
   const [error, setError] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
-  const [inviteSuccess, setInviteSuccess] = useState(false);
   const [createdInviteUrl, setCreatedInviteUrl] = useState('');
-  const [createdInviteEmail, setCreatedInviteEmail] = useState('');
   const [copied, setCopied] = useState(false);
 
   const fetchMembers = async () => {
@@ -70,17 +66,14 @@ export default function TeamPage() {
     fetchMembers();
   }, []);
 
-  const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+  const handleGenerateInvite = async () => {
     setIsInviting(true);
     setError('');
     try {
-      const res = await teamAPI.inviteMember(workspaceId, { email: inviteEmail.trim() });
+      const res = await teamAPI.inviteMember(workspaceId, {});
       const inviteUrl = res.data?.data?.invitation?.inviteUrl || '';
       setCreatedInviteUrl(inviteUrl);
-      setCreatedInviteEmail(inviteEmail.trim());
-      setInviteSuccess(true);
-      setInviteEmail('');
+      setShowShare(true);
       fetchMembers();
     } catch (err: any) {
       setError(err.response?.data?.error?.message || t.error);
@@ -115,12 +108,10 @@ export default function TeamPage() {
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
   };
 
-  const closeInviteModal = () => {
-    setShowInvite(false);
-    setInviteSuccess(false);
+  const closeShareModal = () => {
+    setShowShare(false);
     setCreatedInviteUrl('');
-    setCreatedInviteEmail('');
-    setError('');
+    setCopied(false);
   };
 
   const handleRemove = async (memberId: string) => {
@@ -177,12 +168,12 @@ export default function TeamPage() {
         </div>
 
         <Button
-          onClick={() => setShowInvite(true)}
+          onClick={handleGenerateInvite}
           className="bg-tz-primary hover:bg-tz-primary-dark text-white h-11 px-5"
-          disabled={memberCount + pendingInvites.length >= totalStaffSeats}
+          disabled={isInviting || memberCount + pendingInvites.length >= totalStaffSeats}
         >
           <Plus className="w-4 h-4 mr-1.5" />
-          {t.inviteMember}
+          {isInviting ? t.loading : t.inviteMember}
         </Button>
       </div>
 
@@ -208,7 +199,6 @@ export default function TeamPage() {
               transition={{ delay: index * 0.05 }}
               className="bg-white rounded-2xl p-5 shadow-sm border border-tz-cream-dark flex items-center gap-4"
             >
-              {/* Avatar */}
               <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                 member.role === 'owner'
                   ? 'bg-gradient-to-br from-tz-amber to-[#D97706]'
@@ -221,7 +211,6 @@ export default function TeamPage() {
                 )}
               </div>
 
-              {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="font-bold text-sm">{member.name}</h3>
@@ -237,7 +226,6 @@ export default function TeamPage() {
                 <p className="text-xs text-muted-foreground truncate">{member.email}</p>
               </div>
 
-              {/* Actions */}
               {member.role !== 'owner' && (
                 <button
                   onClick={() => handleRemove(member.id)}
@@ -250,7 +238,6 @@ export default function TeamPage() {
             </motion.div>
           ))}
 
-          {/* Pending Invites */}
           {pendingInvites.map((invite, index) => (
             <motion.div
               key={invite.id}
@@ -265,7 +252,11 @@ export default function TeamPage() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-sm">{invite.email}</h3>
+                  <h3 className="font-bold text-sm">
+                    {invite.email?.includes('@tablezone.local')
+                      ? (isRTL ? 'رابط دعوة' : 'Invite Link')
+                      : invite.email}
+                  </h3>
                   <span className="px-2 py-0.5 rounded-full bg-tz-blue/10 text-tz-blue text-[10px] font-bold">
                     {t.pending}
                   </span>
@@ -303,15 +294,15 @@ export default function TeamPage() {
         )}
       </div>
 
-      {/* Invite / Share Modal */}
+      {/* Share Invite Modal */}
       <AnimatePresence>
-        {showInvite && (
+        {showShare && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={closeInviteModal}
+            onClick={closeShareModal}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -320,105 +311,61 @@ export default function TeamPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
             >
-              {!inviteSuccess ? (
-                /* Invite Input State */
-                <>
-                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <Mail className="w-5 h-5 text-tz-primary" />
-                    {t.inviteMember}
-                  </h2>
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-3">
+                  <Check className="w-7 h-7 text-tz-green" />
+                </div>
+                <h2 className="text-lg font-bold text-tz-espresso">{t.inviteCreated}</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isRTL ? 'شارك هذا الرابط مع الشخص الذي تريد دعوته' : 'Share this link with the person you want to invite'}
+                </p>
+              </div>
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">{t.email}</label>
-                      <Input
-                        type="email"
-                        placeholder="colleague@email.com"
-                        value={inviteEmail}
-                        onChange={(e) => setInviteEmail(e.target.value)}
-                        className="h-12"
-                        onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-                      />
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Button
-                        variant="outline"
-                        onClick={closeInviteModal}
-                        className="flex-1 h-12 rounded-xl"
-                      >
-                        {t.cancel}
-                      </Button>
-                      <Button
-                        onClick={handleInvite}
-                        disabled={isInviting || !inviteEmail.trim()}
-                        className="flex-1 h-12 rounded-xl bg-tz-primary hover:bg-tz-primary-dark text-white"
-                      >
-                        {isInviting ? t.loading : t.sendInvite}
-                      </Button>
-                    </div>
+              {/* Invite Link */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">{t.inviteLink}</label>
+                <div className="flex gap-2">
+                  <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream flex items-center text-sm text-muted-foreground truncate">
+                    {createdInviteUrl || (isRTL ? 'غير متوفر' : 'Not available')}
                   </div>
-                </>
-              ) : (
-                /* Share State */
-                <>
-                  <div className="text-center mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-3">
-                      <Check className="w-7 h-7 text-tz-green" />
-                    </div>
-                    <h2 className="text-lg font-bold text-tz-espresso">{t.inviteCreated}</h2>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {t.sendTo}: <span className="font-medium text-tz-espresso">{createdInviteEmail}</span>
-                    </p>
-                  </div>
-
-                  {/* Invite Link */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">{t.inviteLink}</label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream flex items-center text-sm text-muted-foreground truncate">
-                        {createdInviteUrl || (isRTL ? 'غير متوفر' : 'Not available')}
-                      </div>
-                      <Button
-                        onClick={handleCopyLink}
-                        variant="outline"
-                        className="h-12 px-4 rounded-xl"
-                        disabled={!createdInviteUrl}
-                      >
-                        {copied ? (
-                          <Check className="w-4 h-4 text-tz-green" />
-                        ) : (
-                          <Link2 className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                    {copied && (
-                      <p className="text-xs text-tz-green mt-1 text-center">{t.linkCopied}</p>
+                  <Button
+                    onClick={handleCopyLink}
+                    variant="outline"
+                    className="h-12 px-4 rounded-xl"
+                    disabled={!createdInviteUrl}
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-tz-green" />
+                    ) : (
+                      <Link2 className="w-4 h-4" />
                     )}
-                  </div>
+                  </Button>
+                </div>
+                {copied && (
+                  <p className="text-xs text-tz-green mt-1 text-center">{t.linkCopied}</p>
+                )}
+              </div>
 
-                  {/* Share Buttons */}
-                  <div className="space-y-2">
-                    <a
-                      href={getWhatsAppShareUrl()}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-medium transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                      {t.shareViaWhatsApp}
-                    </a>
+              {/* Share Buttons */}
+              <div className="space-y-2">
+                <a
+                  href={getWhatsAppShareUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-medium transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                  {t.shareViaWhatsApp}
+                </a>
 
-                    <Button
-                      variant="outline"
-                      onClick={closeInviteModal}
-                      className="w-full h-12 rounded-xl"
-                    >
-                      {t.close}
-                    </Button>
-                  </div>
-                </>
-              )}
+                <Button
+                  variant="outline"
+                  onClick={closeShareModal}
+                  className="w-full h-12 rounded-xl"
+                >
+                  {t.close}
+                </Button>
+              </div>
             </motion.div>
           </motion.div>
         )}

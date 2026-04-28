@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, User, Building2, Check, AlertTriangle, Loader2 } from 'lucide-react';
+import { Mail, User, Building2, Check, AlertTriangle, Loader2, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { teamAPI } from '@/lib/api';
+import { teamAPI, userAPI } from '@/lib/api';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Invitation {
@@ -20,6 +20,7 @@ interface Invitation {
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, isRTL } = useLanguage();
   const token = params.token as string;
 
@@ -28,9 +29,30 @@ export default function InvitePage() {
   const [isAccepting, setIsAccepting] = useState(false);
   const [error, setError] = useState('');
   const [accepted, setAccepted] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [autoAcceptAttempted, setAutoAcceptAttempted] = useState(false);
 
+  // Check login status and load invitation
   useEffect(() => {
     const load = async () => {
+      // Check if user is logged in
+      const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      let loggedIn = false;
+
+      if (accessToken) {
+        try {
+          await userAPI.getMe();
+          loggedIn = true;
+        } catch {
+          // Token invalid, clear it
+          localStorage.removeItem('access_token');
+          document.cookie = 'access_token=; path=/; max-age=0';
+        }
+      }
+
+      setIsLoggedIn(loggedIn);
+
+      // Load invitation details
       try {
         const res = await teamAPI.getInvitation(token);
         setInvitation(res.data.data);
@@ -40,21 +62,57 @@ export default function InvitePage() {
         setIsLoading(false);
       }
     };
+
     load();
   }, [token, t]);
+
+  // Auto-accept if returning from login with pending token
+  useEffect(() => {
+    if (
+      isLoggedIn === true &&
+      !autoAcceptAttempted &&
+      !accepted &&
+      !isAccepting &&
+      invitation &&
+      !error
+    ) {
+      const pendingToken = localStorage.getItem('pendingInviteToken');
+      const fromAuth = searchParams.get('from') === 'auth';
+
+      if (pendingToken === token || fromAuth) {
+        setAutoAcceptAttempted(true);
+        localStorage.removeItem('pendingInviteToken');
+        handleAccept();
+      }
+    }
+  }, [isLoggedIn, autoAcceptAttempted, accepted, isAccepting, invitation, error, token, searchParams]);
 
   const handleAccept = async () => {
     setIsAccepting(true);
     setError('');
     try {
-      await teamAPI.acceptInvitation(token);
+      console.log('[Invite] Accepting invitation...', token);
+      const res = await teamAPI.acceptInvitation(token);
+      console.log('[Invite] Accept response:', res.data);
       setAccepted(true);
       setTimeout(() => router.push('/dashboard'), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || t.failedToAcceptInvitation);
+      console.error('[Invite] Accept error:', err);
+      const msg = err.response?.data?.error?.message || t.failedToAcceptInvitation;
+      setError(msg);
     } finally {
       setIsAccepting(false);
     }
+  };
+
+  const goToLogin = () => {
+    localStorage.setItem('pendingInviteToken', token);
+    router.push(`/login?redirect=${encodeURIComponent(`/invite/${token}?from=auth`)}`);
+  };
+
+  const goToRegister = () => {
+    localStorage.setItem('pendingInviteToken', token);
+    router.push(`/register?redirect=${encodeURIComponent(`/invite/${token}?from=auth`)}`);
   };
 
   if (isLoading) {
@@ -65,7 +123,7 @@ export default function InvitePage() {
     );
   }
 
-  if (error) {
+  if (error && !invitation) {
     return (
       <div className="min-h-screen bg-tz-cream flex items-center justify-center p-4">
         <div className="bg-white rounded-3xl p-8 shadow-xl max-w-md w-full text-center">
@@ -135,20 +193,63 @@ export default function InvitePage() {
           </div>
         </div>
 
-        <Button
-          onClick={handleAccept}
-          disabled={isAccepting}
-          className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white font-bold"
-        >
-          {isAccepting ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <>
-              <Check className="w-4 h-4 mr-2" />
-              {t.acceptInvite}
-            </>
-          )}
-        </Button>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 rounded-xl bg-tz-red/10 border border-tz-red/20 text-tz-red text-sm flex items-center gap-2"
+          >
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            {error}
+          </motion.div>
+        )}
+
+        {isLoggedIn === false ? (
+          // Not logged in — show login/register buttons
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              {isRTL
+                ? 'يجب تسجيل الدخول لقبول هذه الدعوة'
+                : 'You need to log in to accept this invitation'}
+            </p>
+            <Button
+              onClick={goToLogin}
+              className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white font-bold"
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              {t.login}
+            </Button>
+            <Button
+              onClick={goToRegister}
+              variant="outline"
+              className="w-full h-12 rounded-xl font-bold"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              {t.register}
+            </Button>
+          </div>
+        ) : isLoggedIn === true ? (
+          // Logged in — show accept button
+          <Button
+            onClick={handleAccept}
+            disabled={isAccepting}
+            className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white font-bold"
+          >
+            {isAccepting ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-2" />
+                {t.acceptInvite}
+              </>
+            )}
+          </Button>
+        ) : (
+          // Checking login status
+          <div className="flex justify-center py-3">
+            <Loader2 className="w-5 h-5 animate-spin text-tz-primary" />
+          </div>
+        )}
       </motion.div>
     </div>
   );

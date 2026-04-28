@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User, Building2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Building2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,9 +18,11 @@ import {
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authAPI } from '@/lib/api';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { t, lang } = useLanguage();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -137,7 +139,7 @@ export default function RegisterPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               {t.haveAccount}{' '}
-              <Link href="/login" className="text-tz-primary hover:underline font-medium">
+              <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-tz-primary hover:underline font-medium">
                 {t.login}
               </Link>
             </p>
@@ -164,7 +166,7 @@ export default function RegisterPage() {
             <Button
               onClick={() => {
                 setShowVerifyModal(false);
-                router.push('/login');
+                router.push(redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login');
               }}
               className="bg-tz-primary hover:bg-tz-primary-dark text-white px-8"
             >
@@ -174,5 +176,17 @@ export default function RegisterPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-tz-cream via-white to-tz-cream-dark flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-tz-primary" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

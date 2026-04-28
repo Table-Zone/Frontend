@@ -1,19 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Coffee } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Coffee, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function LoginPage() {
+function LoginForm() {
   const { t } = useLanguage();
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get('redirect');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +30,9 @@ export default function LoginPage() {
     try {
       const user = await login(form.email, form.password);
       console.log('[Login] Success — redirecting');
-      if (user.role === 'admin') {
+      if (redirect) {
+        router.push(redirect);
+      } else if (user.role === 'admin') {
         router.push('/admin');
       } else if (user.hasWorkspace) {
         router.push('/dashboard');
@@ -115,7 +119,7 @@ export default function LoginPage() {
             </Link>
             <p className="text-sm text-muted-foreground">
               {t.noAccount}{' '}
-              <Link href="/register" className="text-tz-primary hover:underline font-medium">
+              <Link href={redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register'} className="text-tz-primary hover:underline font-medium">
                 {t.register}
               </Link>
             </p>
@@ -123,5 +127,17 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-tz-cream via-white to-tz-cream-dark flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-tz-primary" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
