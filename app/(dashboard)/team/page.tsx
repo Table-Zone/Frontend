@@ -38,8 +38,9 @@ export default function TeamPage() {
   const [isInviting, setIsInviting] = useState(false);
   const [error, setError] = useState('');
   const [workspaceId, setWorkspaceId] = useState('');
-  const [showShare, setShowShare] = useState(false);
-  const [createdInvite, setCreatedInvite] = useState<{ inviteUrl: string; email: string } | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState(false);
+  const [createdInviteUrl, setCreatedInviteUrl] = useState('');
+  const [createdInviteEmail, setCreatedInviteEmail] = useState('');
   const [copied, setCopied] = useState(false);
 
   const fetchMembers = async () => {
@@ -75,16 +76,13 @@ export default function TeamPage() {
     setError('');
     try {
       const res = await teamAPI.inviteMember(workspaceId, { email: inviteEmail.trim() });
-      console.log('Invite API response:', res.data);
       const inviteUrl = res.data?.data?.invitation?.inviteUrl || '';
-      console.log('Extracted inviteUrl:', inviteUrl);
-      setCreatedInvite({ inviteUrl, email: inviteEmail.trim() });
+      setCreatedInviteUrl(inviteUrl);
+      setCreatedInviteEmail(inviteEmail.trim());
+      setInviteSuccess(true);
       setInviteEmail('');
-      setShowInvite(false);
-      setShowShare(true);
       fetchMembers();
     } catch (err: any) {
-      console.error('Invite API error:', err);
       setError(err.response?.data?.error?.message || t.error);
     } finally {
       setIsInviting(false);
@@ -92,15 +90,14 @@ export default function TeamPage() {
   };
 
   const handleCopyLink = async () => {
-    if (!createdInvite?.inviteUrl) return;
+    if (!createdInviteUrl) return;
     try {
-      await navigator.clipboard.writeText(createdInvite.inviteUrl);
+      await navigator.clipboard.writeText(createdInviteUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // fallback
       const input = document.createElement('input');
-      input.value = createdInvite.inviteUrl;
+      input.value = createdInviteUrl;
       document.body.appendChild(input);
       input.select();
       document.execCommand('copy');
@@ -111,11 +108,19 @@ export default function TeamPage() {
   };
 
   const getWhatsAppShareUrl = () => {
-    if (!createdInvite?.inviteUrl) return '#';
+    if (!createdInviteUrl) return '#';
     const text = isRTL
-      ? `مرحباً، لقد تمت دعوتك للانضمام إلى فريق عمل على Table Zone. اضغط على الرابط للقبول: ${createdInvite.inviteUrl}`
-      : `Hello, you have been invited to join a workspace on Table Zone. Click the link to accept: ${createdInvite.inviteUrl}`;
+      ? `مرحباً، لقد تمت دعوتك للانضمام إلى فريق عمل على Table Zone. اضغط على الرابط للقبول: ${createdInviteUrl}`
+      : `Hello, you have been invited to join a workspace on Table Zone. Click the link to accept: ${createdInviteUrl}`;
     return `https://wa.me/?text=${encodeURIComponent(text)}`;
+  };
+
+  const closeInviteModal = () => {
+    setShowInvite(false);
+    setInviteSuccess(false);
+    setCreatedInviteUrl('');
+    setCreatedInviteEmail('');
+    setError('');
   };
 
   const handleRemove = async (memberId: string) => {
@@ -298,7 +303,7 @@ export default function TeamPage() {
         )}
       </div>
 
-      {/* Invite Modal */}
+      {/* Invite / Share Modal */}
       <AnimatePresence>
         {showInvite && (
           <motion.div
@@ -306,7 +311,7 @@ export default function TeamPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowInvite(false)}
+            onClick={closeInviteModal}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -315,120 +320,105 @@ export default function TeamPage() {
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
             >
-              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Mail className="w-5 h-5 text-tz-primary" />
-                {t.inviteMember}
-              </h2>
+              {!inviteSuccess ? (
+                /* Invite Input State */
+                <>
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-tz-primary" />
+                    {t.inviteMember}
+                  </h2>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">{t.email}</label>
-                  <Input
-                    type="email"
-                    placeholder="colleague@email.com"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="h-12"
-                    onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-                  />
-                </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{t.email}</label>
+                      <Input
+                        type="email"
+                        placeholder="colleague@email.com"
+                        value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        className="h-12"
+                        onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                      />
+                    </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowInvite(false)}
-                    className="flex-1 h-12 rounded-xl"
-                  >
-                    {t.cancel}
-                  </Button>
-                  <Button
-                    onClick={handleInvite}
-                    disabled={isInviting || !inviteEmail.trim()}
-                    className="flex-1 h-12 rounded-xl bg-tz-primary hover:bg-tz-primary-dark text-white"
-                  >
-                    {isInviting ? t.loading : t.sendInvite}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Share Invite Modal */}
-      <AnimatePresence>
-        {showShare && createdInvite && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowShare(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
-            >
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-3">
-                  <Check className="w-7 h-7 text-tz-green" />
-                </div>
-                <h2 className="text-lg font-bold text-tz-espresso">{t.inviteCreated}</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t.sendTo}: <span className="font-medium text-tz-espresso">{createdInvite.email}</span>
-                </p>
-              </div>
-
-              {/* Invite Link */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">{t.inviteLink}</label>
-                <div className="flex gap-2">
-                  <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream flex items-center text-sm text-muted-foreground truncate">
-                    {createdInvite.inviteUrl}
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        onClick={closeInviteModal}
+                        className="flex-1 h-12 rounded-xl"
+                      >
+                        {t.cancel}
+                      </Button>
+                      <Button
+                        onClick={handleInvite}
+                        disabled={isInviting || !inviteEmail.trim()}
+                        className="flex-1 h-12 rounded-xl bg-tz-primary hover:bg-tz-primary-dark text-white"
+                      >
+                        {isInviting ? t.loading : t.sendInvite}
+                      </Button>
+                    </div>
                   </div>
-                  <Button
-                    onClick={handleCopyLink}
-                    variant="outline"
-                    className="h-12 px-4 rounded-xl"
-                  >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-tz-green" />
-                    ) : (
-                      <Link2 className="w-4 h-4" />
+                </>
+              ) : (
+                /* Share State */
+                <>
+                  <div className="text-center mb-6">
+                    <div className="w-14 h-14 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-3">
+                      <Check className="w-7 h-7 text-tz-green" />
+                    </div>
+                    <h2 className="text-lg font-bold text-tz-espresso">{t.inviteCreated}</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {t.sendTo}: <span className="font-medium text-tz-espresso">{createdInviteEmail}</span>
+                    </p>
+                  </div>
+
+                  {/* Invite Link */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">{t.inviteLink}</label>
+                    <div className="flex gap-2">
+                      <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream flex items-center text-sm text-muted-foreground truncate">
+                        {createdInviteUrl || (isRTL ? 'غير متوفر' : 'Not available')}
+                      </div>
+                      <Button
+                        onClick={handleCopyLink}
+                        variant="outline"
+                        className="h-12 px-4 rounded-xl"
+                        disabled={!createdInviteUrl}
+                      >
+                        {copied ? (
+                          <Check className="w-4 h-4 text-tz-green" />
+                        ) : (
+                          <Link2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                    {copied && (
+                      <p className="text-xs text-tz-green mt-1 text-center">{t.linkCopied}</p>
                     )}
-                  </Button>
-                </div>
-                {copied && (
-                  <p className="text-xs text-tz-green mt-1 text-center">{t.linkCopied}</p>
-                )}
-              </div>
+                  </div>
 
-              {/* Share Buttons */}
-              <div className="space-y-2">
-                <a
-                  href={getWhatsAppShareUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-medium transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  {t.shareViaWhatsApp}
-                </a>
+                  {/* Share Buttons */}
+                  <div className="space-y-2">
+                    <a
+                      href={getWhatsAppShareUrl()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full h-12 rounded-xl bg-[#25D366] hover:bg-[#128C7E] text-white font-medium transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      {t.shareViaWhatsApp}
+                    </a>
 
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowShare(false);
-                    setCreatedInvite(null);
-                  }}
-                  className="w-full h-12 rounded-xl"
-                >
-                  {t.close}
-                </Button>
-              </div>
+                    <Button
+                      variant="outline"
+                      onClick={closeInviteModal}
+                      className="w-full h-12 rounded-xl"
+                    >
+                      {t.close}
+                    </Button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}
