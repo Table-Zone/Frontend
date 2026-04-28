@@ -43,7 +43,8 @@ export default function SettingsPage() {
     const load = async () => {
       setIsLoading(true);
       try {
-        const res = await workspaceAPI.getMyWorkspace();
+        const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
+        const res = await workspaceAPI.getMyWorkspace(storedSlug || undefined);
         const ws = res.data.data.workspace;
         setWorkspaceId(ws.id);
         setSettings({

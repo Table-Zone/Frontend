@@ -18,6 +18,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [workspaceSlug, setWorkspaceSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWorkspaceSlug(localStorage.getItem('currentWorkspaceSlug'));
+    }
+  }, [pathname]);
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-tz-cream dark:bg-gray-950">
@@ -45,17 +52,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const isAdmin = user.role === 'admin';
 
+  const makeHref = (path: string) => {
+    if (workspaceSlug && !path.startsWith('/admin') && !path.startsWith('/profile')) {
+      return `${path}?workspaceSlug=${encodeURIComponent(workspaceSlug)}`;
+    }
+    return path;
+  };
+
   const navItems = isAdmin
     ? [
-        { href: '/admin', icon: LayoutDashboard, label: isRTL ? 'لوحة التحكم' : 'Dashboard' },
-        { href: '/settings', icon: Settings, label: t.settings },
+        { href: makeHref('/admin'), icon: LayoutDashboard, label: isRTL ? 'لوحة التحكم' : 'Dashboard' },
+        { href: makeHref('/settings'), icon: Settings, label: t.settings },
       ]
     : [
-        { href: '/dashboard', icon: LayoutDashboard, label: t.dashboard },
-        { href: '/settings', icon: Settings, label: t.settings },
-        { href: '/team', icon: Users, label: t.members },
-        { href: '/subscription', icon: CreditCard, label: t.subscription },
-        { href: '/profile', icon: UserCircle, label: t.profile },
+        { href: makeHref('/dashboard'), icon: LayoutDashboard, label: t.dashboard },
+        { href: makeHref('/settings'), icon: Settings, label: t.settings },
+        { href: makeHref('/team'), icon: Users, label: t.members },
+        { href: makeHref('/subscription'), icon: CreditCard, label: t.subscription },
+        { href: makeHref('/profile'), icon: UserCircle, label: t.profile },
       ];
 
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;

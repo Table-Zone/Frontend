@@ -41,7 +41,8 @@ export default function TeamPage() {
 
   const fetchMembers = async () => {
     try {
-      const wsRes = await workspaceAPI.getMyWorkspace();
+      const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
+      const wsRes = await workspaceAPI.getMyWorkspace(storedSlug || undefined);
       const ws = wsRes.data.data.workspace;
       setWorkspaceId(ws.id);
 

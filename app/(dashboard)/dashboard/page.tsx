@@ -87,6 +87,10 @@ export default function DashboardPage() {
         const wsRes = await workspaceAPI.getMyWorkspace(workspaceSlug || undefined);
         const ws = wsRes.data.data.workspace;
         setWorkspace(ws);
+        // Persist current workspace slug so navigation between pages remembers it
+        if (ws.slug) {
+          localStorage.setItem('currentWorkspaceSlug', ws.slug);
+        }
 
         const tablesRes = await tableAPI.getTables(ws.id);
         setTables(tablesRes.data.data.tables);
