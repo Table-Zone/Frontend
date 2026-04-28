@@ -75,13 +75,16 @@ export default function TeamPage() {
     setError('');
     try {
       const res = await teamAPI.inviteMember(workspaceId, { email: inviteEmail.trim() });
-      const inviteUrl = res.data.data.invitation?.inviteUrl || '';
+      console.log('Invite API response:', res.data);
+      const inviteUrl = res.data?.data?.invitation?.inviteUrl || '';
+      console.log('Extracted inviteUrl:', inviteUrl);
       setCreatedInvite({ inviteUrl, email: inviteEmail.trim() });
       setInviteEmail('');
       setShowInvite(false);
       setShowShare(true);
       fetchMembers();
     } catch (err: any) {
+      console.error('Invite API error:', err);
       setError(err.response?.data?.error?.message || t.error);
     } finally {
       setIsInviting(false);
