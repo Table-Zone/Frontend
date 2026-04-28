@@ -152,12 +152,12 @@ export default function RegisterPage() {
               <Mail className="w-6 h-6 text-tz-green" />
             </div>
             <DialogTitle className="text-xl font-bold">
-              {lang === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'Verify Your Email'}
+              {lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account Created'}
             </DialogTitle>
             <DialogDescription className="text-base text-muted-foreground">
               {lang === 'ar'
-                ? `تم إنشاء حسابك بنجاح. أرسلنا رابط التحقق إلى ${form.email}. يرجى التحقق من بريدك والضغط على الرابط لتفعيل حسابك.`
-                : `Your account has been created. We sent a verification link to ${form.email}. Please check your inbox and click the link to activate your account.`}
+                ? `تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول وبدء استخدام Table Zone.`
+                : `Your account has been created successfully. You can now log in and start using Table Zone.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center mt-4">

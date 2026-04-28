@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Settings, Clock, Globe, Save, AlertTriangle, Moon, Sun, Monitor, Building2, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ interface SettingsData {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const { t, isRTL, setLang, lang } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { showToast } = useToast();
@@ -51,7 +53,11 @@ export default function SettingsPage() {
           redAlertMinutes: ws.redAlertMinutes || 60,
           timezone: ws.timezone || 'Asia/Riyadh',
         });
-      } catch (err) {
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          router.push('/create-workspace');
+          return;
+        }
         setError(t.error);
       } finally {
         setIsLoading(false);

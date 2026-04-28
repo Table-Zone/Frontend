@@ -26,9 +26,13 @@ export default function LoginPage() {
     console.log('[Login] Submitting...', form.email);
 
     try {
-      await login(form.email, form.password);
-      console.log('[Login] Success — redirecting to dashboard');
-      router.push('/dashboard');
+      const user = await login(form.email, form.password);
+      console.log('[Login] Success — redirecting');
+      if (user.hasWorkspace) {
+        router.push('/dashboard');
+      } else {
+        router.push('/create-workspace');
+      }
     } catch (err: any) {
       console.error('[Login] Error:', err);
       setError(err.response?.data?.error?.message || t.error);

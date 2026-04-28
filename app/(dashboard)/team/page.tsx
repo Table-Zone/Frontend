@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface Member {
 }
 
 export default function TeamPage() {
+  const router = useRouter();
   const { t, isRTL } = useLanguage();
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +37,11 @@ export default function TeamPage() {
 
       const res = await teamAPI.getMembers(ws.id);
       setMembers(res.data.data.members);
-    } catch (err) {
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        router.push('/create-workspace');
+        return;
+      }
       setError(t.error);
     } finally {
       setIsLoading(false);

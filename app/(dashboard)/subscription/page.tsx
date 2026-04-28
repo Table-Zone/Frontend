@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CreditCard, Check, Clock, AlertTriangle, Users, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ interface Request {
 }
 
 export default function SubscriptionPage() {
+  const router = useRouter();
   const { t, isRTL, lang } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [requests, setRequests] = useState<Request[]>([]);
@@ -38,7 +40,11 @@ export default function SubscriptionPage() {
 
         const reqRes = await subscriptionAPI.getRequests(ws.id);
         setRequests(reqRes.data.data.requests || []);
-      } catch (err) {
+      } catch (err: any) {
+        if (err.response?.status === 404) {
+          router.push('/create-workspace');
+          return;
+        }
         setError(t.error);
       } finally {
         setIsLoading(false);

@@ -82,8 +82,12 @@ export default function DashboardPage() {
 
         const tablesRes = await tableAPI.getTables(ws.id);
         setTables(tablesRes.data.data.tables);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to load dashboard:', error);
+        if (error.response?.status === 404) {
+          router.push('/create-workspace');
+          return;
+        }
       } finally {
         setIsLoading(false);
       }

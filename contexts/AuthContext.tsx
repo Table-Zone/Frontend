@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Also set cookie for middleware
     document.cookie = `access_token=${accessToken}; path=/; max-age=86400`;
     setUser(user);
+    return user;
   };
 
   const logout = async () => {
