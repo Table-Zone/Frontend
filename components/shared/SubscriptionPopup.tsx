@@ -46,15 +46,20 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     });
   }, []);
 
+  const [error, setError] = useState('');
+
   const handleSelectPlan = async (plan: Plan) => {
     setSelectedPlan(plan);
+    setError('');
     setIsLoading(true);
     try {
       const res = await subscriptionAPI.requestSubscription(workspaceId, plan.id);
       setRequestId(res.data.data.requestId);
       setStep('bank');
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || 'Failed to create request';
+      setError(msg);
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +67,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
 
   const handleUpload = async () => {
     if (!receiptFile || !requestId) return;
+    setError('');
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -69,8 +75,10 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
       if (bankReference) formData.append('bankReference', bankReference);
       await subscriptionAPI.uploadReceipt(requestId, formData);
       setStep('success');
-    } catch (error) {
-      console.error(error);
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || 'Failed to upload receipt';
+      setError(msg);
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +115,13 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
             <X className="w-5 h-5" />
           </Button>
         </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Content */}
         <div className="p-6">

@@ -113,7 +113,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const itemPath = item.href.split('?')[0];
+            const isActive = pathname === itemPath;
             return (
               <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
