@@ -154,12 +154,12 @@ function RegisterForm() {
               <Mail className="w-6 h-6 text-tz-green" />
             </div>
             <DialogTitle className="text-xl font-bold">
-              {lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account Created'}
+              {lang === 'ar' ? 'تحقق من بريدك الإلكتروني' : 'Check Your Email'}
             </DialogTitle>
             <DialogDescription className="text-base text-muted-foreground">
               {lang === 'ar'
-                ? `تم إنشاء حسابك بنجاح. يمكنك الآن تسجيل الدخول وبدء استخدام Table Zone.`
-                : `Your account has been created successfully. You can now log in and start using Table Zone.`}
+                ? `تم إنشاء حسابك. يرجى التحقق من بريدك الإلكتروني والضغط على رابط التأكيد قبل تسجيل الدخول.`
+                : `Your account has been created. Please check your email and click the verification link before logging in.`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center mt-4">

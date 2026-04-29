@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { authAPI } from '@/lib/api';
 
 function LoginForm() {
   const { t } = useLanguage();
@@ -20,6 +21,23 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ email: '', password: '' });
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    setResendSuccess(false);
+    try {
+      await authAPI.resendVerification(unverifiedEmail);
+      setResendSuccess(true);
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to resend');
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +64,12 @@ function LoginForm() {
       }
     } catch (err: any) {
       console.error('[Login] Error:', err);
-      setError(err.response?.data?.error?.message || t.error);
+      const msg = err.response?.data?.error?.message || t.error;
+      const code = err.response?.data?.error?.code;
+      if (code === 'EMAIL_NOT_VERIFIED' || msg === 'Email not verified') {
+        setUnverifiedEmail(form.email);
+      }
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +95,16 @@ function LoginForm() {
           {error && (
             <div className="mb-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm text-center">
               {error}
+              {unverifiedEmail && (
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending}
+                  className="block mx-auto mt-2 text-xs font-bold underline hover:no-underline"
+                >
+                  {resending ? 'Sending...' : resendSuccess ? 'Sent! Check your email' : 'Resend verification email'}
+                </button>
+              )}
             </div>
           )}
 
