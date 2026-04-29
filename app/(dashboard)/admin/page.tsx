@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmDialog';
 import { adminAPI } from '@/lib/api';
 
 interface Request {
@@ -59,6 +61,8 @@ export default function AdminPage() {
     rejectedRequests: 0,
   });
   const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const { showToast } = useToast();
+  const confirm = useConfirm();
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -103,20 +107,38 @@ export default function AdminPage() {
   }, [filter, user]);
 
   const handleApprove = async (id: string) => {
+    const ok = await confirm({
+      title: isRTL ? 'تأكيد الطلب' : 'Approve Request',
+      message: isRTL ? 'هل أنت متأكد من قبول هذا الطلب؟' : 'Are you sure you want to approve this request?',
+      confirmLabel: isRTL ? 'قبول' : 'Approve',
+      cancelLabel: isRTL ? 'إلغاء' : 'Cancel',
+      variant: 'info',
+    });
+    if (!ok) return;
     try {
       await adminAPI.approveRequest(id);
+      showToast(isRTL ? 'تم قبول الطلب' : 'Request approved', 'success');
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || t.error);
+      showToast(err.response?.data?.error?.message || t.error, 'error');
     }
   };
 
   const handleReject = async (id: string) => {
+    const ok = await confirm({
+      title: isRTL ? 'رفض الطلب' : 'Reject Request',
+      message: isRTL ? 'هل أنت متأكد من رفض هذا الطلب؟' : 'Are you sure you want to reject this request?',
+      confirmLabel: isRTL ? 'رفض' : 'Reject',
+      cancelLabel: isRTL ? 'إلغاء' : 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await adminAPI.rejectRequest(id);
+      showToast(isRTL ? 'تم رفض الطلب' : 'Request rejected', 'success');
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || t.error);
+      showToast(err.response?.data?.error?.message || t.error, 'error');
     }
   };
 

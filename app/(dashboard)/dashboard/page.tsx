@@ -14,6 +14,7 @@ import TableCompactView from '@/components/tables/TableCompactView';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/components/shared/Toast';
 import { tableAPI, workspaceAPI } from '@/lib/api';
 
 type DashboardView = 'grid' | 'list' | 'compact';
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const [newTableName, setNewTableName] = useState('');
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [dashboardView, setDashboardView] = useState<DashboardView>('grid');
+  const { showToast } = useToast();
 
   // Load saved view preference
   useEffect(() => {
@@ -177,9 +179,10 @@ export default function DashboardPage() {
       await tableAPI.createTable(workspace.id, { name: newTableName.trim() });
       setNewTableName('');
       setShowAddTable(false);
+      showToast(isRTL ? 'تمت إضافة الطاولة' : 'Table added', 'success');
       fetchTables();
-    } catch (err) {
-      console.error('Failed to add table:', err);
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || (isRTL ? 'فشل إضافة الطاولة' : 'Failed to add table'), 'error');
     } finally {
       setIsAddingTable(false);
     }

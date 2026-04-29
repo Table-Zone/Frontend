@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/components/shared/Toast';
 import { History, Pencil, Trash2, Clock } from 'lucide-react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import SessionHistoryModal from './SessionHistoryModal';
@@ -90,6 +91,7 @@ export default function TableCard({
   const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useToast();
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Compute effective status locally so warning/alert shows immediately
@@ -203,9 +205,10 @@ export default function TableCard({
     setLoading(true);
     try {
       await tableAPI.deleteTable(workspaceId, table.id);
+      showToast(isRTL ? `تم حذف "${table.name}"` : `"${table.name}" deleted`, 'success');
       onDelete?.();
-    } catch (err) {
-      console.error('Failed to delete table:', err);
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || (isRTL ? 'فشل حذف الطاولة' : 'Failed to delete table'), 'error');
     } finally {
       setLoading(false);
     }

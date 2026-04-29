@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/components/shared/Toast';
 import { History, Pencil, Trash2, Clock, Play, Square, ChevronDown, ChevronUp } from 'lucide-react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import SessionHistoryModal from './SessionHistoryModal';
@@ -66,6 +67,7 @@ function TableListItem({
   const [expanded, setExpanded] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showSubscribe, setShowSubscribe] = useState(false);
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -125,7 +127,15 @@ function TableListItem({
   const handleDeleteConfirm = async () => {
     setShowDeleteConfirm(false);
     setLoading(true);
-    try { await tableAPI.deleteTable(workspaceId, table.id); onDelete?.(); } catch { /* silent */ } finally { setLoading(false); }
+    try {
+      await tableAPI.deleteTable(workspaceId, table.id);
+      showToast(isRTL ? `تم حذف "${table.name}"` : `"${table.name}" deleted`, 'success');
+      onDelete?.();
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || (isRTL ? 'فشل الحذف' : 'Failed to delete'), 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

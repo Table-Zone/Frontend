@@ -5,6 +5,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ToastProvider } from '@/components/shared/Toast';
+import { ConfirmDialogProvider } from '@/components/shared/ConfirmDialog';
 import HtmlLang from '@/components/shared/HtmlLang';
 
 const inter = Inter({
@@ -60,6 +61,7 @@ export default function RootLayout({
             <AuthProvider>
               <ToastProvider>
                 {children}
+                <ConfirmDialogProvider />
               </ToastProvider>
             </AuthProvider>
           </LanguageProvider>

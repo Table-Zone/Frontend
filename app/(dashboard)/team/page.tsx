@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle, RefreshCw, X, Link2, Check, Send, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/components/shared/Toast';
+import { useConfirm } from '@/components/shared/ConfirmDialog';
 import { teamAPI, workspaceAPI } from '@/lib/api';
 
 interface Member {
@@ -38,6 +40,8 @@ export default function TeamPage() {
   const [workspaceId, setWorkspaceId] = useState('');
   const [createdInviteUrl, setCreatedInviteUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
+  const confirm = useConfirm();
 
   const fetchMembers = async () => {
     try {
@@ -116,22 +120,38 @@ export default function TeamPage() {
   };
 
   const handleRemove = async (memberId: string) => {
-    if (!confirm(isRTL ? 'هل أنت متأكد من إزالة هذا العضو؟' : 'Are you sure you want to remove this member?')) return;
+    const ok = await confirm({
+      title: isRTL ? 'إزالة عضو' : 'Remove Member',
+      message: isRTL ? 'هل أنت متأكد من إزالة هذا العضو؟' : 'Are you sure you want to remove this member?',
+      confirmLabel: isRTL ? 'إزالة' : 'Remove',
+      cancelLabel: isRTL ? 'إلغاء' : 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       await teamAPI.removeMember(workspaceId, memberId);
+      showToast(isRTL ? 'تمت إزالة العضو' : 'Member removed', 'success');
       fetchMembers();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || t.error);
+      showToast(err.response?.data?.error?.message || t.error, 'error');
     }
   };
 
   const handleCancelInvite = async (invitationId: string) => {
-    if (!confirm(isRTL ? 'هل أنت متأكد من إلغاء هذه الدعوة؟' : 'Are you sure you want to cancel this invitation?')) return;
+    const ok = await confirm({
+      title: isRTL ? 'إلغاء دعوة' : 'Cancel Invitation',
+      message: isRTL ? 'هل أنت متأكد من إلغاء هذه الدعوة؟' : 'Are you sure you want to cancel this invitation?',
+      confirmLabel: isRTL ? 'إلغاء' : 'Cancel',
+      cancelLabel: isRTL ? 'تراجع' : 'Back',
+      variant: 'warning',
+    });
+    if (!ok) return;
     try {
       await teamAPI.cancelInvite(workspaceId, invitationId);
+      showToast(isRTL ? 'تم إلغاء الدعوة' : 'Invitation cancelled', 'success');
       fetchMembers();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || t.error);
+      showToast(err.response?.data?.error?.message || t.error, 'error');
     }
   };
 

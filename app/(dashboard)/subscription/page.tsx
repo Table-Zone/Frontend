@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/components/shared/Toast';
 import { subscriptionAPI, workspaceAPI } from '@/lib/api';
 
 interface Plan {
@@ -64,6 +65,7 @@ export default function SubscriptionPage() {
   const [showExtraSeats, setShowExtraSeats] = useState(false);
   const [extraSeatsRequestId, setExtraSeatsRequestId] = useState('');
   const [extraSeatsStep, setExtraSeatsStep] = useState<'form' | 'bank' | 'upload' | 'success'>('form');
+  const { showToast } = useToast();
 
   // Receipt modal
 
@@ -125,6 +127,7 @@ export default function SubscriptionPage() {
       if (bankReference) formData.append('bankReference', bankReference);
       await subscriptionAPI.uploadReceipt(requestId, formData);
       setStep('success');
+      showToast(isRTL ? 'تم رفع الإيصال بنجاح' : 'Receipt uploaded successfully', 'success');
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
       const allRequests = reqRes.data.data.requests || [];
       setLastRequest(allRequests[0] || null);
@@ -160,6 +163,7 @@ export default function SubscriptionPage() {
       if (bankReference) formData.append('bankReference', bankReference);
       await subscriptionAPI.uploadReceipt(extraSeatsRequestId, formData);
       setExtraSeatsStep('success');
+      showToast(isRTL ? 'تم رفع إيصال المقاعد الإضافية' : 'Extra seats receipt uploaded', 'success');
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
       const allRequests = reqRes.data.data.requests || [];
       setLastRequest(allRequests[0] || null);
