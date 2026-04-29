@@ -34,10 +34,15 @@ function LoginForm() {
         router.push(redirect);
       } else if (user.role === 'admin') {
         router.push('/admin');
-      } else if (user.hasWorkspace) {
-        router.push('/dashboard');
       } else {
-        router.push('/create-workspace');
+        const lastSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
+        if (lastSlug) {
+          router.push(`/dashboard?workspaceSlug=${encodeURIComponent(lastSlug)}`);
+        } else if (user.hasWorkspace) {
+          router.push('/dashboard');
+        } else {
+          router.push('/create-workspace');
+        }
       }
     } catch (err: any) {
       console.error('[Login] Error:', err);

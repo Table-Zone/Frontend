@@ -97,6 +97,25 @@ export default function DashboardPage() {
       } catch (error: any) {
         console.error('Failed to load dashboard:', error);
         if (error.response?.status === 404) {
+          // If loading by slug failed, user may have been removed from that workspace
+          if (workspaceSlug) {
+            localStorage.removeItem('currentWorkspaceSlug');
+            // Try loading owned workspace instead
+            try {
+              const fallbackRes = await workspaceAPI.getMyWorkspace();
+              const fallbackWs = fallbackRes.data.data.workspace;
+              setWorkspace(fallbackWs);
+              if (fallbackWs.slug) {
+                localStorage.setItem('currentWorkspaceSlug', fallbackWs.slug);
+              }
+              const tablesRes = await tableAPI.getTables(fallbackWs.id);
+              setTables(tablesRes.data.data.tables);
+              setIsLoading(false);
+              return;
+            } catch {
+              // No owned workspace either
+            }
+          }
           if (user?.role === 'admin') {
             router.push('/admin');
           } else {
