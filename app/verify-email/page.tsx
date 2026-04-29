@@ -14,6 +14,9 @@ function VerifyEmailContent() {
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const [rawError, setRawError] = useState('');
+  const [email, setEmail] = useState('');
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'sent'>('idle');
 
   useEffect(() => {
     const verify = async () => {
@@ -23,16 +26,34 @@ function VerifyEmailContent() {
         return;
       }
       try {
-        await authAPI.verifyEmail(token);
+        console.log('[VerifyEmail] Calling verify with token:', token.slice(0, 8) + '...');
+        const res = await authAPI.verifyEmail(token);
+        console.log('[VerifyEmail] Success:', res.data);
         setStatus('success');
         setMessage('Your email has been verified successfully!');
       } catch (err: any) {
+        console.error('[VerifyEmail] Error:', err);
+        const statusCode = err.response?.status;
+        const errMsg = err.response?.data?.error?.message || err.message || 'Unknown error';
+        const errCode = err.response?.data?.error?.code || 'NO_CODE';
         setStatus('error');
-        setMessage(err.response?.data?.error?.message || 'Invalid or expired link');
+        setMessage(errMsg);
+        setRawError(`HTTP ${statusCode} | Code: ${errCode}`);
       }
     };
     verify();
   }, [token]);
+
+  const handleResend = async () => {
+    if (!email.trim()) return;
+    setResendStatus('sending');
+    try {
+      await authAPI.resendVerification(email.trim());
+      setResendStatus('sent');
+    } catch {
+      setResendStatus('idle');
+    }
+  };
 
   return (
     <motion.div
@@ -46,6 +67,7 @@ function VerifyEmailContent() {
             <Loader2 className="w-8 h-8 text-tz-primary animate-spin" />
           </div>
           <h1 className="text-xl font-bold text-tz-espresso">Verifying your email...</h1>
+          <p className="text-sm text-muted-foreground mt-2">Token: {token ? token.slice(0, 12) + '...' : 'none'}</p>
         </>
       )}
 
@@ -68,10 +90,31 @@ function VerifyEmailContent() {
             <AlertTriangle className="w-8 h-8 text-tz-red" />
           </div>
           <h1 className="text-xl font-bold text-tz-espresso mb-2">Verification Failed</h1>
-          <p className="text-muted-foreground mb-6">{message}</p>
-          <Button onClick={() => router.push('/login')} className="bg-tz-primary hover:bg-tz-primary-dark text-white h-12 px-8">
-            Go to Login
-          </Button>
+          <p className="text-muted-foreground mb-2">{message}</p>
+          {rawError && <p className="text-xs text-red-500 mb-4 font-mono">{rawError}</p>}
+          <div className="space-y-3">
+            <Button onClick={() => router.push('/login')} className="bg-tz-primary hover:bg-tz-primary-dark text-white h-12 px-8 w-full">
+              Go to Login
+            </Button>
+            <div className="pt-4 border-t">
+              <p className="text-sm text-muted-foreground mb-2">Need a new link? Enter your email:</p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-2 border rounded-lg mb-2 text-sm"
+              />
+              <Button
+                onClick={handleResend}
+                disabled={resendStatus !== 'idle' || !email.trim()}
+                variant="outline"
+                className="w-full"
+              >
+                {resendStatus === 'sending' ? 'Sending...' : resendStatus === 'sent' ? 'Sent!' : 'Resend Verification Email'}
+              </Button>
+            </div>
+          </div>
         </>
       )}
     </motion.div>
