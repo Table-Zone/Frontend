@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, CreditCard, Check, X, Search, Clock, AlertTriangle,
-  Building2, Users, TrendingUp, Ban,
+  Building2, Users, TrendingUp, Ban, Receipt,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +56,7 @@ export default function AdminPage() {
     approvedRequests: 0,
     rejectedRequests: 0,
   });
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -272,14 +273,12 @@ export default function AdminPage() {
 
             {req.receiptImageUrl && (
               <div className="mt-3 pt-3 border-t border-tz-cream-dark">
-                <a
-                  href={getReceiptUrl(req.receiptImageUrl) || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => setViewingReceipt(getReceiptUrl(req.receiptImageUrl))}
                   className="text-sm text-tz-primary hover:underline"
                 >
                   {isRTL ? 'عرض الإيصال' : 'View Receipt'}
-                </a>
+                </button>
                 {req.bankReference && (
                   <span className="text-sm text-muted-foreground ml-3">
                     Ref: {req.bankReference}
@@ -290,6 +289,36 @@ export default function AdminPage() {
           </div>
         ))}
       </div>
+      {/* Receipt Image Modal */}
+      {viewingReceipt && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          onClick={() => setViewingReceipt(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.9 }}
+            className="relative bg-white rounded-2xl p-2 max-w-2xl w-full max-h-[90vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setViewingReceipt(null)}
+              className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <img
+              src={viewingReceipt}
+              alt="Receipt"
+              className="w-full h-auto rounded-xl"
+            />
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 }
