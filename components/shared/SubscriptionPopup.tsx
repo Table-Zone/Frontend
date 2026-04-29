@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, Check, ArrowLeft, ArrowRight, Building2, Hash, CreditCard } from 'lucide-react';
+import { X, Upload, Check, ArrowLeft, ArrowRight, Building2, Hash, CreditCard, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -169,6 +169,16 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
                     <p className="text-xs text-muted-foreground">{isRTL ? 'البنك' : 'Bank'}</p>
                     <p className="font-medium">{bankDetails.bankName}</p>
                   </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <UserCircle className="w-5 h-5 text-tz-primary" />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">{isRTL ? 'اسم الحساب' : 'Account Holder'}</p>
+                    <p className="font-medium">{bankDetails.accountName}</p>
+                  </div>
+                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.accountName)}>
+                    <Check className="w-4 h-4" />
+                  </Button>
                 </div>
                 <div className="flex items-center gap-3">
                   <CreditCard className="w-5 h-5 text-tz-primary" />

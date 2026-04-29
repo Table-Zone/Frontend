@@ -498,6 +498,16 @@ function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL,
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Users className="w-5 h-5 text-tz-primary" />
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">{isRTL ? 'اسم الحساب' : 'Account Holder'}</p>
+            <p className="font-medium">{bankDetails.accountName}</p>
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.accountName)}>
+            <Check className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="flex items-center gap-3">
           <CreditCard className="w-5 h-5 text-tz-primary" />
           <div className="flex-1">
             <p className="text-xs text-muted-foreground">{isRTL ? 'رقم الحساب' : 'Account Number'}</p>
