@@ -27,6 +27,13 @@ interface Request {
   userEmail: string;
 }
 
+function getReceiptUrl(relativePath: string | null): string | null {
+  if (!relativePath) return null;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const cleanPath = relativePath.replace(/^\.\//, '');
+  return `${baseUrl}/${cleanPath}`;
+}
+
 interface Stats {
   totalWorkspaces: number;
   pendingRequests: number;
@@ -266,7 +273,7 @@ export default function AdminPage() {
             {req.receiptImageUrl && (
               <div className="mt-3 pt-3 border-t border-tz-cream-dark">
                 <a
-                  href={req.receiptImageUrl}
+                  href={getReceiptUrl(req.receiptImageUrl) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-tz-primary hover:underline"
