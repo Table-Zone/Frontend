@@ -133,6 +133,8 @@ export default function DashboardPage() {
       socket.on('table:timer:stopped', () => fetchTables());
       socket.on('table:status:changed', () => fetchTables());
       socket.on('table:updated', () => fetchTables());
+      socket.on('table:name:updated', () => fetchTables());
+      socket.on('table:note:updated', () => fetchTables());
       socket.on('table:created', () => fetchTables());
       socket.on('table:deleted', () => fetchTables());
       socket.on('table:warning:triggered', () => fetchTables());
