@@ -128,9 +128,6 @@ function LoginForm() {
                 {t.register}
               </Link>
             </p>
-            <Link href="/admin-login" className="text-sm text-tz-espresso hover:underline block font-medium">
-              Admin Login
-            </Link>
           </div>
         </div>
       </motion.div>
