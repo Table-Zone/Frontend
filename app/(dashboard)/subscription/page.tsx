@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
-  CreditCard, Check, Clock, AlertTriangle, Users, Receipt,
+  CreditCard, Check, Clock, AlertTriangle, Users,
   Plus, Minus, Upload, ArrowRight, Building2, Hash,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,18 +40,11 @@ interface Request {
   extraSeatsCount: number;
 }
 
-function getReceiptUrl(relativePath: string | null): string | null {
-  if (!relativePath) return null;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const cleanPath = relativePath.replace(/^\.\//, '');
-  return `${baseUrl}/${cleanPath}`;
-}
-
 export default function SubscriptionPage() {
   const router = useRouter();
   const { t, isRTL, lang } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [requests, setRequests] = useState<Request[]>([]);
+  const [lastRequest, setLastRequest] = useState<Request | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [bankDetails, setBankDetails] = useState<any>(null);
   const [workspaceId, setWorkspaceId] = useState('');
@@ -73,7 +66,7 @@ export default function SubscriptionPage() {
   const [extraSeatsStep, setExtraSeatsStep] = useState<'form' | 'bank' | 'upload' | 'success'>('form');
 
   // Receipt modal
-  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+
 
   useEffect(() => {
     const load = async () => {
@@ -91,7 +84,9 @@ export default function SubscriptionPage() {
         ]);
         setPlans(plansRes.data.data.plans || []);
         setBankDetails(bankRes.data.data);
-        setRequests(reqRes.data.data.requests || []);
+        const allRequests = reqRes.data.data.requests || [];
+        const last = allRequests[0] || null;
+        setLastRequest(last);
       } catch (err: any) {
         if (err.response?.status === 404) {
           router.push('/create-workspace');
@@ -130,9 +125,9 @@ export default function SubscriptionPage() {
       if (bankReference) formData.append('bankReference', bankReference);
       await subscriptionAPI.uploadReceipt(requestId, formData);
       setStep('success');
-      // Refresh requests
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
-      setRequests(reqRes.data.data.requests || []);
+      const allRequests = reqRes.data.data.requests || [];
+      setLastRequest(allRequests[0] || null);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to upload receipt');
     } finally {
@@ -166,7 +161,8 @@ export default function SubscriptionPage() {
       await subscriptionAPI.uploadReceipt(extraSeatsRequestId, formData);
       setExtraSeatsStep('success');
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
-      setRequests(reqRes.data.data.requests || []);
+      const allRequests = reqRes.data.data.requests || [];
+      setLastRequest(allRequests[0] || null);
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to upload receipt');
     } finally {
@@ -230,6 +226,29 @@ export default function SubscriptionPage() {
           <AlertTriangle className="w-4 h-4 shrink-0" />
           {error}
         </div>
+      )}
+
+      {/* Active Subscription Banner */}
+      {subscription?.status === 'active' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 rounded-2xl bg-tz-green/10 border border-tz-green/20 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-full bg-tz-green flex items-center justify-center shrink-0">
+            <Check className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-tz-green">
+              {isRTL ? 'الاشتراك نشط' : 'Subscription Active'}
+            </p>
+            <p className="text-sm text-tz-green/70">
+              {isRTL
+                ? `الخطة: ${subscription.plan === 'monthly' ? 'شهري' : 'ربع سنوي'} · ${subscription.totalStaffSeats} مقاعد`
+                : `Plan: ${subscription.plan} · ${subscription.totalStaffSeats} seats`}
+            </p>
+          </div>
+        </motion.div>
       )}
 
       {/* Current Subscription */}
@@ -461,81 +480,7 @@ export default function SubscriptionPage() {
         </div>
       )}
 
-      {/* Request History */}
-      {requests.length > 0 && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-tz-primary" />
-            {isRTL ? 'سجل الطلبات' : 'Request History'}
-          </h2>
 
-          <div className="space-y-3">
-            {requests.map((req) => (
-              <div
-                key={req.id}
-                className="flex items-center justify-between p-4 rounded-xl bg-tz-cream"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-sm">
-                      {req.type === 'extra_seats'
-                        ? (isRTL ? `مقاعد إضافية (${req.extraSeatsCount})` : `Extra Seats (${req.extraSeatsCount})`)
-                        : (req.plan === 'monthly' ? t.monthly : t.quarterly)}
-                    </p>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColors[req.status]}`}>
-                      {statusLabels[req.status] || req.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(req.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
-                  </p>
-                </div>
-                {req.receiptImageUrl && (
-                  <button
-                    onClick={() => setViewingReceipt(getReceiptUrl(req.receiptImageUrl))}
-                    className="text-xs text-tz-primary hover:underline"
-                  >
-                    {isRTL ? 'عرض الإيصال' : 'View Receipt'}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Receipt Modal */}
-      <AnimatePresence>
-        {viewingReceipt && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            onClick={() => setViewingReceipt(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className="relative bg-white rounded-2xl p-2 max-w-2xl w-full max-h-[90vh] overflow-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setViewingReceipt(null)}
-                className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
-              >
-                <span className="text-lg leading-none">×</span>
-              </button>
-              <img
-                src={viewingReceipt}
-                alt="Receipt"
-                className="w-full h-auto rounded-xl"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
