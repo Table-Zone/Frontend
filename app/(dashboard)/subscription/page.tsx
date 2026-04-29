@@ -2,17 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { CreditCard, Check, Clock, AlertTriangle, Users, Receipt } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  CreditCard, Check, Clock, AlertTriangle, Users, Receipt,
+  Plus, Minus, Upload, ArrowRight, Building2, Hash,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { subscriptionAPI, workspaceAPI } from '@/lib/api';
+
+interface Plan {
+  id: string;
+  name: string;
+  labelAr: string;
+  labelEn: string;
+  priceSar: number;
+  baseStaffSeats: number;
+  durationDays: number;
+  extraStaffSeatPriceSar: number;
+}
 
 interface Subscription {
   status: string;
   plan: string;
   expiresAt: string | null;
   totalStaffSeats: number;
+  extraStaffSeats: number;
 }
 
 interface Request {
@@ -21,6 +36,15 @@ interface Request {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
   receiptImageUrl: string | null;
+  type: string;
+  extraSeatsCount: number;
+}
+
+function getReceiptUrl(relativePath: string | null): string | null {
+  if (!relativePath) return null;
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const cleanPath = relativePath.replace(/^\.\//, '');
+  return `${baseUrl}/${cleanPath}`;
 }
 
 export default function SubscriptionPage() {
@@ -28,8 +52,28 @@ export default function SubscriptionPage() {
   const { t, isRTL, lang } = useLanguage();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [bankDetails, setBankDetails] = useState<any>(null);
+  const [workspaceId, setWorkspaceId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Subscribe flow state
+  const [step, setStep] = useState<'view' | 'bank' | 'upload' | 'success'>('view');
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [requestId, setRequestId] = useState('');
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [bankReference, setBankReference] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Extra seats state
+  const [extraSeatsCount, setExtraSeatsCount] = useState(1);
+  const [showExtraSeats, setShowExtraSeats] = useState(false);
+  const [extraSeatsRequestId, setExtraSeatsRequestId] = useState('');
+  const [extraSeatsStep, setExtraSeatsStep] = useState<'form' | 'bank' | 'upload' | 'success'>('form');
+
+  // Receipt modal
+  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -37,9 +81,16 @@ export default function SubscriptionPage() {
         const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
         const wsRes = await workspaceAPI.getMyWorkspace(storedSlug || undefined);
         const ws = wsRes.data.data.workspace;
+        setWorkspaceId(ws.id);
         setSubscription(ws.subscription);
 
-        const reqRes = await subscriptionAPI.getRequests(ws.id);
+        const [plansRes, bankRes, reqRes] = await Promise.all([
+          subscriptionAPI.getPlans(),
+          subscriptionAPI.getBankDetails(),
+          subscriptionAPI.getRequests(ws.id),
+        ]);
+        setPlans(plansRes.data.data.plans || []);
+        setBankDetails(bankRes.data.data);
         setRequests(reqRes.data.data.requests || []);
       } catch (err: any) {
         if (err.response?.status === 404) {
@@ -52,7 +103,92 @@ export default function SubscriptionPage() {
       }
     };
     load();
-  }, [t.error]);
+  }, [t.error, router]);
+
+  const handleSelectPlan = async (plan: Plan) => {
+    setSelectedPlan(plan);
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await subscriptionAPI.requestSubscription(workspaceId, plan.id);
+      setRequestId(res.data.data.requestId);
+      setStep('bank');
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to create request');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUploadReceipt = async () => {
+    if (!receiptFile || !requestId) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('receipt', receiptFile);
+      if (bankReference) formData.append('bankReference', bankReference);
+      await subscriptionAPI.uploadReceipt(requestId, formData);
+      setStep('success');
+      // Refresh requests
+      const reqRes = await subscriptionAPI.getRequests(workspaceId);
+      setRequests(reqRes.data.data.requests || []);
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to upload receipt');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestExtraSeats = async () => {
+    if (extraSeatsCount < 1) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const res = await subscriptionAPI.requestExtraSeats(workspaceId, extraSeatsCount);
+      setExtraSeatsRequestId(res.data.data.requestId);
+      setExtraSeatsStep('bank');
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to request extra seats');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleUploadExtraSeatsReceipt = async () => {
+    if (!receiptFile || !extraSeatsRequestId) return;
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('receipt', receiptFile);
+      if (bankReference) formData.append('bankReference', bankReference);
+      await subscriptionAPI.uploadReceipt(extraSeatsRequestId, formData);
+      setExtraSeatsStep('success');
+      const reqRes = await subscriptionAPI.getRequests(workspaceId);
+      setRequests(reqRes.data.data.requests || []);
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to upload receipt');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const resetFlow = () => {
+    setStep('view');
+    setSelectedPlan(null);
+    setRequestId('');
+    setReceiptFile(null);
+    setBankReference('');
+    setShowExtraSeats(false);
+    setExtraSeatsRequestId('');
+    setExtraSeatsStep('form');
+    setExtraSeatsCount(1);
+  };
 
   if (isLoading) {
     return (
@@ -77,6 +213,8 @@ export default function SubscriptionPage() {
     cancelled: isRTL ? 'ملغى' : 'Cancelled',
     pending: t.pending,
   };
+
+  const ArrowIcon = isRTL ? ArrowRight : ArrowRight;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -129,58 +267,197 @@ export default function SubscriptionPage() {
                 <span className="font-medium">{new Date(subscription.expiresAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}</span>
               </div>
             )}
+
+            {/* Add Extra Seats Button */}
+            {subscription.status === 'active' && (
+              <div className="pt-4 border-t border-tz-cream-dark">
+                {!showExtraSeats ? (
+                  <Button
+                    onClick={() => setShowExtraSeats(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {isRTL ? 'شراء مقاعد إضافية' : 'Buy Extra Seats'}
+                  </Button>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="space-y-4"
+                  >
+                    {extraSeatsStep === 'form' && (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{isRTL ? 'عدد المقاعد الإضافية' : 'Extra Seats'}</span>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => setExtraSeatsCount(Math.max(1, extraSeatsCount - 1))}
+                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream"
+                            >
+                              <Minus className="w-4 h-4" />
+                            </button>
+                            <span className="font-bold w-6 text-center">{extraSeatsCount}</span>
+                            <button
+                              onClick={() => setExtraSeatsCount(extraSeatsCount + 1)}
+                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream"
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-tz-primary/5 border border-tz-primary/20">
+                          <p className="text-sm font-medium text-tz-primary">
+                            {isRTL
+                              ? `المبلغ المطلوب: ${extraSeatsCount * 50} ر.س`
+                              : `Total: ${extraSeatsCount * 50} SAR`}
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" onClick={() => setShowExtraSeats(false)} className="flex-1">
+                            {t.cancel}
+                          </Button>
+                          <Button
+                            onClick={handleRequestExtraSeats}
+                            disabled={isSubmitting}
+                            className="flex-1 bg-tz-primary hover:bg-tz-primary-dark text-white"
+                          >
+                            {isSubmitting ? t.loading : isRTL ? 'متابعة الدفع' : 'Continue to Payment'}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+
+                    {extraSeatsStep === 'bank' && bankDetails && (
+                      <BankTransferStep
+                        bankDetails={bankDetails}
+                        amount={extraSeatsCount * 50}
+                        onTransferred={() => setExtraSeatsStep('upload')}
+                        onCancel={() => setShowExtraSeats(false)}
+                        isRTL={isRTL}
+                        copyToClipboard={copyToClipboard}
+                      />
+                    )}
+
+                    {extraSeatsStep === 'upload' && (
+                      <UploadReceiptStep
+                        receiptFile={receiptFile}
+                        setReceiptFile={setReceiptFile}
+                        bankReference={bankReference}
+                        setBankReference={setBankReference}
+                        onUpload={handleUploadExtraSeatsReceipt}
+                        onCancel={() => setShowExtraSeats(false)}
+                        isSubmitting={isSubmitting}
+                        isRTL={isRTL}
+                        t={t}
+                      />
+                    )}
+
+                    {extraSeatsStep === 'success' && (
+                      <SuccessStep
+                        message={isRTL ? 'تم رفع الإيصال. سيتم تفعيل المقاعد قريباً.' : 'Receipt uploaded. Seats will be activated soon.'}
+                        onClose={() => { setShowExtraSeats(false); resetFlow(); }}
+                        isRTL={isRTL}
+                      />
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            )}
           </div>
         ) : (
           <div className="text-center py-8">
             <p className="text-muted-foreground mb-4">
               {isRTL ? 'لا يوجد اشتراك نشط' : 'No active subscription'}
             </p>
-            <Button className="bg-tz-primary hover:bg-tz-primary-dark text-white">
-              {t.viewPlans}
-            </Button>
           </div>
         )}
       </div>
 
-      {/* Plans */}
-      {(!subscription || subscription.status !== 'active') && (
+      {/* Plans (for new subscription or renewal) */}
+      {(!subscription || subscription.status !== 'active') && step === 'view' && (
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
           <h2 className="text-lg font-bold mb-4">{isRTL ? 'الخطط المتاحة' : 'Available Plans'}</h2>
 
           <div className="space-y-3">
-            <PlanCard
-              name={t.monthly}
-              price="70"
-              duration={isRTL ? '30 يوم' : '30 days'}
-              features={[
-                isRTL ? '1 مقعد موظف' : '1 staff seat',
-                isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                isRTL ? 'دعم فني' : 'Support',
-              ]}
-              recommended={false}
-            />
-            <PlanCard
-              name={t.quarterly}
-              price="200"
-              duration={isRTL ? '90 يوم' : '90 days'}
-              features={[
-                isRTL ? '1 مقعد موظف' : '1 staff seat',
-                isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                isRTL ? 'دعم فني' : 'Support',
-                isRTL ? 'توفير 10%' : 'Save 10%',
-              ]}
-              recommended={true}
-            />
+            {plans.map((plan) => (
+              <motion.div
+                key={plan.id}
+                whileHover={{ scale: 1.01 }}
+                className={`relative rounded-2xl border-2 p-5 transition-colors ${
+                  selectedPlan?.id === plan.id
+                    ? 'border-tz-primary bg-tz-primary/5'
+                    : 'border-tz-cream-dark hover:border-tz-primary/50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg">{isRTL ? plan.labelAr : plan.labelEn}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {plan.durationDays} {isRTL ? 'يوم' : 'days'} · {plan.baseStaffSeats} {t.staffSeats}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-tz-primary">{plan.priceSar}</p>
+                    <p className="text-xs text-muted-foreground">{isRTL ? 'ر.س' : 'SAR'}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => handleSelectPlan(plan)}
+                  disabled={isSubmitting}
+                  className="w-full mt-4 bg-tz-primary hover:bg-tz-primary-dark text-white"
+                >
+                  {isSubmitting ? t.loading : isRTL ? 'اشترك الآن' : 'Subscribe'}
+                </Button>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="mt-4 p-4 rounded-xl bg-tz-cream text-sm text-muted-foreground">
-            <p className="font-medium text-tz-espresso mb-1">
-              {isRTL ? 'مقاعد إضافية:' : 'Extra seats:'}
-            </p>
-            {isRTL
-              ? 'كل مقعد إضافي بـ 50 ريال (نفس طريقة الدفع).'
-              : 'Each extra seat is 50 SAR (same payment method).'}
-          </div>
+          {plans.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground">
+              {isRTL ? 'لا توجد خطط متاحة' : 'No plans available'}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Subscribe flow steps */}
+      {step === 'bank' && bankDetails && selectedPlan && (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+          <BankTransferStep
+            bankDetails={bankDetails}
+            amount={selectedPlan.priceSar}
+            onTransferred={() => setStep('upload')}
+            onCancel={resetFlow}
+            isRTL={isRTL}
+            copyToClipboard={copyToClipboard}
+          />
+        </div>
+      )}
+
+      {step === 'upload' && (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+          <UploadReceiptStep
+            receiptFile={receiptFile}
+            setReceiptFile={setReceiptFile}
+            bankReference={bankReference}
+            setBankReference={setBankReference}
+            onUpload={handleUploadReceipt}
+            onCancel={resetFlow}
+            isSubmitting={isSubmitting}
+            isRTL={isRTL}
+            t={t}
+          />
+        </div>
+      )}
+
+      {step === 'success' && (
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+          <SuccessStep
+            message={isRTL ? 'تم رفع الإيصال. سيتم تفعيل الاشتراك قريباً.' : 'Receipt uploaded. Subscription will be activated soon.'}
+            onClose={resetFlow}
+            isRTL={isRTL}
+          />
         </div>
       )}
 
@@ -199,61 +476,192 @@ export default function SubscriptionPage() {
                 className="flex items-center justify-between p-4 rounded-xl bg-tz-cream"
               >
                 <div>
-                  <p className="font-medium text-sm">{req.plan === 'monthly' ? t.monthly : t.quarterly}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">
+                      {req.type === 'extra_seats'
+                        ? (isRTL ? `مقاعد إضافية (${req.extraSeatsCount})` : `Extra Seats (${req.extraSeatsCount})`)
+                        : (req.plan === 'monthly' ? t.monthly : t.quarterly)}
+                    </p>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColors[req.status]}`}>
+                      {statusLabels[req.status] || req.status}
+                    </span>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {new Date(req.createdAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}
                   </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[req.status]}`}>
-                  {statusLabels[req.status] || req.status}
-                </span>
+                {req.receiptImageUrl && (
+                  <button
+                    onClick={() => setViewingReceipt(getReceiptUrl(req.receiptImageUrl))}
+                    className="text-xs text-tz-primary hover:underline"
+                  >
+                    {isRTL ? 'عرض الإيصال' : 'View Receipt'}
+                  </button>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Receipt Modal */}
+      <AnimatePresence>
+        {viewingReceipt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setViewingReceipt(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="relative bg-white rounded-2xl p-2 max-w-2xl w-full max-h-[90vh] overflow-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setViewingReceipt(null)}
+                className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
+              >
+                <span className="text-lg leading-none">×</span>
+              </button>
+              <img
+                src={viewingReceipt}
+                alt="Receipt"
+                className="w-full h-auto rounded-xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function PlanCard({ name, price, duration, features, recommended }: {
-  name: string;
-  price: string;
-  duration: string;
-  features: string[];
-  recommended: boolean;
-}) {
+// Sub-components
+function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL, copyToClipboard }: any) {
   return (
-    <div className={`relative rounded-2xl p-5 border-2 transition-all ${
-      recommended
-        ? 'border-tz-primary bg-tz-primary/5'
-        : 'border-tz-cream-dark hover:border-tz-primary/30'
-    }`}>
-      {recommended && (
-        <div className="absolute -top-3 right-4 px-3 py-1 rounded-full bg-tz-primary text-white text-xs font-bold">
-          Recommended
+    <div className="space-y-6">
+      <div className="bg-tz-cream rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-3">
+          <Building2 className="w-5 h-5 text-tz-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground">{isRTL ? 'البنك' : 'Bank'}</p>
+            <p className="font-medium">{bankDetails.bankName}</p>
+          </div>
         </div>
-      )}
-
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="font-bold">{name}</h3>
-          <p className="text-xs text-muted-foreground">{duration}</p>
+        <div className="flex items-center gap-3">
+          <CreditCard className="w-5 h-5 text-tz-primary" />
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">{isRTL ? 'رقم الحساب' : 'Account Number'}</p>
+            <p className="font-medium font-mono">{bankDetails.accountNumber}</p>
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.accountNumber)}>
+            <Check className="w-4 h-4" />
+          </Button>
         </div>
-        <div className="text-right">
-          <span className="text-2xl font-extrabold text-tz-primary">{price}</span>
-          <span className="text-sm text-muted-foreground"> SAR</span>
+        <div className="flex items-center gap-3">
+          <Hash className="w-5 h-5 text-tz-primary" />
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">IBAN</p>
+            <p className="font-medium font-mono text-sm">{bankDetails.iban}</p>
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.iban)}>
+            <Check className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      <ul className="space-y-2">
-        {features.map((f, i) => (
-          <li key={i} className="flex items-center gap-2 text-sm">
-            <Check className="w-4 h-4 text-tz-green shrink-0" />
-            {f}
-          </li>
-        ))}
-      </ul>
+      <div className="bg-tz-primary/5 rounded-2xl p-4 border border-tz-primary/20">
+        <p className="text-sm font-medium text-tz-primary">
+          {isRTL
+            ? `يرجى تحويل ${amount} ر.س إلى الحساب أعلاه`
+            : `Please transfer ${amount} SAR to the account above`}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onCancel} className="flex-1">{isRTL ? 'إلغاء' : 'Cancel'}</Button>
+        <Button onClick={onTransferred} className="flex-1 bg-tz-primary hover:bg-tz-primary-dark text-white">
+          {isRTL ? 'تم التحويل، لنرفع الإيصال' : 'Transferred, upload receipt'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function UploadReceiptStep({ receiptFile, setReceiptFile, bankReference, setBankReference, onUpload, onCancel, isSubmitting, isRTL, t }: any) {
+  return (
+    <div className="space-y-6">
+      <div className="border-2 border-dashed border-tz-cream-dark rounded-2xl p-8 text-center hover:border-tz-primary/50 transition-colors">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+          className="hidden"
+          id="receipt-upload"
+        />
+        <label htmlFor="receipt-upload" className="cursor-pointer">
+          {receiptFile ? (
+            <div className="space-y-2">
+              <Check className="w-8 h-8 text-tz-green mx-auto" />
+              <p className="text-sm font-medium">{receiptFile.name}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Upload className="w-8 h-8 text-muted-foreground mx-auto" />
+              <p className="text-sm text-muted-foreground">
+                {isRTL ? 'اضغط لرفع صورة الإيصال' : 'Click to upload receipt image'}
+              </p>
+            </div>
+          )}
+        </label>
+      </div>
+
+      <div>
+        <label className="text-sm font-medium mb-2 block">
+          {isRTL ? 'رقم المرجع (اختياري)' : 'Reference Number (optional)'}
+        </label>
+        <input
+          type="text"
+          value={bankReference}
+          onChange={(e) => setBankReference(e.target.value)}
+          className="w-full h-12 px-4 rounded-xl border-2 border-input bg-background"
+          placeholder={isRTL ? 'رقم العملية' : 'Transaction number'}
+        />
+      </div>
+
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onCancel} className="flex-1">{isRTL ? 'إلغاء' : 'Cancel'}</Button>
+        <Button
+          onClick={onUpload}
+          disabled={!receiptFile || isSubmitting}
+          className="flex-1 bg-tz-primary hover:bg-tz-primary-dark text-white"
+        >
+          {isSubmitting ? t.loading : t.uploadReceipt}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SuccessStep({ message, onClose, isRTL }: any) {
+  return (
+    <div className="text-center py-8 space-y-4">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        className="w-20 h-20 rounded-full bg-tz-green/10 flex items-center justify-center mx-auto"
+      >
+        <Check className="w-10 h-10 text-tz-green" />
+      </motion.div>
+      <h3 className="text-xl font-bold">{isRTL ? 'شكراً!' : 'Thank You!'}</h3>
+      <p className="text-muted-foreground">{message}</p>
+      <Button onClick={onClose} className="bg-tz-primary hover:bg-tz-primary-dark text-white">
+        {isRTL ? 'إغلاق' : 'Close'}
+      </Button>
     </div>
   );
 }

@@ -20,6 +20,8 @@ interface Request {
   plan: string;
   priceSar: number;
   status: 'pending' | 'approved' | 'rejected';
+  type: string;
+  extraSeatsCount: number;
   bankReference: string | null;
   receiptImageUrl: string | null;
   createdAt: string;
@@ -234,12 +236,19 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-bold">{req.workspaceName}</h3>
                   <StatusBadge status={req.status} />
+                  {req.type === 'extra_seats' && (
+                    <span className="px-2 py-0.5 rounded-full bg-tz-blue/10 text-tz-blue text-[10px] font-bold">
+                      {isRTL ? `+${req.extraSeatsCount} مقعد` : `+${req.extraSeatsCount} seats`}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground">{req.userName} · {req.userEmail}</p>
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <CreditCard className="w-3.5 h-3.5" />
-                    {req.plan === 'monthly' ? t.monthly : req.plan === 'quarterly' ? t.quarterly : req.plan} · {req.priceSar} SAR
+                    {req.type === 'extra_seats'
+                      ? (isRTL ? `مقاعد إضافية · ${req.priceSar} ر.س` : `Extra Seats · ${req.priceSar} SAR`)
+                      : `${req.plan === 'monthly' ? t.monthly : req.plan === 'quarterly' ? t.quarterly : req.plan} · ${req.priceSar} SAR`}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />

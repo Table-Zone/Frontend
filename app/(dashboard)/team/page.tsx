@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle, RefreshCw, X, Link2, Check, Send } from 'lucide-react';
+import { Users, Plus, Crown, User, Trash2, Mail, AlertTriangle, RefreshCw, X, Link2, Check, Send, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { teamAPI, workspaceAPI } from '@/lib/api';
@@ -168,14 +168,25 @@ export default function TeamPage() {
           </div>
         </div>
 
-        <Button
-          onClick={handleGenerateInvite}
-          className="bg-tz-primary hover:bg-tz-primary-dark text-white h-11 px-5"
-          disabled={isInviting || memberCount + pendingInvites.length >= totalStaffSeats}
-        >
-          <Plus className="w-4 h-4 mr-1.5" />
-          {isInviting ? t.loading : t.inviteMember}
-        </Button>
+        {memberCount + pendingInvites.length >= totalStaffSeats ? (
+          <Button
+            onClick={() => router.push('/subscription')}
+            variant="outline"
+            className="h-11 px-5 border-tz-amber text-tz-amber hover:bg-tz-amber/10"
+          >
+            {isRTL ? 'شراء مقاعد إضافية' : 'Buy Extra Seats'}
+            <ArrowRight className={`w-4 h-4 ${isRTL ? 'mr-1.5' : 'ml-1.5'}`} />
+          </Button>
+        ) : (
+          <Button
+            onClick={handleGenerateInvite}
+            className="bg-tz-primary hover:bg-tz-primary-dark text-white h-11 px-5"
+            disabled={isInviting}
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            {isInviting ? t.loading : t.inviteMember}
+          </Button>
+        )}
       </div>
 
       {error && (
