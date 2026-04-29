@@ -10,6 +10,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { useToast } from '@/components/shared/Toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { workspaceAPI } from '@/lib/api';
 
 interface SettingsData {
@@ -22,6 +23,7 @@ interface SettingsData {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { t, isRTL, setLang, lang } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { showToast } = useToast();
@@ -37,11 +39,17 @@ export default function SettingsPage() {
     timezone: 'Asia/Riyadh',
   });
   const [workspaceId, setWorkspaceId] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
   const push = usePushNotifications(workspaceId);
 
   useEffect(() => {
     const load = async () => {
       setIsLoading(true);
+      if (user?.role === 'admin') {
+        setIsAdmin(true);
+        setIsLoading(false);
+        return;
+      }
       try {
         const storedSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
         const res = await workspaceAPI.getMyWorkspace(storedSlug || undefined);
@@ -65,7 +73,7 @@ export default function SettingsPage() {
       }
     };
     load();
-  }, [t.error]);
+  }, [t.error, user]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -127,77 +135,81 @@ export default function SettingsPage() {
       )}
 
       <div className="space-y-6">
-        {/* Workspace Info */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-800">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-tz-primary" />
-            {isRTL ? 'معلومات المساحة' : 'Workspace Info'}
-          </h2>
+        {!isAdmin && (
+          <>
+            {/* Workspace Info */}
+            <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-800">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-tz-primary" />
+                {isRTL ? 'معلومات المساحة' : 'Workspace Info'}
+              </h2>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">{t.workspaceName}</label>
-              <Input
-                value={settings.name}
-                onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-                className="h-12"
-              />
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t.workspaceName}</label>
+                  <Input
+                    value={settings.name}
+                    onChange={(e) => setSettings({ ...settings, name: e.target.value })}
+                    className="h-12"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">{t.slug}</label>
+                  <Input
+                    value={settings.slug}
+                    disabled
+                    className="h-12 bg-muted"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">{t.slug}</label>
-              <Input
-                value={settings.slug}
-                disabled
-                className="h-12 bg-muted"
-              />
-            </div>
-          </div>
-        </div>
+            {/* Timer Settings */}
+            <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-800">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-tz-primary" />
+                {isRTL ? 'إعدادات المؤقت' : 'Timer Settings'}
+              </h2>
 
-        {/* Timer Settings */}
-        <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-800">
-          <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-tz-primary" />
-            {isRTL ? 'إعدادات المؤقت' : 'Timer Settings'}
-          </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {isRTL ? 'مدة المؤقت الافتراضية (دقيقة)' : 'Default Timer Duration (minutes)'}
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={300}
+                    value={settings.defaultTimerDurationMinutes}
+                    onChange={(e) => setSettings({ ...settings, defaultTimerDurationMinutes: parseInt(e.target.value) || 45 })}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isRTL ? 'تُستخدم للطاولات الجديدة' : 'Used for new tables'}
+                  </p>
+                </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {isRTL ? 'مدة المؤقت الافتراضية (دقيقة)' : 'Default Timer Duration (minutes)'}
-              </label>
-              <Input
-                type="number"
-                min={1}
-                max={300}
-                value={settings.defaultTimerDurationMinutes}
-                onChange={(e) => setSettings({ ...settings, defaultTimerDurationMinutes: parseInt(e.target.value) || 45 })}
-                className="h-12"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {isRTL ? 'تُستخدم للطاولات الجديدة' : 'Used for new tables'}
-              </p>
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {isRTL ? 'دقائق التنبيه الأحمر' : 'Warning Alert Minutes'}
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={settings.redAlertMinutes}
+                    onChange={(e) => setSettings({ ...settings, redAlertMinutes: parseInt(e.target.value) || 60 })}
+                    className="h-12"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isRTL ? 'يبدأ التحذير عندما يتبقى هذا الوقت' : 'Warning starts when this much time remains'}
+                  </p>
+                </div>
+              </div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {isRTL ? 'دقائق التنبيه الأحمر' : 'Warning Alert Minutes'}
-              </label>
-              <Input
-                type="number"
-                min={1}
-                max={120}
-                value={settings.redAlertMinutes}
-                onChange={(e) => setSettings({ ...settings, redAlertMinutes: parseInt(e.target.value) || 60 })}
-                className="h-12"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {isRTL ? 'يبدأ التحذير عندما يتبقى هذا الوقت' : 'Warning starts when this much time remains'}
-              </p>
-            </div>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Preferences */}
         <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-800">
@@ -327,14 +339,16 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white text-base"
-        >
-          <Save className="w-4 h-4 mr-2" />
-          {isSaving ? t.loading : t.save}
-        </Button>
+        {!isAdmin && (
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white text-base"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isSaving ? t.loading : t.save}
+          </Button>
+        )}
       </div>
     </div>
   );
