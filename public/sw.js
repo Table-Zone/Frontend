@@ -1,7 +1,12 @@
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
-  const data = event.data.json();
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'Table Zone', body: 'New notification' };
+  }
 
   const options = {
     body: data.body || '',
@@ -26,13 +31,12 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Focus existing tab if open
       for (const client of windowClients) {
-        if (client.url.includes(url) && 'focus' in client) {
+        const clientPath = new URL(client.url).pathname;
+        if (clientPath === url && 'focus' in client) {
           return client.focus();
         }
       }
-      // Open new tab
       if (clients.openWindow) {
         return clients.openWindow(url);
       }
@@ -40,10 +44,5 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
-});
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));

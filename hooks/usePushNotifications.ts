@@ -22,6 +22,8 @@ export function usePushNotifications(workspaceId: string) {
   const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const init = async () => {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         setState((s) => ({ ...s, isSupported: false, isLoading: false }));
@@ -29,36 +31,32 @@ export function usePushNotifications(workspaceId: string) {
       }
 
       try {
-        // Clean up old service workers to handle VAPID key changes
-        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-        for (const reg of existingRegistrations) {
-          const sub = await reg.pushManager.getSubscription();
-          if (sub) {
-            // Unsubscribe from old push subscription to allow re-registration with new key
-            await sub.unsubscribe();
-          }
-          await reg.unregister();
-        }
-
         const registration = await navigator.serviceWorker.register('/sw.js');
+        if (cancelled) return;
+
         setSwRegistration(registration);
 
         const permission = Notification.permission;
         const subscription = await registration.pushManager.getSubscription();
 
-        setState({
-          isSupported: true,
-          permission,
-          isSubscribed: !!subscription,
-          isLoading: false,
-        });
-      } catch (err) {
-        console.error('Push init error:', err);
-        setState((s) => ({ ...s, isLoading: false }));
+        if (!cancelled) {
+          setState({
+            isSupported: true,
+            permission,
+            isSubscribed: !!subscription,
+            isLoading: false,
+          });
+        }
+      } catch {
+        // Silently ignore — push notifications are optional
+        if (!cancelled) {
+          setState((s) => ({ ...s, isSupported: false, isLoading: false }));
+        }
       }
     };
 
     init();
+    return () => { cancelled = true; };
   }, []);
 
   const subscribe = useCallback(async () => {
@@ -74,18 +72,30 @@ export function usePushNotifications(workspaceId: string) {
       }
 
       const res = await fetch(`${API_BASE_URL}/v1/push/vapid-public-key`);
+      if (!res.ok) {
+        setState((s) => ({ ...s, permission, isLoading: false }));
+        return;
+      }
+
       const data = await res.json();
       const vapidPublicKey = data.data?.vapidPublicKey || data.vapidPublicKey;
 
-      if (!vapidPublicKey) {
-        console.error('VAPID public key not configured');
-        setState((s) => ({ ...s, isLoading: false }));
+      if (!vapidPublicKey || typeof vapidPublicKey !== 'string' || vapidPublicKey.length < 20) {
+        setState((s) => ({ ...s, permission, isLoading: false }));
+        return;
+      }
+
+      let applicationServerKey: Uint8Array;
+      try {
+        applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+      } catch {
+        setState((s) => ({ ...s, permission, isLoading: false }));
         return;
       }
 
       const subscription = await swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        applicationServerKey,
       });
 
       await fetch(`${API_BASE_URL}/v1/push/subscribe`, {
@@ -103,8 +113,8 @@ export function usePushNotifications(workspaceId: string) {
         isSubscribed: true,
         isLoading: false,
       });
-    } catch (err) {
-      console.error('Subscribe error:', err);
+    } catch {
+      // Silently ignore — push notifications are optional
       setState((s) => ({ ...s, isLoading: false }));
     }
   }, [swRegistration, state.isSupported, workspaceId]);
