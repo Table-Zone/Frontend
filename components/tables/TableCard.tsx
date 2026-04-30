@@ -254,6 +254,11 @@ export default function TableCard({
             <div className="text-[11px] text-muted-foreground font-medium">#{table.position}</div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
+            {table.note && (
+              <span className="px-1.5 py-0.5 rounded-md bg-tz-primary/10 text-tz-primary text-[10px] font-medium">
+                📝 {isRTL ? 'ملاحظة' : 'Note'}
+              </span>
+            )}
             <button type="button" onClick={() => setShowHistory(true)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-tz-cream hover:text-foreground transition-colors" title="History">
               <History className="w-3.5 h-3.5" />
             </button>
