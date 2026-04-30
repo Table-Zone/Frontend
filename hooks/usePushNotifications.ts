@@ -95,7 +95,7 @@ export function usePushNotifications(workspaceId: string) {
 
       const subscription = await swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey,
+        applicationServerKey: applicationServerKey as BufferSource,
       });
 
       await fetch(`${API_BASE_URL}/v1/push/subscribe`, {
