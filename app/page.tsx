@@ -9,7 +9,7 @@ export default function LandingPage() {
   const { t, isRTL } = useLanguage();
 
   const features = [
-    { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'تتبع وقت كل طاولة بتنبيهات لونية' : 'Track every table with color-coded alerts' },
+    { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'تتبع وقت كل طاولة بتنظيم ذكي' : 'Track every table with smart organization' },
     { icon: Users, title: isRTL ? 'إدارة الفريق' : 'Team Management', desc: isRTL ? 'إدارة الموظفين والمقاعد في الوقت الفعلي' : 'Manage staff and seats in real-time' },
     { icon: Zap, title: isRTL ? 'مزامنة فورية' : 'Real-Time Sync', desc: isRTL ? 'تحديثات لحظية على جميع الأجهزة' : 'Instant updates across all devices' },
     { icon: Globe, title: isRTL ? 'عربي وإنجليزي' : 'Arabic & English', desc: isRTL ? 'دعم كامل للغتين مع تخطيط RTL' : 'Full bilingual support with RTL layout' },
@@ -47,7 +47,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-tz-espresso leading-tight mb-6"
           >
-            {isRTL ? 'أدر طاولات مقهاك ' : 'Manage Your Cafe Tables '}
+            {isRTL ? 'أدر طاولاتك ' : 'Manage Your Cafe Tables '}
             <span className="text-tz-primary">{isRTL ? 'في الوقت الفعلي' : 'in Real-Time'}</span>
           </motion.h1>
           <motion.p
@@ -122,7 +122,7 @@ export default function LandingPage() {
               {isRTL ? 'تسعير بسيط' : 'Simple Pricing'}
             </h2>
             <p className="text-muted-foreground">
-              {isRTL ? 'لا رسوم خفية. ادفع مرة واحدة واستخدم للأبد' : 'No hidden fees. Pay once, use forever'}
+              {isRTL ? 'اختر الخطة التي تناسبك' : 'Choose the plan that fits you'}
             </p>
           </div>
 

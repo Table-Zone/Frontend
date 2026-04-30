@@ -86,7 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <motion.aside
         initial={false}
         animate={{ width: sidebarOpen ? 260 : 80 }}
-        className={`fixed lg:sticky top-0 h-screen bg-white dark:bg-gray-900 border-l border-tz-cream-dark dark:border-gray-800 z-50 flex flex-col shadow-lg lg:shadow-none transition-all ${
+        className={`fixed lg:sticky top-0 h-[100dvh] lg:h-screen bg-white dark:bg-gray-900 border-l border-tz-cream-dark dark:border-gray-800 z-50 flex flex-col shadow-lg lg:shadow-none transition-all ${
           mobileOpen ? 'translate-x-0' : isRTL ? 'translate-x-full lg:translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
         style={{ right: isRTL ? 0 : 'auto', left: isRTL ? 'auto' : 0 }}
@@ -135,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800 space-y-1">
+        <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800 space-y-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-tz-primary/10 flex items-center justify-center shrink-0">
               <Coffee className="w-4 h-4 text-tz-primary" />
