@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Coffee, Building2, Hash, Clock, AlertTriangle } from 'lucide-react';
+import Image from 'next/image';
+import { Building2, Hash, Clock, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -79,8 +80,8 @@ export default function CreateWorkspacePage() {
         <div className="bg-white rounded-3xl shadow-xl p-8 border border-tz-cream-dark">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-tz-primary/10 mb-4">
-              <Coffee className="w-8 h-8 text-tz-primary" />
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl overflow-hidden mb-4">
+              <Image src="/logo.jpg" alt="Table Zone" width={64} height={64} className="w-full h-full object-cover" />
             </div>
             <h1 className="text-2xl font-bold text-tz-espresso">
               {t.createWorkspace}

@@ -12,6 +12,7 @@ const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
   display: 'swap',
+  preload: false,
 });
 
 const tajawal = Tajawal({
@@ -19,15 +20,16 @@ const tajawal = Tajawal({
   weight: ['300', '400', '500', '700', '800'],
   variable: '--font-tajawal',
   display: 'swap',
+  preload: false,
 });
 
 export const metadata: Metadata = {
   title: 'Table Zone - إدارة الطاولات للمقاهي',
   description: 'نظام إدارة الطاولات في الوقت الفعلي للمقاهي',
   icons: {
-    icon: '/logo-icon.svg',
-    shortcut: '/logo-icon.svg',
-    apple: '/logo-icon.svg',
+    icon: '/logo.jpg',
+    shortcut: '/logo.jpg',
+    apple: '/logo.jpg',
   },
 };
 
