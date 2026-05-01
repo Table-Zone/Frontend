@@ -225,7 +225,7 @@ export default function LandingPage() {
               <h3 className="font-bold text-lg mb-1">{t.quarterly}</h3>
               <p className="text-sm text-muted-foreground mb-6">{isRTL ? '90 يوم' : '90 days'}</p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-tz-primary">189</span>
+                <span className="text-4xl font-extrabold text-tz-primary">199</span>
                 <span className="text-muted-foreground"> SAR</span>
               </div>
               <ul className="space-y-3 mb-8">
