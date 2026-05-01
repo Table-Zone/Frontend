@@ -2,8 +2,16 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Coffee, Clock, Users, Shield, Zap, Globe } from 'lucide-react';
+import Image from 'next/image';
+import { Clock, Users, Zap, Globe, Phone } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+
+const partners = [
+  { name: 'Appy', img: '/appy.jpg' },
+  { name: 'Pantry', img: '/pantry.jpg' },
+  { name: 'Masla', img: '/masla.jpg' },
+  { name: 'Camilla', img: '/camilla.png' },
+];
 
 export default function LandingPage() {
   const { t, isRTL } = useLanguage();
@@ -17,14 +25,29 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-tz-cream">
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .marquee-track {
+          display: flex;
+          width: max-content;
+          animation: marquee 18s linear infinite;
+        }
+        .marquee-track:hover {
+          animation-play-state: paused;
+        }
+      `}</style>
+
       {/* Hero */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-tz-primary/5 via-transparent to-tz-primary/10" />
 
         <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
           <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-tz-primary flex items-center justify-center">
-              <Coffee className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden">
+              <Image src="/logo.jpg" alt="Table Zone" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-lg text-tz-espresso">Table Zone</span>
           </div>
@@ -82,6 +105,27 @@ export default function LandingPage() {
         </div>
       </header>
 
+      {/* Partners Marquee */}
+      <section className="py-12 bg-white border-y border-tz-cream-dark overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            {isRTL ? 'شركاؤنا' : 'Our Partners'}
+          </p>
+        </div>
+        <div className="overflow-hidden">
+          <div className="marquee-track">
+            {[...partners, ...partners].map((p, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-center mx-8 rounded-2xl overflow-hidden bg-white border border-tz-cream-dark w-32 h-20 shrink-0"
+              >
+                <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
@@ -114,8 +158,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* About Us */}
       <section className="py-20 px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl font-bold text-tz-espresso mb-4">
+              {isRTL ? 'من نحن' : 'About Us'}
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
+              {isRTL
+                ? 'Table Zone منصة سعودية مصممة خصيصاً لإدارة المقاهي. نؤمن أن كل مقهى يستحق أدوات احترافية تساعده على تقديم تجربة استثنائية لعملائه، وتسهيل عمل الفريق في الوقت الفعلي.'
+                : 'Table Zone is a Saudi-built platform designed specifically for cafe management. We believe every cafe deserves professional tools to deliver an exceptional customer experience and streamline team operations in real-time.'}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section className="py-20 px-6 bg-tz-cream">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-tz-espresso mb-3">
@@ -127,11 +191,11 @@ export default function LandingPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <div className="rounded-3xl p-8 border-2 border-tz-cream-dark">
+            <div className="rounded-3xl p-8 border-2 border-tz-cream-dark bg-white">
               <h3 className="font-bold text-lg mb-1">{t.monthly}</h3>
               <p className="text-sm text-muted-foreground mb-6">{isRTL ? '30 يوم' : '30 days'}</p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-tz-espresso">70</span>
+                <span className="text-4xl font-extrabold text-tz-espresso">69</span>
                 <span className="text-muted-foreground"> SAR</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -161,7 +225,7 @@ export default function LandingPage() {
               <h3 className="font-bold text-lg mb-1">{t.quarterly}</h3>
               <p className="text-sm text-muted-foreground mb-6">{isRTL ? '90 يوم' : '90 days'}</p>
               <div className="mb-6">
-                <span className="text-4xl font-extrabold text-tz-primary">200</span>
+                <span className="text-4xl font-extrabold text-tz-primary">199</span>
                 <span className="text-muted-foreground"> SAR</span>
               </div>
               <ul className="space-y-3 mb-8">
@@ -169,7 +233,7 @@ export default function LandingPage() {
                   isRTL ? '1 مقعد موظف' : '1 staff seat',
                   isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                   isRTL ? 'دعم فني' : 'Support',
-                  isRTL ? 'توفير 10%' : 'Save 10%',
+                  isRTL ? 'توفير أكثر' : 'Save more',
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2 text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
@@ -189,14 +253,22 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t border-tz-cream-dark">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="py-12 px-6 bg-white border-t border-tz-cream-dark">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-tz-primary flex items-center justify-center">
-              <Coffee className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 rounded-lg overflow-hidden">
+              <Image src="/logo.jpg" alt="Table Zone" width={28} height={28} className="w-full h-full object-cover" />
             </div>
             <span className="font-bold text-sm text-tz-espresso">Table Zone</span>
           </div>
+          <a
+            href="tel:0556088384"
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-tz-primary transition-colors"
+            dir="ltr"
+          >
+            <Phone className="w-4 h-4" />
+            0556088384
+          </a>
           <p className="text-xs text-muted-foreground">
             © 2025 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
           </p>

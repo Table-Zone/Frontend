@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Settings, Users, CreditCard, UserCircle,
-  LogOut, Menu, X, Coffee, ChevronLeft, ChevronRight, Shield,
+  LogOut, Menu, X, ChevronLeft, ChevronRight, Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,8 +37,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div className="min-h-screen flex items-center justify-center bg-tz-cream dark:bg-gray-950 p-4">
         <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl bg-tz-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Coffee className="w-8 h-8 text-tz-primary" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
+            <img src="/logo.jpg" alt="Table Zone" className="w-full h-full object-cover" />
           </div>
           <h2 className="text-xl font-bold mb-2">{isRTL ? 'الجلسة منتهية' : 'Session Expired'}</h2>
           <p className="text-muted-foreground mb-6">{isRTL ? 'يرجى تسجيل الدخول مرة أخرى' : 'Please log in again to continue'}</p>
@@ -93,7 +93,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-tz-cream-dark dark:border-gray-800">
           <Link href={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
-            <img src="/logo-icon.svg" alt="" className="w-8 h-8 shrink-0" />
+            <img src="/logo.jpg" alt="" className="w-8 h-8 shrink-0 rounded-lg object-cover" />
             <AnimatePresence>
               {sidebarOpen && (
                 <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }}
@@ -137,8 +137,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800 space-y-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 rounded-full bg-tz-primary/10 flex items-center justify-center shrink-0">
-              <Coffee className="w-4 h-4 text-tz-primary" />
+            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+              <img src="/logo.jpg" alt="" className="w-full h-full object-cover" />
             </div>
             <AnimatePresence>
               {sidebarOpen && (
