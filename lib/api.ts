@@ -121,14 +121,18 @@ export const subscriptionAPI = {
   getBankDetails: () => api.get('/workspaces/subscription/bank-details'),
   getSubscription: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription`),
-  requestSubscription: (workspaceId: string, planId: string) =>
-    api.post(`/workspaces/${workspaceId}/subscription/request`, { planId }),
+  requestSubscription: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/${workspaceId}/subscription/request`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   uploadReceipt: (requestId: string, formData: FormData) =>
     api.post(`/workspaces/subscription-requests/${requestId}/upload-receipt`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
-  requestExtraSeats: (workspaceId: string, count: number) =>
-    api.post(`/workspaces/${workspaceId}/subscription/request-extra-seats`, { count }),
+  requestExtraSeats: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/${workspaceId}/subscription/request-extra-seats`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
   getRequests: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription/requests`),
 };
