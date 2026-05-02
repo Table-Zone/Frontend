@@ -53,7 +53,7 @@ export default function SubscriptionPage() {
   const [error, setError] = useState('');
 
   // Subscribe flow state
-  const [step, setStep] = useState<'view' | 'bank' | 'upload' | 'success'>('view');
+  const [step, setStep] = useState<'view' | 'payment' | 'success'>('view');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [requestId, setRequestId] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -64,11 +64,8 @@ export default function SubscriptionPage() {
   const [extraSeatsCount, setExtraSeatsCount] = useState(1);
   const [showExtraSeats, setShowExtraSeats] = useState(false);
   const [extraSeatsRequestId, setExtraSeatsRequestId] = useState('');
-  const [extraSeatsStep, setExtraSeatsStep] = useState<'form' | 'bank' | 'upload' | 'success'>('form');
+  const [extraSeatsStep, setExtraSeatsStep] = useState<'count' | 'payment' | 'success'>('count');
   const { showToast } = useToast();
-
-  // Receipt modal
-
 
   useEffect(() => {
     const load = async () => {
@@ -102,73 +99,63 @@ export default function SubscriptionPage() {
     load();
   }, [t.error, router]);
 
-  const handleSelectPlan = async (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
+    setReceiptFile(null);
+    setBankReference('');
+    setError('');
+    setStep('payment');
+  };
+
+  const handleSubmitSubscription = async () => {
+    if (!receiptFile || !selectedPlan) return;
     setError('');
     setIsSubmitting(true);
     try {
-      const res = await subscriptionAPI.requestSubscription(workspaceId, plan.id);
+      const formData = new FormData();
+      formData.append('planId', selectedPlan.id);
+      formData.append('receipt', receiptFile);
+      if (bankReference) formData.append('bankReference', bankReference);
+      const res = await subscriptionAPI.requestSubscription(workspaceId, formData);
       setRequestId(res.data.data.requestId);
-      setStep('bank');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to create request');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleUploadReceipt = async () => {
-    if (!receiptFile || !requestId) return;
-    setError('');
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append('receipt', receiptFile);
-      if (bankReference) formData.append('bankReference', bankReference);
-      await subscriptionAPI.uploadReceipt(requestId, formData);
       setStep('success');
-      showToast(isRTL ? 'تم رفع الإيصال بنجاح' : 'Receipt uploaded successfully', 'success');
+      showToast(isRTL ? 'تم إرسال الطلب بنجاح' : 'Request submitted successfully', 'success');
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
       const allRequests = reqRes.data.data.requests || [];
       setLastRequest(allRequests[0] || null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to upload receipt');
+      setError(err.response?.data?.error?.message || 'Failed to submit request');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleRequestExtraSeats = async () => {
+  const handleRequestExtraSeats = () => {
     if (extraSeatsCount < 1) return;
+    setReceiptFile(null);
+    setBankReference('');
     setError('');
-    setIsSubmitting(true);
-    try {
-      const res = await subscriptionAPI.requestExtraSeats(workspaceId, extraSeatsCount);
-      setExtraSeatsRequestId(res.data.data.requestId);
-      setExtraSeatsStep('bank');
-    } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to request extra seats');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setExtraSeatsStep('payment');
   };
 
-  const handleUploadExtraSeatsReceipt = async () => {
-    if (!receiptFile || !extraSeatsRequestId) return;
+  const handleSubmitExtraSeats = async () => {
+    if (!receiptFile) return;
     setError('');
     setIsSubmitting(true);
     try {
       const formData = new FormData();
+      formData.append('count', String(extraSeatsCount));
       formData.append('receipt', receiptFile);
       if (bankReference) formData.append('bankReference', bankReference);
-      await subscriptionAPI.uploadReceipt(extraSeatsRequestId, formData);
+      const res = await subscriptionAPI.requestExtraSeats(workspaceId, formData);
+      setExtraSeatsRequestId(res.data.data.requestId);
       setExtraSeatsStep('success');
-      showToast(isRTL ? 'تم رفع إيصال المقاعد الإضافية' : 'Extra seats receipt uploaded', 'success');
+      showToast(isRTL ? 'تم إرسال طلب المقاعد بنجاح' : 'Extra seats request submitted', 'success');
       const reqRes = await subscriptionAPI.getRequests(workspaceId);
       const allRequests = reqRes.data.data.requests || [];
       setLastRequest(allRequests[0] || null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to upload receipt');
+      setError(err.response?.data?.error?.message || 'Failed to submit request');
     } finally {
       setIsSubmitting(false);
     }
@@ -186,7 +173,7 @@ export default function SubscriptionPage() {
     setBankReference('');
     setShowExtraSeats(false);
     setExtraSeatsRequestId('');
-    setExtraSeatsStep('form');
+    setExtraSeatsStep('count');
     setExtraSeatsCount(1);
   };
 
@@ -309,7 +296,7 @@ export default function SubscriptionPage() {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="space-y-4"
                   >
-                    {extraSeatsStep === 'form' && (
+                    {extraSeatsStep === 'count' && (
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium">{isRTL ? 'عدد المقاعد الإضافية' : 'Extra Seats'}</span>
@@ -351,24 +338,15 @@ export default function SubscriptionPage() {
                       </>
                     )}
 
-                    {extraSeatsStep === 'bank' && bankDetails && (
-                      <BankTransferStep
+                    {extraSeatsStep === 'payment' && bankDetails && (
+                      <PaymentFormStep
                         bankDetails={bankDetails}
                         amount={extraSeatsCount * 50}
-                        onTransferred={() => setExtraSeatsStep('upload')}
-                        onCancel={() => setShowExtraSeats(false)}
-                        isRTL={isRTL}
-                        copyToClipboard={copyToClipboard}
-                      />
-                    )}
-
-                    {extraSeatsStep === 'upload' && (
-                      <UploadReceiptStep
                         receiptFile={receiptFile}
                         setReceiptFile={setReceiptFile}
                         bankReference={bankReference}
                         setBankReference={setBankReference}
-                        onUpload={handleUploadExtraSeatsReceipt}
+                        onSubmit={handleSubmitExtraSeats}
                         onCancel={() => setShowExtraSeats(false)}
                         isSubmitting={isSubmitting}
                         isRTL={isRTL}
@@ -378,7 +356,7 @@ export default function SubscriptionPage() {
 
                     {extraSeatsStep === 'success' && (
                       <SuccessStep
-                        message={isRTL ? 'تم رفع الإيصال. سيتم تفعيل المقاعد قريباً.' : 'Receipt uploaded. Seats will be activated soon.'}
+                        message={isRTL ? 'تم إرسال الطلب. سيتم تفعيل المقاعد قريباً.' : 'Request submitted. Seats will be activated soon.'}
                         onClose={() => { setShowExtraSeats(false); resetFlow(); }}
                         isRTL={isRTL}
                       />
@@ -444,28 +422,20 @@ export default function SubscriptionPage() {
         </div>
       )}
 
-      {/* Subscribe flow steps */}
-      {step === 'bank' && bankDetails && selectedPlan && (
+      {/* Subscribe payment form */}
+      {step === 'payment' && bankDetails && selectedPlan && (
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
-          <BankTransferStep
+          <h2 className="text-lg font-bold mb-4">
+            {isRTL ? `إتمام الاشتراك - ${selectedPlan.labelAr}` : `Complete Subscription - ${selectedPlan.labelEn}`}
+          </h2>
+          <PaymentFormStep
             bankDetails={bankDetails}
             amount={selectedPlan.priceSar}
-            onTransferred={() => setStep('upload')}
-            onCancel={resetFlow}
-            isRTL={isRTL}
-            copyToClipboard={copyToClipboard}
-          />
-        </div>
-      )}
-
-      {step === 'upload' && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
-          <UploadReceiptStep
             receiptFile={receiptFile}
             setReceiptFile={setReceiptFile}
             bankReference={bankReference}
             setBankReference={setBankReference}
-            onUpload={handleUploadReceipt}
+            onSubmit={handleSubmitSubscription}
             onCancel={resetFlow}
             isSubmitting={isSubmitting}
             isRTL={isRTL}
@@ -477,7 +447,7 @@ export default function SubscriptionPage() {
       {step === 'success' && (
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
           <SuccessStep
-            message={isRTL ? 'تم رفع الإيصال. سيتم تفعيل الاشتراك قريباً.' : 'Receipt uploaded. Subscription will be activated soon.'}
+            message={isRTL ? 'تم إرسال الطلب. سيتم تفعيل الاشتراك قريباً.' : 'Request submitted. Subscription will be activated soon.'}
             onClose={resetFlow}
             isRTL={isRTL}
           />
@@ -489,10 +459,11 @@ export default function SubscriptionPage() {
   );
 }
 
-// Sub-components
-function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL, copyToClipboard }: any) {
+// Combined payment form: bank details + receipt upload + reference + submit
+function PaymentFormStep({ bankDetails, amount, receiptFile, setReceiptFile, bankReference, setBankReference, onSubmit, onCancel, isSubmitting, isRTL, t }: any) {
   return (
     <div className="space-y-6">
+      {/* Bank Details */}
       <div className="bg-tz-cream rounded-2xl p-5 space-y-3">
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-tz-primary" />
@@ -507,7 +478,7 @@ function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL,
             <p className="text-xs text-muted-foreground">{isRTL ? 'اسم الحساب' : 'Account Holder'}</p>
             <p className="font-medium">{bankDetails.accountName}</p>
           </div>
-          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.accountName)}>
+          <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(bankDetails.accountName)}>
             <Check className="w-4 h-4" />
           </Button>
         </div>
@@ -517,7 +488,7 @@ function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL,
             <p className="text-xs text-muted-foreground">{isRTL ? 'رقم الحساب' : 'Account Number'}</p>
             <p className="font-medium font-mono">{bankDetails.accountNumber}</p>
           </div>
-          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.accountNumber)}>
+          <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(bankDetails.accountNumber)}>
             <Check className="w-4 h-4" />
           </Button>
         </div>
@@ -527,7 +498,7 @@ function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL,
             <p className="text-xs text-muted-foreground">IBAN</p>
             <p className="font-medium font-mono text-sm">{bankDetails.iban}</p>
           </div>
-          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.iban)}>
+          <Button size="sm" variant="ghost" onClick={() => navigator.clipboard.writeText(bankDetails.iban)}>
             <Check className="w-4 h-4" />
           </Button>
         </div>
@@ -536,24 +507,12 @@ function BankTransferStep({ bankDetails, amount, onTransferred, onCancel, isRTL,
       <div className="bg-tz-primary/5 rounded-2xl p-4 border border-tz-primary/20">
         <p className="text-sm font-medium text-tz-primary">
           {isRTL
-            ? `يرجى تحويل ${amount} ر.س إلى الحساب أعلاه`
-            : `Please transfer ${amount} SAR to the account above`}
+            ? `يرجى تحويل ${amount} ر.س إلى الحساب أعلاه، ثم رفع الإيصال`
+            : `Please transfer ${amount} SAR to the account above, then upload the receipt`}
         </p>
       </div>
 
-      <div className="flex gap-2">
-        <Button variant="outline" onClick={onCancel} className="flex-1">{isRTL ? 'إلغاء' : 'Cancel'}</Button>
-        <Button onClick={onTransferred} className="flex-1 bg-tz-primary hover:bg-tz-primary-dark text-white">
-          {isRTL ? 'تم التحويل، لنرفع الإيصال' : 'Transferred, upload receipt'}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function UploadReceiptStep({ receiptFile, setReceiptFile, bankReference, setBankReference, onUpload, onCancel, isSubmitting, isRTL, t }: any) {
-  return (
-    <div className="space-y-6">
+      {/* Receipt Upload */}
       <div className="border-2 border-dashed border-tz-cream-dark rounded-2xl p-8 text-center hover:border-tz-primary/50 transition-colors">
         <input
           type="file"
@@ -595,11 +554,11 @@ function UploadReceiptStep({ receiptFile, setReceiptFile, bankReference, setBank
       <div className="flex gap-2">
         <Button variant="outline" onClick={onCancel} className="flex-1">{isRTL ? 'إلغاء' : 'Cancel'}</Button>
         <Button
-          onClick={onUpload}
+          onClick={onSubmit}
           disabled={!receiptFile || isSubmitting}
           className="flex-1 bg-tz-primary hover:bg-tz-primary-dark text-white"
         >
-          {isSubmitting ? t.loading : t.uploadReceipt}
+          {isSubmitting ? t.loading : isRTL ? 'إرسال الطلب' : 'Submit Request'}
         </Button>
       </div>
     </div>

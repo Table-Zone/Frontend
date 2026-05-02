@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, Check, ArrowLeft, ArrowRight, Building2, Hash, CreditCard, UserCircle } from 'lucide-react';
+import { X, Upload, Check, Building2, Hash, CreditCard, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { subscriptionAPI } from '@/lib/api';
 
@@ -26,16 +25,14 @@ interface SubscriptionPopupProps {
 
 export default function SubscriptionPopup({ workspaceId, onClose }: SubscriptionPopupProps) {
   const { t, isRTL } = useLanguage();
-  const [step, setStep] = useState<'plans' | 'bank' | 'upload' | 'success'>('plans');
+  const [step, setStep] = useState<'plans' | 'payment' | 'success'>('plans');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [bankDetails, setBankDetails] = useState<any>(null);
-  const [requestId, setRequestId] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [bankReference, setBankReference] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  const ArrowIcon = isRTL ? ArrowLeft : ArrowRight;
+  const [error, setError] = useState('');
 
   useEffect(() => {
     subscriptionAPI.getPlans().then((res) => {
@@ -46,37 +43,27 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     });
   }, []);
 
-  const [error, setError] = useState('');
-
-  const handleSelectPlan = async (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     setSelectedPlan(plan);
+    setReceiptFile(null);
+    setBankReference('');
     setError('');
-    setIsLoading(true);
-    try {
-      const res = await subscriptionAPI.requestSubscription(workspaceId, plan.id);
-      setRequestId(res.data.data.requestId);
-      setStep('bank');
-    } catch (err: any) {
-      const msg = err.response?.data?.error?.message || 'Failed to create request';
-      setError(msg);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    setStep('payment');
   };
 
-  const handleUpload = async () => {
-    if (!receiptFile || !requestId) return;
+  const handleSubmit = async () => {
+    if (!receiptFile || !selectedPlan) return;
     setError('');
     setIsLoading(true);
     try {
       const formData = new FormData();
+      formData.append('planId', selectedPlan.id);
       formData.append('receipt', receiptFile);
       if (bankReference) formData.append('bankReference', bankReference);
-      await subscriptionAPI.uploadReceipt(requestId, formData);
+      await subscriptionAPI.requestSubscription(workspaceId, formData);
       setStep('success');
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || 'Failed to upload receipt';
+      const msg = err.response?.data?.error?.message || 'Failed to submit request';
       setError(msg);
       console.error(err);
     } finally {
@@ -107,8 +94,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
         <div className="flex items-center justify-between p-6 border-b border-tz-cream-dark">
           <h2 className="text-xl font-bold text-tz-espresso">
             {step === 'plans' && t.subscriptionRequired}
-            {step === 'bank' && t.bankTransfer}
-            {step === 'upload' && t.uploadReceipt}
+            {step === 'payment' && (isRTL ? 'إتمام الاشتراك' : 'Complete Subscription')}
             {step === 'success' && t.thanksForPurchase}
           </h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -160,8 +146,9 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
             </div>
           )}
 
-          {step === 'bank' && bankDetails && (
+          {step === 'payment' && bankDetails && selectedPlan && (
             <div className="space-y-6">
+              {/* Bank Details */}
               <div className="bg-tz-cream rounded-2xl p-5 space-y-3">
                 <div className="flex items-center gap-3">
                   <Building2 className="w-5 h-5 text-tz-primary" />
@@ -205,23 +192,12 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
               <div className="bg-tz-primary/5 rounded-2xl p-4 border border-tz-primary/20">
                 <p className="text-sm font-medium text-tz-primary">
                   {isRTL
-                    ? `يرجى تحويل ${selectedPlan?.priceSar} ر.س إلى الحساب أعلاه`
-                    : `Please transfer ${selectedPlan?.priceSar} SAR to the account above`}
+                    ? `يرجى تحويل ${selectedPlan.priceSar} ر.س إلى الحساب أعلاه، ثم رفع الإيصال`
+                    : `Please transfer ${selectedPlan.priceSar} SAR to the account above, then upload the receipt`}
                 </p>
               </div>
 
-              <Button
-                className="w-full bg-tz-primary hover:bg-tz-primary-dark text-white h-12"
-                onClick={() => setStep('upload')}
-              >
-                {isRTL ? 'تم التحويل، لنرفع الإيصال' : 'Transferred, upload receipt'}
-                <ArrowIcon className="w-5 h-5 mr-2" />
-              </Button>
-            </div>
-          )}
-
-          {step === 'upload' && (
-            <div className="space-y-6">
+              {/* Receipt Upload */}
               <div className="border-2 border-dashed border-tz-cream-dark rounded-2xl p-8 text-center hover:border-tz-primary/50 transition-colors">
                 <input
                   type="file"
@@ -262,10 +238,10 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
 
               <Button
                 className="w-full bg-tz-primary hover:bg-tz-primary-dark text-white h-12"
-                onClick={handleUpload}
+                onClick={handleSubmit}
                 disabled={!receiptFile || isLoading}
               >
-                {isLoading ? t.loading : t.uploadReceipt}
+                {isLoading ? t.loading : (isRTL ? 'إرسال الطلب' : 'Submit Request')}
               </Button>
             </div>
           )}

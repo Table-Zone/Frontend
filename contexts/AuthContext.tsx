@@ -65,10 +65,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    await authAPI.logout();
+    try {
+      await authAPI.logout();
+    } catch {
+      // Ignore API errors — always clear local state
+    }
     localStorage.removeItem('access_token');
     document.cookie = 'access_token=; path=/; max-age=0';
     setUser(null);
+    window.location.href = '/login';
   };
 
   return (
