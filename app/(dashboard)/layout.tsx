@@ -34,18 +34,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!user) {
+    window.location.href = '/login';
     return (
-      <div className="min-h-screen flex items-center justify-center bg-tz-cream dark:bg-gray-950 p-4">
-        <div className="text-center max-w-sm">
-          <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto mb-4">
-            <img src="/logo.jpg" alt="Table Zone" className="w-full h-full object-cover" />
-          </div>
-          <h2 className="text-xl font-bold mb-2">{isRTL ? 'الجلسة منتهية' : 'Session Expired'}</h2>
-          <p className="text-muted-foreground mb-6">{isRTL ? 'يرجى تسجيل الدخول مرة أخرى' : 'Please log in again to continue'}</p>
-          <Button onClick={() => { document.cookie = 'access_token=; path=/; max-age=0'; window.location.href = '/login'; }} className="bg-tz-primary hover:bg-tz-primary-dark text-white h-12 px-8">
-            {isRTL ? 'تسجيل الدخول' : 'Log In'}
-          </Button>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-tz-cream dark:bg-gray-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-tz-primary border-t-transparent" />
       </div>
     );
   }
