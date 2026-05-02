@@ -123,15 +123,15 @@ export const subscriptionAPI = {
     api.get(`/workspaces/${workspaceId}/subscription`),
   requestSubscription: (workspaceId: string, formData: FormData) =>
     api.post(`/workspaces/${workspaceId}/subscription/request`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined } as any,
     }),
   uploadReceipt: (requestId: string, formData: FormData) =>
     api.post(`/workspaces/subscription-requests/${requestId}/upload-receipt`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined } as any,
     }),
   requestExtraSeats: (workspaceId: string, formData: FormData) =>
     api.post(`/workspaces/${workspaceId}/subscription/request-extra-seats`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined } as any,
     }),
   getRequests: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription/requests`),
