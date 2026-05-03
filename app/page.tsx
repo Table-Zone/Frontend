@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { Clock, Users, Zap, Globe, Phone } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useState, useEffect } from 'react';
+import { subscriptionAPI } from '@/lib/api';
 
 const partners = [
   { name: 'Appy', img: '/appy.jpg' },
@@ -13,8 +15,31 @@ const partners = [
   { name: 'Camilla', img: '/camilla.png' },
 ];
 
+interface Plan {
+  id: string;
+  name: string;
+  labelAr: string;
+  labelEn: string;
+  priceSar: number;
+  baseStaffSeats: number;
+  durationDays: number;
+  extraStaffSeatPriceSar: number;
+}
+
 export default function LandingPage() {
   const { t, isRTL } = useLanguage();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
+
+  useEffect(() => {
+    subscriptionAPI.getPlans()
+      .then((res) => setPlans(res.data.data.plans || []))
+      .catch(() => setPlans([]))
+      .finally(() => setPlansLoading(false));
+  }, []);
+
+  const monthlyPlan = plans.find((p) => p.name === 'monthly');
+  const quarterlyPlan = plans.find((p) => p.name === 'quarterly');
 
   const features = [
     { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'تتبع وقت كل طاولة بتنظيم ذكي' : 'Track every table with smart organization' },
@@ -191,65 +216,75 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-            <div className="rounded-3xl p-8 border-2 border-tz-cream-dark bg-white">
-              <h3 className="font-bold text-lg mb-1">{t.monthly}</h3>
-              <p className="text-sm text-muted-foreground mb-6">{isRTL ? '30 يوم' : '30 days'}</p>
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold text-tz-espresso">69</span>
-                <span className="text-muted-foreground"> SAR</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  isRTL ? 'مقعد موظف واحد' : '1 staff seat',
-                  isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                  isRTL ? 'دعم فني' : 'Support',
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark text-tz-espresso font-bold py-3 rounded-xl transition-colors"
-              >
-                {isRTL ? 'ابدأ الآن' : 'Get Started'}
-              </Link>
+          {plansLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-tz-primary border-t-transparent" />
             </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              {monthlyPlan && (
+                <div className="rounded-3xl p-8 border-2 border-tz-cream-dark bg-white">
+                  <h3 className="font-bold text-lg mb-1">{isRTL ? monthlyPlan.labelAr : monthlyPlan.labelEn}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{monthlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+                  <div className="mb-6">
+                    <span className="text-4xl font-extrabold text-tz-espresso">{monthlyPlan.priceSar}</span>
+                    <span className="text-muted-foreground"> SAR</span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {[
+                      `${monthlyPlan.baseStaffSeats} ${isRTL ? 'مقعد موظف' : 'staff seat'}`,
+                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
+                      isRTL ? 'دعم فني' : 'Support',
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/register"
+                    className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark text-tz-espresso font-bold py-3 rounded-xl transition-colors"
+                  >
+                    {isRTL ? 'ابدأ الآن' : 'Get Started'}
+                  </Link>
+                </div>
+              )}
 
-            <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-tz-primary text-white text-xs font-bold">
-                {isRTL ? 'الأفضل قيمة' : 'Best Value'}
-              </div>
-              <h3 className="font-bold text-lg mb-1">{t.quarterly}</h3>
-              <p className="text-sm text-muted-foreground mb-6">{isRTL ? '90 يوم' : '90 days'}</p>
-              <div className="mb-6">
-                <span className="text-4xl font-extrabold text-tz-primary">199</span>
-                <span className="text-muted-foreground"> SAR</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {[
-                  isRTL ? 'مقعد موظف واحد' : '1 staff seat',
-                  isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                  isRTL ? 'دعم فني' : 'Support',
-                  isRTL ? 'توفير أكثر' : 'Save more',
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2 text-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/register"
-                className="block w-full text-center bg-tz-primary hover:bg-tz-primary-dark text-white font-bold py-3 rounded-xl transition-colors"
-              >
-                {isRTL ? 'ابدأ الآن' : 'Get Started'}
-              </Link>
+              {quarterlyPlan && (
+                <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 relative">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-tz-primary text-white text-xs font-bold">
+                    {isRTL ? 'الأفضل قيمة' : 'Best Value'}
+                  </div>
+                  <h3 className="font-bold text-lg mb-1">{isRTL ? quarterlyPlan.labelAr : quarterlyPlan.labelEn}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{quarterlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+                  <div className="mb-6">
+                    <span className="text-4xl font-extrabold text-tz-primary">{quarterlyPlan.priceSar}</span>
+                    <span className="text-muted-foreground"> SAR</span>
+                  </div>
+                  <ul className="space-y-3 mb-8">
+                    {[
+                      `${quarterlyPlan.baseStaffSeats} ${isRTL ? 'مقعد موظف' : 'staff seat'}`,
+                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
+                      isRTL ? 'دعم فني' : 'Support',
+                      isRTL ? 'توفير أكثر' : 'Save more',
+                    ].map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/register"
+                    className="block w-full text-center bg-tz-primary hover:bg-tz-primary-dark text-white font-bold py-3 rounded-xl transition-colors"
+                  >
+                    {isRTL ? 'ابدأ الآن' : 'Get Started'}
+                  </Link>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       </section>
 

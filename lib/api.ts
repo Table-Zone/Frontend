@@ -26,10 +26,23 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
+        const requestUrl = error.config?.url;
+
         // Don't auto-redirect on invite page — let it handle 401 gracefully
         if (currentPath.startsWith('/invite/')) {
           return Promise.reject(error);
         }
+
+        // Don't redirect if getMe fails — let AuthContext handle it gracefully
+        if (requestUrl === '/users/me') {
+          return Promise.reject(error);
+        }
+
+        // Don't redirect on public pages (landing, etc.)
+        if (currentPath === '/') {
+          return Promise.reject(error);
+        }
+
         localStorage.removeItem('access_token');
         document.cookie = 'access_token=; path=/; max-age=0';
         if (!currentPath.startsWith('/login') && !currentPath.startsWith('/register')) {
@@ -121,14 +134,18 @@ export const subscriptionAPI = {
   getBankDetails: () => api.get('/workspaces/subscription/bank-details'),
   getSubscription: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription`),
-  requestSubscription: (workspaceId: string, planId: string) =>
-    api.post(`/workspaces/${workspaceId}/subscription/request`, { planId }),
+  requestSubscription: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/${workspaceId}/subscription/request`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
   uploadReceipt: (requestId: string, formData: FormData) =>
     api.post(`/workspaces/subscription-requests/${requestId}/upload-receipt`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined } as any,
     }),
-  requestExtraSeats: (workspaceId: string, count: number) =>
-    api.post(`/workspaces/${workspaceId}/subscription/request-extra-seats`, { count }),
+  requestExtraSeats: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/${workspaceId}/subscription/request-extra-seats`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
   getRequests: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription/requests`),
 };
