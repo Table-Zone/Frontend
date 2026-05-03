@@ -30,13 +30,18 @@ export default function LandingPage() {
   const { t, isRTL } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
+  const [plansError, setPlansError] = useState(false);
 
-  useEffect(() => {
+  const fetchPlans = () => {
+    setPlansLoading(true);
+    setPlansError(false);
     subscriptionAPI.getPlans()
       .then((res) => setPlans(res.data.data.plans || []))
-      .catch(() => setPlans([]))
+      .catch(() => setPlansError(true))
       .finally(() => setPlansLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchPlans(); }, []);
 
   const monthlyPlan = plans.find((p) => p.name === 'monthly');
   const quarterlyPlan = plans.find((p) => p.name === 'quarterly');
@@ -65,6 +70,7 @@ export default function LandingPage() {
           animation-play-state: paused;
         }
       `}</style>
+  docker rm -f tz-redis-dev tz-postgres-dev && docker-compose -f                
 
       {/* Hero */}
       <header className="relative overflow-hidden">
@@ -217,8 +223,19 @@ export default function LandingPage() {
           </div>
 
           {plansLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-4 border-tz-primary border-t-transparent" />
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <div className="animate-spin rounded-full h-10 w-10 border-4 border-tz-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">{isRTL ? 'جاري تحميل الخطط...' : 'Loading plans...'}</p>
+            </div>
+          ) : plansError ? (
+            <div className="flex flex-col items-center justify-center py-12 gap-4">
+              <p className="text-sm text-muted-foreground">{isRTL ? 'تعذر تحميل الخطط' : 'Could not load plans'}</p>
+              <button
+                onClick={fetchPlans}
+                className="px-6 py-2.5 rounded-xl bg-tz-primary hover:bg-tz-primary-dark text-white text-sm font-bold transition-colors"
+              >
+                {isRTL ? 'حاول مجدداً' : 'Try again'}
+              </button>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
