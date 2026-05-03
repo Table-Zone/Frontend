@@ -70,8 +70,7 @@ export default function LandingPage() {
           animation-play-state: paused;
         }
       `}</style>
-  docker rm -f tz-redis-dev tz-postgres-dev && docker-compose -f                
-
+      
       {/* Hero */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-tz-primary/5 via-transparent to-tz-primary/10" />
