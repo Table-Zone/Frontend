@@ -28,12 +28,13 @@ export default function LandingPage() {
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-33.333%); }
         }
         .marquee-track {
           display: flex;
           width: max-content;
           animation: marquee 18s linear infinite;
+          will-change: transform;
         }
         .marquee-track:hover {
           animation-play-state: paused;
@@ -112,12 +113,12 @@ export default function LandingPage() {
             {isRTL ? 'شركاؤنا' : 'Our Partners'}
           </p>
         </div>
-        <div className="overflow-hidden">
+        <div className="overflow-hidden" dir="ltr">
           <div className="marquee-track">
-            {[...partners, ...partners].map((p, i) => (
+            {[...partners, ...partners, ...partners].map((p, i) => (
               <div
                 key={i}
-                className="flex items-center justify-center mx-8 rounded-2xl overflow-hidden bg-white border border-tz-cream-dark w-32 h-20 shrink-0"
+                className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white border border-tz-cream-dark w-24 h-16 sm:w-32 sm:h-20 shrink-0"
               >
                 <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
               </div>
@@ -171,8 +172,8 @@ export default function LandingPage() {
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
               {isRTL
-                ? 'Table Zone منصة سعودية مصممة خصيصاً لإدارة المقاهي. نؤمن أن كل مقهى يستحق أدوات احترافية تساعده على تقديم تجربة استثنائية لعملائه، وتسهيل عمل الفريق في الوقت الفعلي.'
-                : 'Table Zone is a Saudi-built platform designed specifically for cafe management. We believe every cafe deserves professional tools to deliver an exceptional customer experience and streamline team operations in real-time.'}
+                ? 'Table Zone هي منصة سعودية مصممة لإدارة الطاولات، تقدم أدوات تساعد على تحسين تجربة العملاء وتسهيل عمل الفريق للتمكن من إدارة طاولاتك بشكل احترافي ودقيق'
+                : 'Table Zone is a Saudi-built platform designed for table management, offering tools that help improve the customer experience and streamline team operations so you can manage your tables professionally and precisely.'}
             </p>
           </motion.div>
         </div>
@@ -200,7 +201,7 @@ export default function LandingPage() {
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  isRTL ? '1 مقعد موظف' : '1 staff seat',
+                  isRTL ? 'مقعد موظف واحد' : '1 staff seat',
                   isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                   isRTL ? 'دعم فني' : 'Support',
                 ].map((item) => (
@@ -230,7 +231,7 @@ export default function LandingPage() {
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  isRTL ? '1 مقعد موظف' : '1 staff seat',
+                  isRTL ? 'مقعد موظف واحد' : '1 staff seat',
                   isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                   isRTL ? 'دعم فني' : 'Support',
                   isRTL ? 'توفير أكثر' : 'Save more',
