@@ -82,17 +82,6 @@ export default function LandingPage() {
             </div>
             <span className="font-bold text-lg text-tz-espresso">Table Zone</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              {t.login}
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm font-bold bg-tz-primary hover:bg-tz-primary-dark text-white px-5 py-2.5 rounded-xl transition-colors"
-            >
-              {isRTL ? 'ابدأ الآن' : 'Get Started'}
-            </Link>
-          </div>
         </nav>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center px-6 pt-16 pb-24">
@@ -248,7 +237,7 @@ export default function LandingPage() {
                   </div>
                   <ul className="space-y-3 mb-8">
                     {[
-                      `${monthlyPlan.baseStaffSeats} ${isRTL ? 'مقعد موظف' : 'staff seat'}`,
+                      isRTL ? (monthlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${monthlyPlan.baseStaffSeats} مقاعد موظفين`) : `${monthlyPlan.baseStaffSeats} staff seat`,
                       isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                       isRTL ? 'دعم فني' : 'Support',
                     ].map((item) => (
@@ -280,7 +269,7 @@ export default function LandingPage() {
                   </div>
                   <ul className="space-y-3 mb-8">
                     {[
-                      `${quarterlyPlan.baseStaffSeats} ${isRTL ? 'مقعد موظف' : 'staff seat'}`,
+                      isRTL ? (quarterlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${quarterlyPlan.baseStaffSeats} مقاعد موظفين`) : `${quarterlyPlan.baseStaffSeats} staff seat`,
                       isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                       isRTL ? 'دعم فني' : 'Support',
                       isRTL ? 'توفير أكثر' : 'Save more',
