@@ -107,6 +107,8 @@ export const tableAPI = {
     api.post(`/workspaces/${workspaceId}/tables/${tableId}/timer/start`),
   stopTimer: (workspaceId: string, tableId: string) =>
     api.post(`/workspaces/${workspaceId}/tables/${tableId}/timer/stop`),
+  transferTimer: (workspaceId: string, fromTableId: string, toTableId: string) =>
+    api.post(`/workspaces/${workspaceId}/tables/${fromTableId}/timer/transfer`, { targetTableId: toTableId }),
 };
 
 // Team API

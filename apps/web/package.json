@@ -1,6 +1,6 @@
 {
-  "name": "table-zone-frontend",
-  "version": "1.0.0",
+  "name": "@table-zone/web",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev -H 127.0.0.1",

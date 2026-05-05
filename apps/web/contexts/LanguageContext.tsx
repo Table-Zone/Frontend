@@ -133,6 +133,9 @@ const translations = {
     ready: 'جاهز',
     start: 'بدء',
     stop: 'إيقاف',
+    transfer: 'نقل',
+    transferTo: 'نقل إلى',
+    noFreeTables: 'لا توجد طاولات فارغة',
     status: {
       free: 'متاح',
       occupied: 'مشغول',
@@ -261,6 +264,9 @@ const translations = {
     ready: 'Ready',
     start: 'Start',
     stop: 'Stop',
+    transfer: 'Transfer',
+    transferTo: 'Transfer to',
+    noFreeTables: 'No free tables',
     status: {
       free: 'Free',
       occupied: 'Occupied',

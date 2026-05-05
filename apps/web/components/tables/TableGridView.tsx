@@ -29,6 +29,7 @@ export default function TableGridView({ tables, workspaceId, subscriptionActive,
         <TableCard
           key={table.id}
           table={table}
+          allTables={tables}
           workspaceId={workspaceId}
           subscriptionActive={subscriptionActive}
           onUpdate={onUpdate}

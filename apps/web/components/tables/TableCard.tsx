@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/shared/Toast';
-import { History, Pencil, Trash2, Clock } from 'lucide-react';
+import { History, Pencil, Trash2, Clock, ArrowRightLeft } from 'lucide-react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import SessionHistoryModal from './SessionHistoryModal';
 import ConfirmModal from '@/components/shared/ConfirmModal';
@@ -23,6 +23,7 @@ interface Table {
 
 interface TableCardProps {
   table: Table;
+  allTables?: Table[];
   workspaceId: string;
   subscriptionActive: boolean;
   onUpdate: () => void;
@@ -74,6 +75,7 @@ function formatTime(totalSeconds: number): { text: string; isOvertime: boolean }
 
 export default function TableCard({
   table,
+  allTables = [],
   workspaceId,
   subscriptionActive,
   onUpdate,
@@ -91,6 +93,9 @@ export default function TableCard({
   const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [showTransferPicker, setShowTransferPicker] = useState(false);
+  const transferPickerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -214,8 +219,98 @@ export default function TableCard({
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('fromTableId', table.id);
+    e.dataTransfer.setData('fromTableName', table.name);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    const fromTableId = e.dataTransfer.types.includes('fromtableid');
+    if (!fromTableId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragOver(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const fromTableId = e.dataTransfer.getData('fromTableId');
+    const fromTableName = e.dataTransfer.getData('fromTableName');
+    if (!fromTableId || fromTableId === table.id) return;
+    setLoading(true);
+    try {
+      await tableAPI.transferTimer(workspaceId, fromTableId, table.id);
+      showToast(
+        isRTL
+          ? `تم نقل الجلسة من "${fromTableName}" إلى "${table.name}"`
+          : `Session moved from "${fromTableName}" to "${table.name}"`,
+        'success'
+      );
+      onUpdate();
+    } catch (err: any) {
+      showToast(
+        err.response?.data?.error?.message || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'),
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!showTransferPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (transferPickerRef.current && !transferPickerRef.current.contains(e.target as Node)) {
+        setShowTransferPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showTransferPicker]);
+
+  const freeTables = allTables.filter((t) => t.status === 'free' && t.id !== table.id);
+
+  const handleTransferTo = async (targetId: string, targetName: string) => {
+    setShowTransferPicker(false);
+    setLoading(true);
+    try {
+      await tableAPI.transferTimer(workspaceId, table.id, targetId);
+      showToast(
+        isRTL
+          ? `تم نقل الجلسة من "${table.name}" إلى "${targetName}"`
+          : `Session moved from "${table.name}" to "${targetName}"`,
+        'success'
+      );
+      onUpdate();
+    } catch (err: any) {
+      showToast(
+        err.response?.data?.error?.message || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'),
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-[28px] shadow-sm p-6">
+    <div
+      className={`bg-white dark:bg-gray-900 rounded-[28px] shadow-sm p-6 transition-all ${
+        isOccupied ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${isDragOver ? 'ring-2 ring-tz-primary ring-offset-2 scale-[1.02]' : ''}`}
+      draggable={isOccupied}
+      onDragStart={isOccupied ? handleDragStart : undefined}
+      onDragOver={!isOccupied ? handleDragOver : undefined}
+      onDragLeave={!isOccupied ? handleDragLeave : undefined}
+      onDrop={!isOccupied ? handleDrop : undefined}
+    >
       {/* Header */}
       <div className="mb-4">
         {/* Row 1: Name (full width) */}
@@ -371,17 +466,51 @@ export default function TableCard({
             {t.start}
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={handleStop}
-            disabled={loading}
-            className="flex-1 h-12 rounded-2xl bg-gradient-to-br from-tz-red to-[#DC2626] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-60"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="4" y="4" width="16" height="16" />
-            </svg>
-            {t.stop}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={handleStop}
+              disabled={loading}
+              className="flex-1 h-12 rounded-2xl bg-gradient-to-br from-tz-red to-[#DC2626] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-60"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="4" y="4" width="16" height="16" />
+              </svg>
+              {t.stop}
+            </button>
+            <div className="relative" ref={transferPickerRef}>
+              <button
+                type="button"
+                onClick={() => setShowTransferPicker((v) => !v)}
+                disabled={loading}
+                title={t.transfer}
+                className="h-12 w-12 rounded-2xl bg-tz-cream dark:bg-gray-800 hover:bg-tz-cream-dark dark:hover:bg-gray-700 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all disabled:opacity-60 active:scale-95"
+              >
+                <ArrowRightLeft className="w-4 h-4" />
+              </button>
+              {showTransferPicker && (
+                <div className="absolute bottom-14 right-0 z-20 min-w-[160px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl py-2 overflow-hidden">
+                  <p className="text-[11px] font-semibold text-muted-foreground px-3 pb-1.5 pt-0.5">
+                    {t.transferTo}
+                  </p>
+                  {freeTables.length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-3 py-2">{t.noFreeTables}</p>
+                  ) : (
+                    freeTables.map((ft) => (
+                      <button
+                        key={ft.id}
+                        type="button"
+                        onClick={() => handleTransferTo(ft.id, ft.name)}
+                        className="w-full text-left px-3 py-2 text-sm font-medium hover:bg-tz-cream dark:hover:bg-gray-800 transition-colors"
+                      >
+                        {ft.name}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
 
