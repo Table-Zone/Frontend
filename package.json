@@ -10,6 +10,11 @@
     "dev:web": "pnpm --filter @table-zone/web dev",
     "build:web": "pnpm --filter @table-zone/web build"
   },
+  "dependencies": {
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
   "devDependencies": {
     "turbo": "^2.5.4"
   },
