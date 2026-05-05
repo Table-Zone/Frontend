@@ -177,7 +177,7 @@ function TableListItem({
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border ${cfg.border} overflow-hidden`}>
+    <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border ${cfg.border}`}>
       {/* Main row - always visible */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Status indicator */}
