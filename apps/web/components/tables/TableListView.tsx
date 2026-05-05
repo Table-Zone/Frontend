@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/shared/Toast';
-import { History, Pencil, Trash2, Clock, Play, Square, ChevronDown, ChevronUp } from 'lucide-react';
+import { History, Pencil, Trash2, Clock, Play, Square, ChevronDown, ChevronUp, ArrowRightLeft } from 'lucide-react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import SessionHistoryModal from './SessionHistoryModal';
 import ConfirmModal from '@/components/shared/ConfirmModal';
@@ -23,6 +23,7 @@ interface Table {
 
 interface TableListViewProps {
   tables: Table[];
+  allTables?: Table[];
   workspaceId: string;
   subscriptionActive: boolean;
   onUpdate: () => void;
@@ -47,12 +48,14 @@ function formatTime(totalSeconds: number): { text: string; isOvertime: boolean }
 
 function TableListItem({
   table,
+  allTables = [],
   workspaceId,
   subscriptionActive,
   onUpdate,
   onDelete,
 }: {
   table: Table;
+  allTables?: Table[];
   workspaceId: string;
   subscriptionActive: boolean;
   onUpdate: () => void;
@@ -69,6 +72,8 @@ function TableListItem({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showTransferPicker, setShowTransferPicker] = useState(false);
+  const transferPickerRef = useRef<HTMLDivElement>(null);
   const [showSubscribe, setShowSubscribe] = useState(false);
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -138,6 +143,39 @@ function TableListItem({
     }
   };
 
+  useEffect(() => {
+    if (!showTransferPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (transferPickerRef.current && !transferPickerRef.current.contains(e.target as Node)) {
+        setShowTransferPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showTransferPicker]);
+
+  const freeTables = allTables.filter((t) => t.status === 'free' && t.id !== table.id);
+
+  const handleTransferTo = async (targetId: string, targetName: string) => {
+    setShowTransferPicker(false);
+    setLoading(true);
+    try {
+      await tableAPI.transferTimer(workspaceId, table.id, targetId);
+      showToast(
+        isRTL
+          ? `تم نقل الجلسة من "${table.name}" إلى "${targetName}"`
+          : `Session moved from "${table.name}" to "${targetName}"`,
+        'success'
+      );
+      onUpdate();
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message;
+      showToast(msg || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'), 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border ${cfg.border} overflow-hidden`}>
       {/* Main row - always visible */}
@@ -177,17 +215,52 @@ function TableListItem({
           </div>
         </div>
 
-        {/* Start/Stop button - large touch target */}
+        {/* Start/Stop button */}
         <button
           type="button"
           onClick={isOccupied ? handleStop : handleStart}
           disabled={loading}
-          className={`shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md active:scale-90 transition-all disabled:opacity-60 ${
+          className={`shrink-0 h-10 px-3 rounded-xl flex items-center justify-center gap-1.5 text-white font-bold text-sm shadow-md active:scale-90 transition-all disabled:opacity-60 ${
             isOccupied ? 'bg-gradient-to-br from-tz-red to-[#DC2626]' : 'bg-gradient-to-br from-tz-primary to-[#E87E3A]'
           }`}
         >
-          {isOccupied ? <Square className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+          {isOccupied ? <Square className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+          {isOccupied ? t.stop : t.start}
         </button>
+
+        {/* Transfer button (occupied only) */}
+        {isOccupied && (
+          <div className="relative shrink-0" ref={transferPickerRef}>
+            <button
+              type="button"
+              onClick={() => setShowTransferPicker((v) => !v)}
+              disabled={loading}
+              className="h-10 px-3 rounded-xl bg-tz-cream dark:bg-gray-800 hover:bg-tz-cream-dark dark:hover:bg-gray-700 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 font-bold text-sm transition-all disabled:opacity-60 active:scale-95"
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+              {t.transfer}
+            </button>
+            {showTransferPicker && (
+              <div className="absolute bottom-12 right-0 z-20 min-w-[160px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl py-2 overflow-hidden">
+                <p className="text-[11px] font-semibold text-muted-foreground px-3 pb-1.5 pt-0.5">{t.transferTo}</p>
+                {freeTables.length === 0 ? (
+                  <p className="text-xs text-muted-foreground px-3 py-2">{t.noFreeTables}</p>
+                ) : (
+                  freeTables.map((ft) => (
+                    <button
+                      key={ft.id}
+                      type="button"
+                      onClick={() => handleTransferTo(ft.id, ft.name)}
+                      className="w-full text-left px-3 py-2 text-sm font-medium hover:bg-tz-cream dark:hover:bg-gray-800 transition-colors"
+                    >
+                      {ft.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Expand chevron */}
         <button onClick={() => setExpanded(!expanded)} className="shrink-0 p-2 rounded-lg hover:bg-tz-cream dark:hover:bg-gray-800 text-muted-foreground">
@@ -246,13 +319,14 @@ function TableListItem({
   );
 }
 
-export default function TableListView({ tables, workspaceId, subscriptionActive, onUpdate, onDelete }: TableListViewProps) {
+export default function TableListView({ tables, allTables, workspaceId, subscriptionActive, onUpdate, onDelete }: TableListViewProps) {
   return (
     <div className="space-y-3">
       {tables.map((table) => (
         <TableListItem
           key={table.id}
           table={table}
+          allTables={allTables ?? tables}
           workspaceId={workspaceId}
           subscriptionActive={subscriptionActive}
           onUpdate={onUpdate}

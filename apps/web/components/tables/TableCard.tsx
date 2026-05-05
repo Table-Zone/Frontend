@@ -256,10 +256,9 @@ export default function TableCard({
       );
       onUpdate();
     } catch (err: any) {
-      showToast(
-        err.response?.data?.error?.message || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'),
-        'error'
-      );
+      console.error('Transfer (drop) error:', err);
+      const msg = err.response?.data?.error?.message;
+      showToast(msg || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'), 'error');
     } finally {
       setLoading(false);
     }
@@ -291,10 +290,9 @@ export default function TableCard({
       );
       onUpdate();
     } catch (err: any) {
-      showToast(
-        err.response?.data?.error?.message || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'),
-        'error'
-      );
+      console.error('Transfer error:', err);
+      const msg = err.response?.data?.error?.message;
+      showToast(msg || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'), 'error');
     } finally {
       setLoading(false);
     }
@@ -483,10 +481,10 @@ export default function TableCard({
                 type="button"
                 onClick={() => setShowTransferPicker((v) => !v)}
                 disabled={loading}
-                title={t.transfer}
-                className="h-12 w-12 rounded-2xl bg-tz-cream dark:bg-gray-800 hover:bg-tz-cream-dark dark:hover:bg-gray-700 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all disabled:opacity-60 active:scale-95"
+                className="h-12 px-3 rounded-2xl bg-tz-cream dark:bg-gray-800 hover:bg-tz-cream-dark dark:hover:bg-gray-700 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 font-bold text-sm transition-all disabled:opacity-60 active:scale-95"
               >
                 <ArrowRightLeft className="w-4 h-4" />
+                {t.transfer}
               </button>
               {showTransferPicker && (
                 <div className="absolute bottom-14 right-0 z-20 min-w-[160px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl py-2 overflow-hidden">

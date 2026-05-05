@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/shared/Toast';
-import { History, Pencil, Trash2, Play, Square } from 'lucide-react';
+import { History, Pencil, Trash2, Play, Square, ArrowRightLeft } from 'lucide-react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import SessionHistoryModal from './SessionHistoryModal';
 import ConfirmModal from '@/components/shared/ConfirmModal';
@@ -23,6 +23,7 @@ interface Table {
 
 interface TableCompactViewProps {
   tables: Table[];
+  allTables?: Table[];
   workspaceId: string;
   subscriptionActive: boolean;
   onUpdate: () => void;
@@ -47,12 +48,14 @@ function formatTime(totalSeconds: number): string {
 
 function TableCompactCard({
   table,
+  allTables = [],
   workspaceId,
   subscriptionActive,
   onUpdate,
   onDelete,
 }: {
   table: Table;
+  allTables?: Table[];
   workspaceId: string;
   subscriptionActive: boolean;
   onUpdate: () => void;
@@ -67,6 +70,8 @@ function TableCompactCard({
   const [showHistory, setShowHistory] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTransferPicker, setShowTransferPicker] = useState(false);
+  const transferPickerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const [showSubscribe, setShowSubscribe] = useState(false);
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -134,6 +139,39 @@ function TableCompactCard({
     }
   };
 
+  useEffect(() => {
+    if (!showTransferPicker) return;
+    const handler = (e: MouseEvent) => {
+      if (transferPickerRef.current && !transferPickerRef.current.contains(e.target as Node)) {
+        setShowTransferPicker(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showTransferPicker]);
+
+  const freeTables = allTables.filter((t) => t.status === 'free' && t.id !== table.id);
+
+  const handleTransferTo = async (targetId: string, targetName: string) => {
+    setShowTransferPicker(false);
+    setLoading(true);
+    try {
+      await tableAPI.transferTimer(workspaceId, table.id, targetId);
+      showToast(
+        isRTL
+          ? `تم نقل الجلسة من "${table.name}" إلى "${targetName}"`
+          : `Session moved from "${table.name}" to "${targetName}"`,
+        'success'
+      );
+      onUpdate();
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message;
+      showToast(msg || (isRTL ? 'فشل نقل الجلسة' : 'Failed to transfer session'), 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border ${cfg.border} p-3 flex flex-col`}>
       {/* Top row: status strip + name + actions */}
@@ -192,18 +230,60 @@ function TableCompactCard({
           className="w-full bg-tz-cream dark:bg-gray-800 rounded-lg px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-tz-primary/20"
         />
 
-        {/* Start/Stop */}
-        <button
-          type="button"
-          onClick={isOccupied ? handleStop : handleStart}
-          disabled={loading}
-          className={`w-full h-9 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all disabled:opacity-60 ${
-            isOccupied ? 'bg-gradient-to-br from-tz-red to-[#DC2626]' : 'bg-gradient-to-br from-tz-primary to-[#E87E3A]'
-          }`}
-        >
-          {isOccupied ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-          {isOccupied ? t.stop : t.start}
-        </button>
+        {/* Start / Stop + Transfer */}
+        {isOccupied ? (
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={handleStop}
+              disabled={loading}
+              className="flex-1 h-9 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all disabled:opacity-60 bg-gradient-to-br from-tz-red to-[#DC2626]"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              {t.stop}
+            </button>
+            <div className="relative" ref={transferPickerRef}>
+              <button
+                type="button"
+                onClick={() => setShowTransferPicker((v) => !v)}
+                disabled={loading}
+                className="h-9 px-2.5 rounded-xl bg-tz-cream dark:bg-gray-800 hover:bg-tz-cream-dark dark:hover:bg-gray-700 text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 font-bold text-xs transition-all disabled:opacity-60 active:scale-95"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+                {t.transfer}
+              </button>
+              {showTransferPicker && (
+                <div className="absolute bottom-10 right-0 z-20 min-w-[140px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl py-2 overflow-hidden">
+                  <p className="text-[11px] font-semibold text-muted-foreground px-3 pb-1.5 pt-0.5">{t.transferTo}</p>
+                  {freeTables.length === 0 ? (
+                    <p className="text-xs text-muted-foreground px-3 py-2">{t.noFreeTables}</p>
+                  ) : (
+                    freeTables.map((ft) => (
+                      <button
+                        key={ft.id}
+                        type="button"
+                        onClick={() => handleTransferTo(ft.id, ft.name)}
+                        className="w-full text-left px-3 py-2 text-sm font-medium hover:bg-tz-cream dark:hover:bg-gray-800 transition-colors"
+                      >
+                        {ft.name}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleStart}
+            disabled={loading}
+            className="w-full h-9 rounded-xl text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all disabled:opacity-60 bg-gradient-to-br from-tz-primary to-[#E87E3A]"
+          >
+            <Play className="w-3.5 h-3.5 fill-current" />
+            {t.start}
+          </button>
+        )}
       </div>
 
       {showSubscribe && <SubscriptionPopup workspaceId={workspaceId} onClose={() => setShowSubscribe(false)} />}
@@ -220,13 +300,14 @@ function TableCompactCard({
   );
 }
 
-export default function TableCompactView({ tables, workspaceId, subscriptionActive, onUpdate, onDelete }: TableCompactViewProps) {
+export default function TableCompactView({ tables, allTables, workspaceId, subscriptionActive, onUpdate, onDelete }: TableCompactViewProps) {
   return (
     <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {tables.map((table) => (
         <TableCompactCard
           key={table.id}
           table={table}
+          allTables={allTables ?? tables}
           workspaceId={workspaceId}
           subscriptionActive={subscriptionActive}
           onUpdate={onUpdate}

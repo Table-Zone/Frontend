@@ -133,7 +133,7 @@ const translations = {
     ready: 'جاهز',
     start: 'بدء',
     stop: 'إيقاف',
-    transfer: 'نقل',
+    transfer: 'تبديل',
     transferTo: 'نقل إلى',
     noFreeTables: 'لا توجد طاولات فارغة',
     status: {

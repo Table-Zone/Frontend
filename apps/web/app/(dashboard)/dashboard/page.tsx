@@ -316,6 +316,7 @@ export default function DashboardPage() {
       {dashboardView === 'list' && (
         <TableListView
           tables={tables}
+          allTables={tables}
           workspaceId={workspace?.id || ''}
           subscriptionActive={subscriptionActive}
           onUpdate={fetchTables}
@@ -325,6 +326,7 @@ export default function DashboardPage() {
       {dashboardView === 'compact' && (
         <TableCompactView
           tables={tables}
+          allTables={tables}
           workspaceId={workspace?.id || ''}
           subscriptionActive={subscriptionActive}
           onUpdate={fetchTables}
