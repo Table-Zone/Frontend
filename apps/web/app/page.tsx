@@ -159,9 +159,9 @@ export default function LandingPage() {
             {[...partners, ...partners, ...partners].map((p, i) => (
               <div
                 key={i}
-                className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 w-24 h-16 sm:w-32 sm:h-20 shrink-0 p-2"
+                className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 w-24 h-16 sm:w-32 sm:h-20 shrink-0"
               >
-                <img src={p.img} alt={p.name} className="w-full h-full object-contain" />
+                <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
