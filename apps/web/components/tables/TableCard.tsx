@@ -370,7 +370,7 @@ export default function TableCard({
 
       {/* Timer circle */}
       <div className="flex flex-col items-center py-3">
-        <div className="w-[140px] h-[140px] rounded-full flex flex-col items-center justify-center relative bg-gradient-to-br from-gray-50 to-gray-100 shadow-inner">
+        <div className="w-[140px] h-[140px] rounded-full flex flex-col items-center justify-center relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 shadow-inner">
           <div className={`absolute inset-2 rounded-full border-[3px] ${
             displayStatus === 'free' ? 'border-tz-green/20' :
             displayStatus === 'occupied' ? 'border-tz-blue/20' :
@@ -424,7 +424,7 @@ export default function TableCard({
         <div className={`rounded-2xl px-4 py-3.5 min-h-[52px] transition-all ${
           note.trim()
             ? 'bg-tz-primary/5 border-2 border-tz-primary/20 shadow-sm'
-            : 'bg-tz-cream border-2 border-transparent'
+            : 'bg-tz-cream dark:bg-gray-800 border-2 border-transparent'
         }`}>
           <div className="flex items-start gap-2">
             <svg className="w-5 h-5 text-tz-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -440,7 +440,7 @@ export default function TableCard({
               placeholder={t.addNote}
               className={`bg-transparent w-full focus:outline-none font-medium leading-relaxed ${
                 note.trim()
-                  ? 'text-sm text-tz-espresso placeholder:text-tz-primary/40'
+                  ? 'text-sm text-tz-espresso dark:text-gray-100 placeholder:text-tz-primary/40'
                   : 'text-sm text-muted-foreground placeholder:text-muted-foreground/50'
               }`}
               style={{ fontSize: note.trim() ? '14px' : '13px' }}
