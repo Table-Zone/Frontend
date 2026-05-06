@@ -13,6 +13,7 @@ const partners = [
   { name: 'Pantry', img: '/pantry.jpg' },
   { name: 'Masla', img: '/masla.jpg' },
   { name: 'Camilla', img: '/camilla.png' },
+  { name: 'Sum', img: '/Sum.png' },
 ];
 
 interface Plan {
