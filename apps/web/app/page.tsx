@@ -32,6 +32,13 @@ export default function LandingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const fetchPlans = () => {
     setPlansLoading(true);
@@ -55,7 +62,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-tz-cream">
+    <div className="min-h-screen bg-tz-cream dark:bg-gray-950">
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
@@ -72,24 +79,38 @@ export default function LandingPage() {
         }
       `}</style>
       
-      {/* Hero */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-tz-primary/5 via-transparent to-tz-primary/10" />
-
-        <nav className="relative z-10 flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
+      {/* Sticky Nav */}
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${scrolled ? 'bg-tz-cream/90 dark:bg-gray-950/90 backdrop-blur-md shadow-sm border-b border-tz-cream-dark dark:border-gray-800' : ''}`}>
+        <div className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl overflow-hidden">
               <Image src="/logo.jpg" alt="Table Zone" width={36} height={36} className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-lg text-tz-espresso">Table Zone</span>
+            <span className="font-bold text-lg text-tz-espresso dark:text-white">Table Zone</span>
           </div>
-        </nav>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              {t.login}
+            </Link>
+            <Link
+              href="/register"
+              className="text-sm font-bold bg-tz-primary hover:bg-tz-primary-dark text-white px-5 py-2.5 rounded-xl transition-colors"
+            >
+              {isRTL ? 'ابدأ الآن' : 'Get Started'}
+            </Link>
+          </div>
+        </div>
+      </nav>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center px-6 pt-16 pb-24">
+      {/* Hero */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-tz-primary/5 via-transparent to-tz-primary/10" />
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center px-6 pt-32 pb-24">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-tz-espresso leading-tight mb-6"
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-tz-espresso dark:text-white leading-tight mb-6"
           >
             {isRTL ? 'أدر طاولاتك ' : 'Manage Your Cafe Tables '}
             <span className="text-tz-primary">{isRTL ? 'في الوقت الفعلي' : 'in Real-Time'}</span>
@@ -118,7 +139,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/login"
-              className="bg-white hover:bg-tz-cream-dark text-tz-espresso font-bold px-8 py-3.5 rounded-2xl border border-tz-cream-dark transition-all"
+              className="bg-white hover:bg-tz-cream-dark dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 text-tz-espresso dark:text-white font-bold px-8 py-3.5 rounded-2xl border border-tz-cream-dark transition-all"
             >
               {t.login}
             </Link>
@@ -127,7 +148,7 @@ export default function LandingPage() {
       </header>
 
       {/* Partners Marquee */}
-      <section className="py-12 bg-white border-y border-tz-cream-dark overflow-hidden">
+      <section className="py-12 bg-white dark:bg-gray-900 border-y border-tz-cream-dark dark:border-gray-700 overflow-hidden">
         <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
             {isRTL ? 'شركاؤنا' : 'Our Partners'}
@@ -138,9 +159,9 @@ export default function LandingPage() {
             {[...partners, ...partners, ...partners].map((p, i) => (
               <div
                 key={i}
-                className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white border border-tz-cream-dark w-24 h-16 sm:w-32 sm:h-20 shrink-0"
+                className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 w-24 h-16 sm:w-32 sm:h-20 shrink-0 p-2"
               >
-                <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
+                <img src={p.img} alt={p.name} className="w-full h-full object-contain" />
               </div>
             ))}
           </div>
@@ -151,7 +172,7 @@ export default function LandingPage() {
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-tz-espresso mb-3">
+            <h2 className="text-3xl font-bold text-tz-espresso dark:text-white mb-3">
               {isRTL ? 'كل ما تحتاجه' : 'Everything You Need'}
             </h2>
             <p className="text-muted-foreground">
@@ -166,12 +187,12 @@ export default function LandingPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark hover:shadow-lg hover:-translate-y-1 transition-all text-center"
+                className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all text-center"
               >
                 <div className="w-12 h-12 rounded-2xl bg-tz-primary/10 flex items-center justify-center mb-4 mx-auto">
                   <f.icon className="w-6 h-6 text-tz-primary" />
                 </div>
-                <h3 className="font-bold text-lg mb-1">{f.title}</h3>
+                <h3 className="font-bold text-lg mb-1 text-tz-espresso dark:text-white">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
@@ -180,14 +201,14 @@ export default function LandingPage() {
       </section>
 
       {/* About Us */}
-      <section className="py-20 px-6 bg-white">
+      <section className="py-20 px-6 bg-white dark:bg-gray-900">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl font-bold text-tz-espresso mb-4">
+            <h2 className="text-3xl font-bold text-tz-espresso dark:text-white mb-4">
               {isRTL ? 'من نحن' : 'About Us'}
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-2xl mx-auto">
@@ -200,10 +221,10 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="py-20 px-6 bg-tz-cream">
+      <section className="py-20 px-6 bg-tz-cream dark:bg-gray-950">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-tz-espresso mb-3">
+            <h2 className="text-3xl font-bold text-tz-espresso dark:text-white mb-3">
               {isRTL ? 'تسعير بسيط' : 'Simple Pricing'}
             </h2>
             <p className="text-muted-foreground">
@@ -229,11 +250,11 @@ export default function LandingPage() {
           ) : (
             <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
               {monthlyPlan && (
-                <div className="rounded-3xl p-8 border-2 border-tz-cream-dark bg-white">
-                  <h3 className="font-bold text-lg mb-1">{isRTL ? monthlyPlan.labelAr : monthlyPlan.labelEn}</h3>
+                <div className="rounded-3xl p-8 border-2 border-tz-cream-dark dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <h3 className="font-bold text-lg mb-1 text-tz-espresso dark:text-white">{isRTL ? monthlyPlan.labelAr : monthlyPlan.labelEn}</h3>
                   <p className="text-sm text-muted-foreground mb-6">{monthlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
                   <div className="mb-6">
-                    <span className="text-4xl font-extrabold text-tz-espresso">{monthlyPlan.priceSar}</span>
+                    <span className="text-4xl font-extrabold text-tz-espresso dark:text-white">{monthlyPlan.priceSar}</span>
                     <span className="text-muted-foreground"> SAR</span>
                   </div>
                   <ul className="space-y-3 mb-8">
@@ -242,7 +263,7 @@ export default function LandingPage() {
                       isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
                       isRTL ? 'دعم فني' : 'Support',
                     ].map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm">
+                      <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
                         <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
                         {item}
                       </li>
@@ -250,7 +271,7 @@ export default function LandingPage() {
                   </ul>
                   <Link
                     href="/register"
-                    className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark text-tz-espresso font-bold py-3 rounded-xl transition-colors"
+                    className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark dark:bg-gray-700 dark:hover:bg-gray-600 text-tz-espresso dark:text-white font-bold py-3 rounded-xl transition-colors"
                   >
                     {isRTL ? 'ابدأ الآن' : 'Get Started'}
                   </Link>
@@ -258,11 +279,11 @@ export default function LandingPage() {
               )}
 
               {quarterlyPlan && (
-                <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 relative">
+                <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 dark:bg-tz-primary/10 relative">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-tz-primary text-white text-xs font-bold">
                     {isRTL ? 'الأفضل قيمة' : 'Best Value'}
                   </div>
-                  <h3 className="font-bold text-lg mb-1">{isRTL ? quarterlyPlan.labelAr : quarterlyPlan.labelEn}</h3>
+                  <h3 className="font-bold text-lg mb-1 text-tz-espresso dark:text-white">{isRTL ? quarterlyPlan.labelAr : quarterlyPlan.labelEn}</h3>
                   <p className="text-sm text-muted-foreground mb-6">{quarterlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
                   <div className="mb-6">
                     <span className="text-4xl font-extrabold text-tz-primary">{quarterlyPlan.priceSar}</span>
@@ -275,7 +296,7 @@ export default function LandingPage() {
                       isRTL ? 'دعم فني' : 'Support',
                       isRTL ? 'توفير أكثر' : 'Save more',
                     ].map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm">
+                      <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
                         <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
                         {item}
                       </li>
@@ -295,16 +316,18 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-white border-t border-tz-cream-dark">
+      <footer className="py-12 px-6 bg-white dark:bg-gray-900 border-t border-tz-cream-dark dark:border-gray-700">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg overflow-hidden">
               <Image src="/logo.jpg" alt="Table Zone" width={28} height={28} className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-sm text-tz-espresso">Table Zone</span>
+            <span className="font-bold text-sm text-tz-espresso dark:text-white">Table Zone</span>
           </div>
           <a
-            href="tel:0556088384"
+            href="https://wa.me/966556088384"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-tz-primary transition-colors"
             dir="ltr"
           >
@@ -316,6 +339,19 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+      {/* WhatsApp floating button */}
+      <a
+        href="https://wa.me/966556088384"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        className="fixed bottom-6 left-6 z-50 w-14 h-14 rounded-full bg-[#25D366] hover:bg-[#1ebe5d] shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 flex items-center justify-center"
+      >
+        <svg viewBox="0 0 24 24" className="w-7 h-7 fill-white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
     </div>
   );
 }
