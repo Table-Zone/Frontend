@@ -325,14 +325,14 @@ export default function LandingPage() {
             <span className="font-bold text-sm text-tz-espresso dark:text-white">Table Zone</span>
           </div>
           <a
-            href="https://wa.me/966556088384"
+            href="https://wa.me/966501549458"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-tz-primary transition-colors"
             dir="ltr"
           >
             <Phone className="w-4 h-4" />
-            0556088384
+            0501549458
           </a>
           <p className="text-xs text-muted-foreground">
             © 2025 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
@@ -342,7 +342,7 @@ export default function LandingPage() {
 
       {/* WhatsApp floating button */}
       <a
-        href="https://wa.me/966556088384"
+        href="https://wa.me/966501549458"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
