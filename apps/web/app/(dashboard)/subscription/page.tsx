@@ -209,7 +209,7 @@ export default function SubscriptionPage() {
         <div className="w-10 h-10 rounded-xl bg-tz-primary/10 flex items-center justify-center">
           <CreditCard className="w-5 h-5 text-tz-primary" />
         </div>
-        <h1 className="text-2xl font-bold text-tz-espresso">{t.subscription}</h1>
+        <h1 className="text-2xl font-bold text-tz-espresso dark:text-white">{t.subscription}</h1>
       </div>
 
       {error && (
@@ -243,7 +243,7 @@ export default function SubscriptionPage() {
       )}
 
       {/* Current Subscription */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
         <h2 className="text-lg font-bold mb-4">{isRTL ? 'الاشتراك الحالي' : 'Current Subscription'}</h2>
 
         {subscription ? (
@@ -280,7 +280,7 @@ export default function SubscriptionPage() {
 
             {/* Add Extra Seats Button */}
             {subscription.status === 'active' && (
-              <div className="pt-4 border-t border-tz-cream-dark">
+              <div className="pt-4 border-t border-tz-cream-dark dark:border-gray-700">
                 {!showExtraSeats ? (
                   <Button
                     onClick={() => setShowExtraSeats(true)}
@@ -303,14 +303,14 @@ export default function SubscriptionPage() {
                           <div className="flex items-center gap-3">
                             <button
                               onClick={() => setExtraSeatsCount(Math.max(1, extraSeatsCount - 1))}
-                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream"
+                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream dark:hover:bg-gray-800"
                             >
                               <Minus className="w-4 h-4" />
                             </button>
                             <span className="font-bold w-6 text-center">{extraSeatsCount}</span>
                             <button
                               onClick={() => setExtraSeatsCount(extraSeatsCount + 1)}
-                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream"
+                              className="w-8 h-8 rounded-lg border flex items-center justify-center hover:bg-tz-cream dark:hover:bg-gray-800"
                             >
                               <Plus className="w-4 h-4" />
                             </button>
@@ -377,7 +377,7 @@ export default function SubscriptionPage() {
 
       {/* Plans (for new subscription or renewal) */}
       {(!subscription || subscription.status !== 'active') && step === 'view' && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
           <h2 className="text-lg font-bold mb-4">{isRTL ? 'الخطط المتاحة' : 'Available Plans'}</h2>
 
           <div className="space-y-3">
@@ -424,7 +424,7 @@ export default function SubscriptionPage() {
 
       {/* Subscribe payment form */}
       {step === 'payment' && bankDetails && selectedPlan && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
           <h2 className="text-lg font-bold mb-4">
             {isRTL ? `إتمام الاشتراك - ${selectedPlan.labelAr}` : `Complete Subscription - ${selectedPlan.labelEn}`}
           </h2>
@@ -445,7 +445,7 @@ export default function SubscriptionPage() {
       )}
 
       {step === 'success' && (
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-tz-cream-dark mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
           <SuccessStep
             message={isRTL ? 'تم إرسال الطلب. سيتم تفعيل الاشتراك قريباً.' : 'Request submitted. Subscription will be activated soon.'}
             onClose={resetFlow}
@@ -464,7 +464,7 @@ function PaymentFormStep({ bankDetails, amount, receiptFile, setReceiptFile, ban
   return (
     <div className="space-y-6">
       {/* Bank Details */}
-      <div className="bg-tz-cream rounded-2xl p-5 space-y-3">
+      <div className="bg-tz-cream dark:bg-gray-800 rounded-2xl p-5 space-y-3">
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-tz-primary" />
           <div>
@@ -513,7 +513,7 @@ function PaymentFormStep({ bankDetails, amount, receiptFile, setReceiptFile, ban
       </div>
 
       {/* Receipt Upload */}
-      <div className="border-2 border-dashed border-tz-cream-dark rounded-2xl p-8 text-center hover:border-tz-primary/50 transition-colors">
+      <div className="border-2 border-dashed border-tz-cream-dark dark:border-gray-700 rounded-2xl p-8 text-center hover:border-tz-primary/50 transition-colors">
         <input
           type="file"
           accept="image/*"

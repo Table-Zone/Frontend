@@ -183,7 +183,7 @@ export default function TeamPage() {
             <Users className="w-5 h-5 text-tz-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-tz-espresso">{t.members}</h1>
+            <h1 className="text-2xl font-bold text-tz-espresso dark:text-white">{t.members}</h1>
             <p className="text-xs text-muted-foreground">{seatUsageText}</p>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function TeamPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-tz-cream-dark flex items-center gap-4"
+              className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-tz-cream-dark dark:border-gray-700 flex items-center gap-4"
             >
               <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
                 member.role === 'owner'
@@ -276,7 +276,7 @@ export default function TeamPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: (members.length + index) * 0.05 }}
-              className="bg-white rounded-2xl p-5 shadow-sm border border-dashed border-tz-blue/30 flex items-center gap-4"
+              className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-dashed border-tz-blue/30 flex items-center gap-4"
             >
               <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 bg-gradient-to-br from-tz-blue/20 to-tz-blue/10">
                 <Mail className="w-5 h-5 text-tz-blue" />
@@ -341,13 +341,13 @@ export default function TeamPage() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl"
+              className="bg-white dark:bg-gray-900 rounded-3xl p-6 w-full max-w-md shadow-2xl"
             >
               <div className="text-center mb-6">
                 <div className="w-14 h-14 rounded-2xl bg-tz-green/10 flex items-center justify-center mx-auto mb-3">
                   <Check className="w-7 h-7 text-tz-green" />
                 </div>
-                <h2 className="text-lg font-bold text-tz-espresso">{t.inviteCreated}</h2>
+                <h2 className="text-lg font-bold text-tz-espresso dark:text-white">{t.inviteCreated}</h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   {isRTL ? 'شارك هذا الرابط مع الشخص الذي تريد دعوته' : 'Share this link with the person you want to invite'}
                 </p>
@@ -357,7 +357,7 @@ export default function TeamPage() {
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">{t.inviteLink}</label>
                 <div className="flex gap-2">
-                  <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream flex items-center text-sm text-muted-foreground truncate">
+                  <div className="flex-1 h-12 px-4 rounded-xl bg-tz-cream dark:bg-gray-800 flex items-center text-sm text-muted-foreground truncate">
                     {createdInviteUrl || (isRTL ? 'غير متوفر' : 'Not available')}
                   </div>
                   <Button
