@@ -28,7 +28,7 @@ interface Plan {
 }
 
 export default function LandingPage() {
-  const { t, isRTL } = useLanguage();
+  const { t, isRTL, setLang } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
@@ -176,7 +176,7 @@ export default function LandingPage() {
               {isRTL ? 'كل ما تحتاجه' : 'Everything You Need'}
             </h2>
             <p className="text-muted-foreground">
-              {isRTL ? 'ميزات قوية مصممة لعمليات المقاهي' : 'Powerful features designed for cafe operations'}
+              {isRTL ? 'ما نقدمه لك' : 'What we offer you'}
             </p>
           </div>
 
@@ -334,6 +334,20 @@ export default function LandingPage() {
             <Phone className="w-4 h-4" />
             0501549458
           </a>
+          <div className="flex items-center gap-1 rounded-xl border border-tz-cream-dark dark:border-gray-700 overflow-hidden text-xs font-bold">
+            <button
+              onClick={() => setLang('ar')}
+              className={`px-3 py-1.5 transition-colors ${isRTL ? 'bg-tz-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              عربي
+            </button>
+            <button
+              onClick={() => setLang('en')}
+              className={`px-3 py-1.5 transition-colors ${!isRTL ? 'bg-tz-primary text-white' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              EN
+            </button>
+          </div>
           <p className="text-xs text-muted-foreground">
             © 2025 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
           </p>
