@@ -24,8 +24,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'Table Zone - إدارة الطاولات للمقاهي',
-  description: 'نظام إدارة الطاولات في الوقت الفعلي للمقاهي',
+  title: 'Table Zone',
+  description: 'The #1 table management tool for cafes and restaurants.',
   icons: {
     icon: '/logo.jpg',
     shortcut: '/logo.jpg',

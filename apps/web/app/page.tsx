@@ -112,8 +112,8 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-tz-espresso dark:text-white leading-tight mb-6"
           >
-            {isRTL ? 'أدر طاولاتك ' : 'Manage Your Cafe Tables '}
-            <span className="text-tz-primary">{isRTL ? 'في الوقت الفعلي' : 'in Real-Time'}</span>
+            {isRTL ? 'ادر عملياتك ' : 'Manage Your Cafe Tables '}
+            <span className="text-tz-primary">{isRTL ? 'بسهولة' : 'in Real-Time'}</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -122,8 +122,8 @@ export default function LandingPage() {
             className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10"
           >
             {isRTL
-              ? 'تتبع إشغال الطاولات والمؤقتات ونشاط الموظفين.'
-              : 'Track table occupancy, timers, and staff activity.'}
+              ? 'العديد من الخدمات التي تجعل تجربتك أسهل'
+              : 'Multiple services that make your experience easier'}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
