@@ -24,8 +24,8 @@ const tajawal = Tajawal({
 });
 
 export const metadata: Metadata = {
-  title: 'Table Zone - إدارة الطاولات للمقاهي',
-  description: 'نظام إدارة الطاولات في الوقت الفعلي للمقاهي',
+  title: 'Table Zone',
+  description: 'The #1 table management tool for cafes and restaurants.',
   icons: {
     icon: '/logo.jpg',
     shortcut: '/logo.jpg',
@@ -37,7 +37,7 @@ const themeScript = `
   (function() {
     try {
       var theme = localStorage.getItem('theme');
-      if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      if (theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
