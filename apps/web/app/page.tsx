@@ -112,7 +112,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-tz-espresso dark:text-white leading-tight mb-6"
           >
-            {isRTL ? ' أدِر طاولاتك' : 'Manage Your Cafe Tables '}
+            {isRTL ? ' أدِر طاولاتك ' : 'Manage Your Cafe Tables '}
             <span className="text-tz-primary">{isRTL ? 'بسهولة' : 'in Real-Time'}</span>
           </motion.h1>
           <motion.p
