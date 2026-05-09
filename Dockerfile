@@ -33,9 +33,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-# Production image, copy all the files and run next
+# Production image
 FROM base AS runner
-WORKDIR /app
+WORKDIR /app/apps/web
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -43,9 +43,14 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
+# Copy built app with node_modules (standalone didn't work with pnpm monorepo)
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ../../node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ../../package.json
+COPY --from=builder --chown=nextjs:nodejs /app/pnpm-workspace.yaml ../../pnpm-workspace.yaml
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/packages ./../../packages
 
 USER nextjs
 
@@ -54,4 +59,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["npx", "next", "start"]

@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export function getImageUrl(path?: string | null): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path}`;
+}
+
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/v1`,
   headers: { 'Content-Type': 'application/json' },
@@ -200,6 +206,10 @@ export const qrMenuAPI = {
     }),
   uploadBanner: (workspaceId: string, formData: FormData) =>
     api.post(`/workspaces/qr-menu/${workspaceId}/banner`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadBackground: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/background`, formData, {
       headers: { 'Content-Type': undefined } as any,
     }),
   uploadItemImage: (itemId: string, formData: FormData) =>

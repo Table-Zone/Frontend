@@ -25,6 +25,7 @@ interface Plan {
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
+  features: string;
 }
 
 export default function LandingPage() {
@@ -33,6 +34,7 @@ export default function LandingPage() {
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'quarterly'>('monthly');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -51,8 +53,8 @@ export default function LandingPage() {
 
   useEffect(() => { fetchPlans(); }, []);
 
-  const monthlyPlan = plans.find((p) => p.name === 'monthly');
-  const quarterlyPlan = plans.find((p) => p.name === 'quarterly');
+  const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
+  const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
 
   const features = [
     { icon: Clock, title: isRTL ? 'مؤقتات ذكية' : 'Smart Timers', desc: isRTL ? 'تتبع وقت كل طاولة بتنظيم ذكي' : 'Track every table with smart organization' },
@@ -223,13 +225,37 @@ export default function LandingPage() {
       {/* Pricing */}
       <section className="py-20 px-6 bg-tz-cream dark:bg-gray-950">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-tz-espresso dark:text-white mb-3">
               {isRTL ? 'تسعير بسيط' : 'Simple Pricing'}
             </h2>
-            <p className="text-muted-foreground">
-              {isRTL ? 'اختر الخطة التي تناسبك' : 'Choose the plan that fits you'}
+            <p className="text-muted-foreground mb-8">
+              {isRTL ? 'اختر المدة ثم الخطة التي تناسبك' : 'Choose duration then the plan that fits you'}
             </p>
+
+            {/* Billing Period Toggle */}
+            <div className="inline-flex items-center bg-white dark:bg-gray-800 rounded-2xl p-1.5 border border-tz-cream-dark dark:border-gray-700 shadow-sm">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  billingPeriod === 'monthly'
+                    ? 'bg-tz-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {isRTL ? 'شهري' : 'Monthly'}
+              </button>
+              <button
+                onClick={() => setBillingPeriod('quarterly')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                  billingPeriod === 'quarterly'
+                    ? 'bg-tz-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {isRTL ? '3 أشهر' : 'Quarterly'}
+              </button>
+            </div>
           </div>
 
           {plansLoading ? (
@@ -248,63 +274,88 @@ export default function LandingPage() {
               </button>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              {monthlyPlan && (
-                <div className="rounded-3xl p-8 border-2 border-tz-cream-dark dark:border-gray-700 bg-white dark:bg-gray-800">
-                  <h3 className="font-bold text-lg mb-1 text-tz-espresso dark:text-white">{isRTL ? monthlyPlan.labelAr : monthlyPlan.labelEn}</h3>
-                  <p className="text-sm text-muted-foreground mb-6">{monthlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+            <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              {/* Tables Only Plan */}
+              {tablesPlan && (
+                <div className="rounded-3xl p-8 border-2 border-tz-cream-dark dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col">
                   <div className="mb-6">
-                    <span className="text-4xl font-extrabold text-tz-espresso dark:text-white">{monthlyPlan.priceSar}</span>
-                    <span className="text-muted-foreground"> SAR</span>
+                    <h3 className="font-bold text-xl mb-1 text-tz-espresso dark:text-white">
+                      {isRTL ? 'إدارة الطاولات' : 'Table Management'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isRTL ? 'مؤقتات ذكية وتنظيم الطاولات' : 'Smart timers & table organization'}
+                    </p>
                   </div>
-                  <ul className="space-y-3 mb-8">
+                  <div className="mb-6">
+                    <span className="text-4xl font-extrabold text-tz-espresso dark:text-white">{tablesPlan.priceSar}</span>
+                    <span className="text-muted-foreground"> SAR</span>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {isRTL ? `لمدة ${tablesPlan.durationDays} يوم` : `For ${tablesPlan.durationDays} days`}
+                    </p>
+                  </div>
+                  <ul className="space-y-3 mb-8 flex-1">
                     {[
-                      isRTL ? (monthlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${monthlyPlan.baseStaffSeats} مقاعد موظفين`) : `${monthlyPlan.baseStaffSeats} staff seat`,
-                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                      isRTL ? 'دعم فني' : 'Support',
+                      isRTL ? 'مؤقتات ذكية للطاولات' : 'Smart table timers',
+                      isRTL ? 'تتبع حالة الطاولات (متاحة - مشغولة - محجوزة)' : 'Track table status (free - busy - reserved)',
+                      isRTL ? 'تنبيهات وقت الاستخدام' : 'Usage time alerts',
+                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
+                      isRTL ? 'دعم فني' : 'Technical support',
                     ].map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
-                        <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                      <li key={item} className="flex items-center gap-2.5 text-sm text-tz-espresso dark:text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-tz-green shrink-0" />
                         {item}
                       </li>
                     ))}
                   </ul>
                   <Link
                     href="/register"
-                    className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark dark:bg-gray-700 dark:hover:bg-gray-600 text-tz-espresso dark:text-white font-bold py-3 rounded-xl transition-colors"
+                    className="block w-full text-center bg-tz-cream hover:bg-tz-cream-dark dark:bg-gray-700 dark:hover:bg-gray-600 text-tz-espresso dark:text-white font-bold py-3.5 rounded-xl transition-colors"
                   >
                     {isRTL ? 'ابدأ الآن' : 'Get Started'}
                   </Link>
                 </div>
               )}
 
-              {quarterlyPlan && (
-                <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 dark:bg-tz-primary/10 relative">
+              {/* Tables + QR Plan */}
+              {qrcodePlan && (
+                <div className="rounded-3xl p-8 border-2 border-tz-primary bg-tz-primary/5 dark:bg-tz-primary/10 relative flex flex-col">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-tz-primary text-white text-xs font-bold">
-                    {isRTL ? 'الأفضل قيمة' : 'Best Value'}
+                    {isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}
                   </div>
-                  <h3 className="font-bold text-lg mb-1 text-tz-espresso dark:text-white">{isRTL ? quarterlyPlan.labelAr : quarterlyPlan.labelEn}</h3>
-                  <p className="text-sm text-muted-foreground mb-6">{quarterlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
                   <div className="mb-6">
-                    <span className="text-4xl font-extrabold text-tz-primary">{quarterlyPlan.priceSar}</span>
-                    <span className="text-muted-foreground"> SAR</span>
+                    <h3 className="font-bold text-xl mb-1 text-tz-espresso dark:text-white">
+                      {isRTL ? 'الطاولات + قائمة QR' : 'Tables + QR Menu'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {isRTL ? 'كل شيء في خطة الطاولات + قائمة رقمية' : 'Everything in Tables + digital menu'}
+                    </p>
                   </div>
-                  <ul className="space-y-3 mb-8">
+                  <div className="mb-6">
+                    <span className="text-4xl font-extrabold text-tz-primary">{qrcodePlan.priceSar}</span>
+                    <span className="text-muted-foreground"> SAR</span>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {isRTL ? `لمدة ${qrcodePlan.durationDays} يوم` : `For ${qrcodePlan.durationDays} days`}
+                    </p>
+                  </div>
+                  <ul className="space-y-3 mb-8 flex-1">
                     {[
-                      isRTL ? (quarterlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${quarterlyPlan.baseStaffSeats} مقاعد موظفين`) : `${quarterlyPlan.baseStaffSeats} staff seat`,
-                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                      isRTL ? 'دعم فني' : 'Support',
-                      isRTL ? 'توفير أكثر' : 'Save more',
+                      isRTL ? 'كل مميزات خطة الطاولات' : 'All Table Management features',
+                      isRTL ? 'قائمة رقمية بتصميم QR' : 'Digital QR menu',
+                      isRTL ? '4 قوالب تصميم جاهزة' : '4 ready-made design templates',
+                      isRTL ? 'تخصيص الألوان والشعار' : 'Customize colors & logo',
+                      isRTL ? 'إدارة المنتجات والتصنيفات' : 'Manage products & categories',
+                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
+                      isRTL ? 'دعم فني' : 'Technical support',
                     ].map((item) => (
-                      <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
-                        <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                      <li key={item} className="flex items-center gap-2.5 text-sm text-tz-espresso dark:text-gray-300">
+                        <div className="w-2 h-2 rounded-full bg-tz-green shrink-0" />
                         {item}
                       </li>
                     ))}
                   </ul>
                   <Link
                     href="/register"
-                    className="block w-full text-center bg-tz-primary hover:bg-tz-primary-dark text-white font-bold py-3 rounded-xl transition-colors"
+                    className="block w-full text-center bg-tz-primary hover:bg-tz-primary-dark text-white font-bold py-3.5 rounded-xl transition-colors"
                   >
                     {isRTL ? 'ابدأ الآن' : 'Get Started'}
                   </Link>

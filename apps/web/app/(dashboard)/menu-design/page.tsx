@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback } from 'react';
 import {
   QrCode, Plus, Loader2, Trash2, Edit2, Save, X, Palette,
   UtensilsCrossed, QrCodeIcon, Eye, Upload, ImageIcon,
+  ArrowUp, ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { qrMenuAPI, workspaceAPI } from '@/lib/api';
+import { qrMenuAPI, workspaceAPI, getImageUrl } from '@/lib/api';
 import { QRCodeSVG } from 'qrcode.react';
 
 interface Template {
@@ -48,10 +49,136 @@ interface MenuData {
   fontFamily: string;
   logoUrl?: string;
   bannerUrl?: string;
+  backgroundUrl?: string;
   titleAr: string;
   titleEn: string;
   isPublished: boolean;
   categories: MenuCategory[];
+}
+
+function TemplateMiniPreview({ template, small }: { template: any; small?: boolean }) {
+  const h = small ? 'h-16' : 'h-28';
+  const scale = small ? 'scale-[0.55]' : 'scale-[0.85]';
+  const origin = small ? 'origin-top-left' : 'origin-top-left';
+
+  const noir = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        <div className="w-full px-3 pt-2">
+          <div className="w-6 h-6 rounded-full mx-auto mb-1 border" style={{ borderColor: template.accentColor + '60' }} />
+          <div className="h-px w-10 mx-auto mb-1" style={{ backgroundColor: template.accentColor + '40' }} />
+          <div className="space-y-1">
+            <div className="flex justify-between text-[8px]" style={{ color: template.accentColor }}><span>Item</span><span>10$</span></div>
+            <div className="flex justify-between text-[8px]" style={{ color: template.accentColor + '80' }}><span>Item</span><span>15$</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const editorial = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        <div className="w-full px-3 pt-2">
+          <div className="flex gap-2 mb-1">
+            <div className="w-8 h-8 rounded-lg shrink-0" style={{ backgroundColor: template.accentColor + '30' }} />
+            <div className="flex-1">
+              <div className="h-1.5 w-12 rounded mb-0.5" style={{ backgroundColor: template.accentColor }} />
+              <div className="h-1 w-8 rounded" style={{ backgroundColor: template.accentColor + '40' }} />
+            </div>
+          </div>
+          <div className="h-px w-full mb-1" style={{ backgroundColor: template.accentColor + '20' }} />
+          <div className="flex gap-2">
+            <div className="w-8 h-8 rounded-lg shrink-0" style={{ backgroundColor: template.accentColor + '30' }} />
+            <div className="flex-1">
+              <div className="h-1.5 w-12 rounded mb-0.5" style={{ backgroundColor: template.accentColor }} />
+              <div className="h-1 w-8 rounded" style={{ backgroundColor: template.accentColor + '40' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const poster = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        <div className="w-full px-3 pt-2 text-center">
+          <div className="text-[14px] font-black tracking-tighter" style={{ color: template.accentColor }}>MENU</div>
+          <div className="grid grid-cols-2 gap-x-3 mt-1">
+            <div className="text-left">
+              <div className="h-1 w-8 rounded mb-0.5" style={{ backgroundColor: template.accentColor }} />
+              <div className="h-0.5 w-10 rounded mb-0.5" style={{ backgroundColor: template.accentColor + '50' }} />
+              <div className="h-0.5 w-10 rounded" style={{ backgroundColor: template.accentColor + '50' }} />
+            </div>
+            <div className="text-left">
+              <div className="h-1 w-8 rounded mb-0.5" style={{ backgroundColor: template.accentColor }} />
+              <div className="h-0.5 w-10 rounded mb-0.5" style={{ backgroundColor: template.accentColor + '50' }} />
+              <div className="h-0.5 w-10 rounded" style={{ backgroundColor: template.accentColor + '50' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const taker = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        <div className="w-full px-3 pt-2">
+          <div className="flex gap-1 mb-1">
+            <div className="h-2.5 w-8 rounded-full" style={{ backgroundColor: template.accentColor }} />
+            <div className="h-2.5 w-8 rounded-full" style={{ backgroundColor: template.accentColor + '20' }} />
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            <div className="aspect-square rounded" style={{ backgroundColor: template.accentColor + '15' }} />
+            <div className="aspect-square rounded" style={{ backgroundColor: template.accentColor + '15' }} />
+            <div className="aspect-square rounded" style={{ backgroundColor: template.accentColor + '15' }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const bistro = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        <div className="w-full px-3 pt-2">
+          <div className="text-center mb-1">
+            <div className="h-1 w-10 mx-auto rounded" style={{ backgroundColor: template.accentColor + '30' }} />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-baseline gap-1">
+              <span className="text-[8px]" style={{ color: template.accentColor }}>Item</span>
+              <div className="flex-1 border-b" style={{ borderStyle: 'dotted', borderColor: template.accentColor + '30' }} />
+              <span className="text-[8px]" style={{ color: template.accentColor + '80' }}>12$</span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-[8px]" style={{ color: template.accentColor }}>Item</span>
+              <div className="flex-1 border-b" style={{ borderStyle: 'dotted', borderColor: template.accentColor + '30' }} />
+              <span className="text-[8px]" style={{ color: template.accentColor + '80' }}>18$</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  switch (template.id) {
+    case 'noir':
+    case 'default':
+      return noir;
+    case 'editorial':
+      return editorial;
+    case 'poster':
+      return poster;
+    case 'taker':
+      return taker;
+    case 'bistro':
+      return bistro;
+    default:
+      return noir;
+  }
 }
 
 export default function MenuDesignPage() {
@@ -81,7 +208,7 @@ export default function MenuDesignPage() {
   const refreshMenu = useCallback(async () => {
     if (!workspaceId) return;
     const res = await qrMenuAPI.getMenu(workspaceId);
-    setMenu(res.data?.menu || null);
+    setMenu(res.data?.data?.menu || null);
   }, [workspaceId]);
 
   useEffect(() => {
@@ -91,18 +218,18 @@ export default function MenuDesignPage() {
           workspaceAPI.getMyWorkspace(),
           qrMenuAPI.getTemplates(),
         ]);
-        const workspace = wsRes.data?.data;
+        const workspace = wsRes.data?.data?.workspace;
         if (workspace?.id) {
           setWorkspaceId(workspace.id);
           setWorkspaceSlug(workspace.slug);
           const menuRes = await qrMenuAPI.getMenu(workspace.id);
-          setMenu(menuRes.data?.menu || null);
-          if (menuRes.data?.menu) {
-            setCustomPrimary(menuRes.data.menu.primaryColor);
-            setCustomAccent(menuRes.data.menu.accentColor);
+          setMenu(menuRes.data?.data?.menu || null);
+          if (menuRes.data?.data?.menu) {
+            setCustomPrimary(menuRes.data.data.menu.primaryColor);
+            setCustomAccent(menuRes.data.data.menu.accentColor);
           }
         }
-        setTemplates(templatesRes.data?.templates || []);
+        setTemplates(templatesRes.data?.data?.templates || []);
       } catch {
         // ignore
       } finally {
@@ -116,10 +243,10 @@ export default function MenuDesignPage() {
     if (!workspaceId) return;
     try {
       const res = await qrMenuAPI.createMenu(workspaceId, { templateId: selectedTemplate });
-      setMenu(res.data?.menu || null);
-      if (res.data?.menu) {
-        setCustomPrimary(res.data.menu.primaryColor);
-        setCustomAccent(res.data.menu.accentColor);
+      setMenu(res.data?.data?.menu || null);
+      if (res.data?.data?.menu) {
+        setCustomPrimary(res.data.data.menu.primaryColor);
+        setCustomAccent(res.data.data.menu.accentColor);
       }
     } catch {
       alert('Failed to create menu');
@@ -225,6 +352,32 @@ export default function MenuDesignPage() {
     await refreshMenu();
   };
 
+  const handleUploadBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!workspaceId || !e.target.files?.[0]) return;
+    const fd = new FormData();
+    fd.append('image', e.target.files[0]);
+    await qrMenuAPI.uploadBackground(workspaceId, fd);
+    await refreshMenu();
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!workspaceId || !menu?.logoUrl) return;
+    await qrMenuAPI.updateMenu(workspaceId, { logoUrl: null });
+    await refreshMenu();
+  };
+
+  const handleRemoveBanner = async () => {
+    if (!workspaceId || !menu?.bannerUrl) return;
+    await qrMenuAPI.updateMenu(workspaceId, { bannerUrl: null });
+    await refreshMenu();
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!workspaceId || !menu?.backgroundUrl) return;
+    await qrMenuAPI.updateMenu(workspaceId, { backgroundUrl: null });
+    await refreshMenu();
+  };
+
   const handleUploadItemImage = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     const fd = new FormData();
@@ -255,30 +408,32 @@ export default function MenuDesignPage() {
               : 'Choose a design for your menu and start adding your products'}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((template) => (
             <button
               key={template.id}
               onClick={() => setSelectedTemplate(template.id)}
-              className={`rounded-xl border-2 p-4 text-left transition-all ${
+              className={`rounded-xl border-2 overflow-hidden text-left transition-all ${
                 selectedTemplate === template.id
-                  ? 'border-tz-primary shadow-lg'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-tz-primary shadow-lg ring-2 ring-tz-primary/20'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
               }`}
             >
-              <div
-                className="h-24 rounded-lg mb-3 flex items-center justify-center text-white font-bold"
-                style={{ backgroundColor: template.primaryColor, fontFamily: template.fontFamily }}
-              >
-                <span style={{ color: template.accentColor }}>
-                  {isRTL ? template.nameAr : template.nameEn}
-                </span>
+              <TemplateMiniPreview template={template} />
+              <div className="p-3">
+                <p className="font-medium text-sm">{isRTL ? template.nameAr : template.nameEn}</p>
+                <div className="flex gap-2 mt-2">
+                  <div className="w-5 h-5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: template.primaryColor }} />
+                  <div className="w-5 h-5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: template.accentColor }} />
+                </div>
               </div>
-              <p className="font-medium text-sm">{isRTL ? template.nameAr : template.nameEn}</p>
-              <div className="flex gap-2 mt-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: template.primaryColor }} />
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: template.accentColor }} />
-              </div>
+              {selectedTemplate === template.id && (
+                <div className="absolute top-2 right-2 w-6 h-6 bg-tz-primary rounded-full flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              )}
             </button>
           ))}
         </div>
@@ -296,6 +451,18 @@ export default function MenuDesignPage() {
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/menu/${workspaceSlug}`
     : '';
 
+  const PRESETS = [
+    { key: 'Protein', value: '' },
+    { key: 'Calories', value: '' },
+    { key: 'Size', value: '' },
+    { key: 'Spicy', value: '' },
+    { key: 'Prep Time', value: '' },
+    { key: 'Allergens', value: '' },
+    { key: 'Portion', value: '' },
+    { key: 'Origin', value: '' },
+    { key: 'Chef Note', value: '' },
+  ];
+
   const DetailsEditor = ({
     pairs,
     setPairs,
@@ -304,7 +471,23 @@ export default function MenuDesignPage() {
     setPairs: (p: { key: string; value: string }[]) => void;
   }) => (
     <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500">{isRTL ? 'التفاصيل (مثال: بروتين، سعرات...)' : 'Details (e.g. Protein, Calories...)'}</p>
+      <p className="text-xs font-medium text-gray-500">{isRTL ? 'التفاصيل (اضغط سريعاً للإضافة)' : 'Details (tap presets to quick-add)'}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {PRESETS.map((p) => (
+          <button
+            key={p.key}
+            onClick={() => {
+              if (!pairs.find((x) => x.key === p.key)) {
+                setPairs([...pairs, { key: p.key, value: p.value }]);
+              }
+            }}
+            className="text-[10px] px-2 py-1 rounded-full border bg-white hover:bg-gray-50 transition-colors"
+            style={{ opacity: pairs.find((x) => x.key === p.key) ? 0.4 : 1 }}
+          >
+            + {p.key}
+          </button>
+        ))}
+      </div>
       {pairs.map((pair, idx) => (
         <div key={idx} className="flex gap-2">
           <input
@@ -400,7 +583,7 @@ export default function MenuDesignPage() {
           {/* Templates */}
           <div className="space-y-2">
             <h3 className="font-medium">{isRTL ? 'القالب' : 'Template'}</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {templates.map((template) => (
                 <button
                   key={template.id}
@@ -409,21 +592,23 @@ export default function MenuDesignPage() {
                     await qrMenuAPI.updateMenu(workspaceId, { templateId: template.id });
                     await refreshMenu();
                   }}
-                  className={`rounded-xl border-2 p-3 text-left transition-all ${
+                  className={`rounded-xl border-2 overflow-hidden text-left transition-all relative ${
                     menu.templateId === template.id
-                      ? 'border-tz-primary shadow-md'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-tz-primary shadow-md ring-2 ring-tz-primary/20'
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                   }`}
                 >
-                  <div
-                    className="h-16 rounded-lg mb-2 flex items-center justify-center text-white font-bold text-sm"
-                    style={{ backgroundColor: template.primaryColor }}
-                  >
-                    <span style={{ color: template.accentColor }}>
-                      {isRTL ? template.nameAr : template.nameEn}
-                    </span>
+                  <TemplateMiniPreview template={template} small />
+                  <div className="p-2">
+                    <p className="text-xs font-medium truncate">{isRTL ? template.nameAr : template.nameEn}</p>
                   </div>
-                  <p className="text-xs font-medium">{isRTL ? template.nameAr : template.nameEn}</p>
+                  {menu.templateId === template.id && (
+                    <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-tz-primary rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
@@ -460,13 +645,22 @@ export default function MenuDesignPage() {
           {/* Images */}
           <div className="bg-gray-50 rounded-xl p-4 space-y-4">
             <h3 className="font-medium">{isRTL ? 'الصور' : 'Images'}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Logo */}
               <div className="space-y-2">
                 <label className="text-sm text-gray-600">{isRTL ? 'الشعار' : 'Logo'}</label>
                 <div className="flex items-center gap-3">
                   {menu.logoUrl ? (
-                    <img src={menu.logoUrl} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                    <div className="relative group">
+                      <img src={getImageUrl(menu.logoUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                      <button
+                        onClick={handleRemoveLogo}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title={isRTL ? 'حذف' : 'Remove'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   ) : (
                     <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
                       <ImageIcon className="w-6 h-6 text-gray-400" />
@@ -480,13 +674,23 @@ export default function MenuDesignPage() {
                     </div>
                   </label>
                 </div>
+                <p className="text-[10px] text-gray-400">{isRTL ? 'الحجم المثالي: 400 × 400 بكسل (مربع)' : 'Best size: 400 × 400px (square)'}</p>
               </div>
               {/* Banner */}
               <div className="space-y-2">
-                <label className="text-sm text-gray-600">{isRTL ? 'الصورة الرئيسية' : 'Banner'}</label>
+                <label className="text-sm text-gray-600">{isRTL ? 'بانر العلوي' : 'Banner'}</label>
                 <div className="flex items-center gap-3">
                   {menu.bannerUrl ? (
-                    <img src={menu.bannerUrl} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                    <div className="relative group">
+                      <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                      <button
+                        onClick={handleRemoveBanner}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title={isRTL ? 'حذف' : 'Remove'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
                   ) : (
                     <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
                       <ImageIcon className="w-6 h-6 text-gray-400" />
@@ -500,6 +704,37 @@ export default function MenuDesignPage() {
                     </div>
                   </label>
                 </div>
+                <p className="text-[10px] text-gray-400">{isRTL ? 'الحجم المثالي: 1200 × 600 بكسل (عرضي). يظهر في أعلى القائمة.' : 'Best size: 1200 × 600px (landscape). Appears at top of menu.'}</p>
+              </div>
+              {/* Background */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-600">{isRTL ? 'خلفية الصفحة' : 'Background'}</label>
+                <div className="flex items-center gap-3">
+                  {menu.backgroundUrl ? (
+                    <div className="relative group">
+                      <img src={getImageUrl(menu.backgroundUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                      <button
+                        onClick={handleRemoveBackground}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title={isRTL ? 'حذف' : 'Remove'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-16 h-16 rounded-lg bg-gray-200 flex items-center justify-center">
+                      <ImageIcon className="w-6 h-6 text-gray-400" />
+                    </div>
+                  )}
+                  <label className="cursor-pointer">
+                    <input type="file" accept="image/*" className="hidden" onChange={handleUploadBackground} />
+                    <div className="flex items-center gap-1 px-3 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50">
+                      <Upload className="w-4 h-4" />
+                      {isRTL ? 'رفع' : 'Upload'}
+                    </div>
+                  </label>
+                </div>
+                <p className="text-[10px] text-gray-400">{isRTL ? 'اختياري. يغطي كامل الصفحة خلف القائمة.' : 'Optional. Full page backdrop behind menu.'}</p>
               </div>
             </div>
           </div>
@@ -560,16 +795,57 @@ export default function MenuDesignPage() {
             <Button onClick={handleAddCategory}><Plus className="w-4 h-4" /></Button>
           </div>
           <div className="space-y-2">
-            {menu.categories.map((cat) => (
+            {menu.categories.map((cat, idx) => (
               <div key={cat.id} className="flex items-center justify-between bg-white border rounded-xl p-4">
-                <div>
-                  <p className="font-medium">{cat.name}</p>
-                  {cat.nameEn && <p className="text-sm text-gray-500">{cat.nameEn}</p>}
-                  <p className="text-xs text-gray-400">{cat.items.length} items</p>
+                <div className="flex items-center gap-3">
+                  <span className="w-6 h-6 rounded-full bg-tz-primary/10 text-tz-primary text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                  <div>
+                    <p className="font-medium">{cat.name}</p>
+                    {cat.nameEn && <p className="text-sm text-gray-500">{cat.nameEn}</p>}
+                    <p className="text-xs text-gray-400">{cat.items.length} items</p>
+                  </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id)} className="text-red-500">
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={idx === 0}
+                    onClick={async () => {
+                      if (!workspaceId || !menu || idx === 0) return;
+                      const reordered = [...menu.categories];
+                      const [moved] = reordered.splice(idx, 1);
+                      reordered.splice(idx - 1, 0, moved);
+                      await Promise.all(
+                        reordered.map((c, i) => qrMenuAPI.updateCategory(workspaceId, c.id, { sortOrder: i }))
+                      );
+                      await refreshMenu();
+                    }}
+                  >
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={idx === menu.categories.length - 1}
+                    onClick={async () => {
+                      if (!workspaceId || !menu || idx === menu.categories.length - 1) return;
+                      const reordered = [...menu.categories];
+                      const [moved] = reordered.splice(idx, 1);
+                      reordered.splice(idx + 1, 0, moved);
+                      await Promise.all(
+                        reordered.map((c, i) => qrMenuAPI.updateCategory(workspaceId, c.id, { sortOrder: i }))
+                      );
+                      await refreshMenu();
+                    }}
+                  >
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id)} className="text-red-500 h-8 w-8">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -665,7 +941,7 @@ export default function MenuDesignPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex gap-3">
                             {item.imageUrl ? (
-                              <img src={item.imageUrl} alt="" className="w-14 h-14 rounded-lg object-cover border shrink-0" />
+                              <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover border shrink-0" />
                             ) : (
                               <div className="w-14 h-14 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                                 <ImageIcon className="w-5 h-5 text-gray-400" />

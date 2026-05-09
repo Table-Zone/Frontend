@@ -23,6 +23,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [planFeatures, setPlanFeatures] = useState<string[]>([]);
   const [isOwner, setIsOwner] = useState(false);
 
+  const isAdmin = user?.role === 'admin';
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setWorkspaceSlug(localStorage.getItem('currentWorkspaceSlug'));
@@ -33,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const fetchWorkspace = async () => {
       try {
         const res = await workspaceAPI.getMyWorkspace();
-        const workspace = res.data?.data;
+        const workspace = res.data?.data?.workspace;
         if (workspace) {
           setPlanFeatures(workspace.subscription?.features || []);
           // Check ownership
@@ -65,8 +67,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
     );
   }
-
-  const isAdmin = user.role === 'admin';
 
   const makeHref = (path: string) => {
     if (workspaceSlug && !path.startsWith('/admin') && !path.startsWith('/profile')) {
