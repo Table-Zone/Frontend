@@ -172,6 +172,47 @@ export const tableSessionAPI = {
   getSessions: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/table-sessions`),
 };
 
+// QR Menu API
+export const qrMenuAPI = {
+  getTemplates: () => api.get(`/workspaces/qr-menu/templates`),
+  getMenu: (workspaceId: string) => api.get(`/workspaces/qr-menu/${workspaceId}/menu`),
+  createMenu: (workspaceId: string, data?: { templateId?: string }) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/menu`, data),
+  updateMenu: (workspaceId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/menu`, data),
+  deleteMenu: (workspaceId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/menu`),
+  createCategory: (workspaceId: string, data: any) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/categories`, data),
+  updateCategory: (workspaceId: string, categoryId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}`, data),
+  deleteCategory: (workspaceId: string, categoryId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}`),
+  createItem: (workspaceId: string, categoryId: string, data: any) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}/items`, data),
+  updateItem: (workspaceId: string, itemId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/items/${itemId}`, data),
+  deleteItem: (workspaceId: string, itemId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/items/${itemId}`),
+  uploadLogo: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/logo`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadBanner: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/banner`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadItemImage: (itemId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/items/${itemId}/image`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+};
+
+// Public Menu API (no auth)
+export const publicMenuAPI = {
+  getMenu: (workspaceSlug: string) => api.get(`/workspaces/public/menus/${workspaceSlug}`),
+};
+
 // Admin API
 export const adminAPI = {
   login: (data: any) => api.post('/admin/auth/login', data),

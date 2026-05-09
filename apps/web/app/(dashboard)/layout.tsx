@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Settings, Users, CreditCard, UserCircle,
-  LogOut, Menu, X, ChevronLeft, ChevronRight, Shield,
+  LogOut, Menu, X, ChevronLeft, ChevronRight, Shield, QrCode,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { workspaceAPI } from '@/lib/api';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
@@ -19,12 +20,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [workspaceSlug, setWorkspaceSlug] = useState<string | null>(null);
+  const [planFeatures, setPlanFeatures] = useState<string[]>([]);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setWorkspaceSlug(localStorage.getItem('currentWorkspaceSlug'));
     }
   }, [pathname]);
+
+  useEffect(() => {
+    const fetchWorkspace = async () => {
+      try {
+        const res = await workspaceAPI.getMyWorkspace();
+        const workspace = res.data?.data;
+        if (workspace) {
+          setPlanFeatures(workspace.subscription?.features || []);
+          // Check ownership
+          if (workspace.ownerId && user) {
+            setIsOwner(workspace.ownerId === user.id);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    };
+    if (user && !isAdmin) {
+      fetchWorkspace();
+    }
+  }, [user, isAdmin]);
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-tz-cream dark:bg-gray-950">
@@ -51,7 +75,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return path;
   };
 
-  const navItems = isAdmin
+  const baseNavItems = isAdmin
     ? [
         { href: makeHref('/admin'), icon: LayoutDashboard, label: isRTL ? 'لوحة التحكم' : 'Dashboard' },
         { href: makeHref('/settings'), icon: Settings, label: t.settings },
@@ -63,6 +87,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { href: makeHref('/subscription'), icon: CreditCard, label: t.subscription },
         { href: makeHref('/profile'), icon: UserCircle, label: t.profile },
       ];
+
+  const navItems = planFeatures.includes('qrcode') && isOwner
+    ? [
+        ...baseNavItems.slice(0, 1),
+        { href: makeHref('/menu-design'), icon: QrCode, label: t.menuDesign },
+        ...baseNavItems.slice(1),
+      ]
+    : baseNavItems;
 
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
 
