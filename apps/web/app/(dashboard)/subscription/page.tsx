@@ -67,6 +67,9 @@ export default function SubscriptionPage() {
   const [extraSeatsStep, setExtraSeatsStep] = useState<'count' | 'payment' | 'success'>('count');
   const { showToast } = useToast();
 
+  // Extra seat price comes from backend plans (all plans share the same price)
+  const extraSeatPrice = plans[0]?.extraStaffSeatPriceSar || 50;
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -319,8 +322,8 @@ export default function SubscriptionPage() {
                         <div className="p-4 rounded-xl bg-tz-primary/5 border border-tz-primary/20">
                           <p className="text-sm font-medium text-tz-primary">
                             {isRTL
-                              ? `المبلغ المطلوب: ${extraSeatsCount * 50} ر.س`
-                              : `Total: ${extraSeatsCount * 50} SAR`}
+                              ? `المبلغ المطلوب: ${extraSeatsCount * extraSeatPrice} ر.س`
+                              : `Total: ${extraSeatsCount * extraSeatPrice} SAR`}
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -341,7 +344,7 @@ export default function SubscriptionPage() {
                     {extraSeatsStep === 'payment' && bankDetails && (
                       <PaymentFormStep
                         bankDetails={bankDetails}
-                        amount={extraSeatsCount * 50}
+                        amount={extraSeatsCount * extraSeatPrice}
                         receiptFile={receiptFile}
                         setReceiptFile={setReceiptFile}
                         bankReference={bankReference}
