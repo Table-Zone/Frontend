@@ -83,17 +83,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }`}
         style={{ right: isRTL ? 0 : 'auto', left: isRTL ? 'auto' : 0 }}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-tz-cream-dark dark:border-gray-800">
-          <Link href={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
-            <img src="/logo.jpg" alt="" className="w-8 h-8 shrink-0 rounded-lg object-cover" />
-            <AnimatePresence>
-              {sidebarOpen && (
-                <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 'auto' }} exit={{ opacity: 0, width: 0 }}
-                  className="font-bold text-tz-espresso dark:text-white whitespace-nowrap">{t.appName}</motion.span>
-              )}
-            </AnimatePresence>
-          </Link>
-          <div className="flex items-center gap-2">
+        <div className={`h-16 flex items-center border-b border-tz-cream-dark dark:border-gray-800 ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-2'}`}>
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <Link href={isAdmin ? '/admin' : '/dashboard'} className="flex items-center gap-3">
+                  <img src="/logo.jpg" alt="" className="w-8 h-8 shrink-0 rounded-lg object-cover" />
+                  <span className="font-bold text-tz-espresso dark:text-white whitespace-nowrap">{t.appName}</span>
+                </Link>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="flex items-center">
             <Button variant="ghost" size="icon" className="hidden lg:flex" onClick={() => setSidebarOpen(!sidebarOpen)}>
               <ChevronIcon className={`w-5 h-5 transition-transform ${!sidebarOpen && 'rotate-180'}`} />
             </Button>
@@ -128,19 +129,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800 space-y-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
-              <img src="/logo.jpg" alt="" className="w-full h-full object-cover" />
-            </div>
-            <AnimatePresence>
-              {sidebarOpen && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-w-0">
-                  <p className="text-sm font-medium truncate">{user.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-3 px-3 py-2 min-w-0">
+                <p className="text-sm font-medium truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
             onClick={() => { logout(); window.location.href = '/login'; }}>
             <LogOut className="w-5 h-5" />
@@ -154,10 +151,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </motion.aside>
 
       <div className="flex-1 min-w-0">
-        <div className="lg:hidden h-16 bg-white dark:bg-gray-900 border-b border-tz-cream-dark dark:border-gray-800 flex items-center px-4 sticky top-0 z-30">
-          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(true)}>
-            <Menu className="w-5 h-5" />
-          </Button>
+        <div className="lg:hidden h-16 bg-tz-cream dark:bg-gray-900 flex items-center px-4 sticky top-0 z-30">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 shadow-sm"
+          >
+            <Menu className="w-5 h-5 text-tz-espresso dark:text-white" />
+          </button>
           <span className="font-bold text-lg ml-3 dark:text-white">{t.appName}</span>
         </div>
         <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</main>
