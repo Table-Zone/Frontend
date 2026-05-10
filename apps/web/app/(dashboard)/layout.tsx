@@ -151,14 +151,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </motion.aside>
 
       <div className="flex-1 min-w-0">
-        <div className="lg:hidden h-16 bg-tz-cream dark:bg-gray-900 flex items-center px-4 sticky top-0 z-30">
+        <div className="lg:hidden h-16 bg-tz-cream dark:bg-gray-900 flex items-center px-4 sticky top-0 z-30 relative">
           <button
             onClick={() => setMobileOpen(true)}
-            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 shadow-sm"
+            className="flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-tz-cream-dark dark:border-gray-700 shadow-sm shrink-0"
           >
             <Menu className="w-5 h-5 text-tz-espresso dark:text-white" />
           </button>
-          <span className="font-bold text-lg ml-3 dark:text-white">{t.appName}</span>
+          <span className="absolute left-1/2 -translate-x-1/2 font-bold text-lg dark:text-white pointer-events-none">{t.appName}</span>
         </div>
         <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</main>
       </div>
