@@ -156,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setMobileOpen(true)}
             className="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-tz-cream-dark dark:hover:bg-gray-800 transition-colors shrink-0"
           >
-            <Menu className="w-5 h-5 text-tz-espresso dark:text-white" />
+            <Menu className="w-6 h-6 text-tz-espresso dark:text-white" />
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-none">
             <img src="/logo.jpg" alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
