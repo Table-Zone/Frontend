@@ -159,8 +159,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-6 h-6 text-tz-espresso dark:text-white" />
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2 pointer-events-none">
-            <img src="/logo.jpg" alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
-            <span className="font-bold text-lg dark:text-white">{t.appName}</span>
+            <img src="/logo.jpg" alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+            <span className="font-bold text-base dark:text-white">{t.appName}</span>
           </div>
         </div>
         <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">{children}</main>
