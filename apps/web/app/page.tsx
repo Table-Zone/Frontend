@@ -318,9 +318,14 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="py-8 px-6 bg-white dark:bg-gray-900 border-t border-tz-cream-dark dark:border-gray-700">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
-          <p className="text-xs text-muted-foreground text-center sm:text-start">
-            © 2026 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-start">
+            <p className="text-xs text-muted-foreground">
+              © 2026 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
+            </p>
+            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'سياسة الخصوصية' : 'Privacy Policy'}
+            </Link>
+          </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 shrink-0">
               <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
