@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public paths that don't require auth
-  const publicPaths = ['/', '/login', '/register', '/invite', '/verify-email', '/forgot-password', '/reset-password', '/admin-login'];
+  const publicPaths = ['/', '/login', '/register', '/invite', '/verify-email', '/forgot-password', '/reset-password', '/admin-login', '/privacy', '/terms', '/eula'];
   const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith('/invite/'));
 
   // Auth paths that should redirect to dashboard if already logged in
