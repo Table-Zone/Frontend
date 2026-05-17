@@ -325,6 +325,12 @@ export default function LandingPage() {
             <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
               {isRTL ? 'سياسة الخصوصية' : 'Privacy Policy'}
             </Link>
+            <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'شروط الخدمة' : 'Terms of Service'}
+            </Link>
+            <Link href="/eula" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'اتفاقية الترخيص' : 'EULA'}
+            </Link>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2 shrink-0">
