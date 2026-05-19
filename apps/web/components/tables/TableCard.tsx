@@ -25,6 +25,7 @@ interface TableCardProps {
   table: Table;
   allTables?: Table[];
   workspaceId: string;
+  defaultTimerDurationMinutes: number;
   subscriptionActive: boolean;
   onUpdate: () => void;
   onDelete?: () => void;
@@ -77,6 +78,7 @@ export default function TableCard({
   table,
   allTables = [],
   workspaceId,
+  defaultTimerDurationMinutes,
   subscriptionActive,
   onUpdate,
   onDelete,
@@ -98,6 +100,8 @@ export default function TableCard({
   const transferPickerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const oneTimeRevertRef = useRef<number | null>(null);
+  const prevStatusRef = useRef<Table['status']>(table.status);
 
   // Compute effective status locally so warning/alert shows immediately
   // without waiting for the backend scheduler (30s tick)
@@ -156,6 +160,10 @@ export default function TableCard({
     setLoading(true);
     try {
       await tableAPI.stopTimer(workspaceId, table.id);
+      if (oneTimeRevertRef.current !== null) {
+        await tableAPI.updateTimerDuration(workspaceId, table.id, oneTimeRevertRef.current);
+        oneTimeRevertRef.current = null;
+      }
       onUpdate();
     } finally {
       setLoading(false);
@@ -177,11 +185,13 @@ export default function TableCard({
   const handleDurationSave = async () => {
     setIsEditingDuration(false);
     if (timerDuration && timerDuration !== table.timerDurationMinutes) {
+      oneTimeRevertRef.current = defaultTimerDurationMinutes;
       try {
         await tableAPI.updateTimerDuration(workspaceId, table.id, timerDuration);
         onUpdate();
       } catch {
         setTimerDuration(table.timerDurationMinutes);
+        oneTimeRevertRef.current = null;
       }
     }
   };
@@ -265,6 +275,18 @@ export default function TableCard({
   };
 
   useEffect(() => {
+    const prevStatus = prevStatusRef.current;
+    prevStatusRef.current = table.status;
+    if (prevStatus !== 'free' && table.status === 'free' && oneTimeRevertRef.current !== null) {
+      const revertTo = oneTimeRevertRef.current;
+      oneTimeRevertRef.current = null;
+      tableAPI.updateTimerDuration(workspaceId, table.id, revertTo)
+        .then(() => onUpdate())
+        .catch(() => {});
+    }
+  }, [table.status]);
+
+  useEffect(() => {
     if (!showTransferPicker) return;
     const handler = (e: MouseEvent) => {
       if (transferPickerRef.current && !transferPickerRef.current.contains(e.target as Node)) {
@@ -338,32 +360,19 @@ export default function TableCard({
             </>
           )}
         </div>
-        {/* Row 2: Avatar + Position + Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm shrink-0 ${config.gradient}`}>
-              {table.name.replace(/[^0-9a-zA-Z]/g, '').slice(0, 3).toUpperCase() || table.position}
-            </div>
-            <div className="text-[11px] text-muted-foreground font-medium">#{table.position}</div>
-          </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {table.note && (
-              <span className="px-1.5 py-0.5 rounded-md bg-tz-primary/10 text-tz-primary text-[10px] font-medium">
-                📝 {isRTL ? 'ملاحظة' : 'Note'}
-              </span>
-            )}
-            <button type="button" onClick={() => setShowHistory(true)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-tz-cream hover:text-foreground transition-colors" title="History">
-              <History className="w-3.5 h-3.5" />
+        {/* Row 2: Actions */}
+        <div className="flex items-center justify-end gap-1.5">
+          <button type="button" onClick={() => setShowHistory(true)} className="p-1.5 rounded-lg text-muted-foreground hover:bg-tz-cream hover:text-foreground transition-colors" title="History">
+            <History className="w-3.5 h-3.5" />
+          </button>
+          {onDelete && (
+            <button type="button" onClick={handleDeleteClick} className="p-1.5 rounded-lg text-muted-foreground hover:bg-tz-red/10 hover:text-tz-red transition-colors" title={t.delete}>
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
-            {onDelete && (
-              <button type="button" onClick={handleDeleteClick} className="p-1.5 rounded-lg text-muted-foreground hover:bg-tz-red/10 hover:text-tz-red transition-colors" title={t.delete}>
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold shrink-0 ${config.pillBg}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
-              {t.status[displayStatus]}
-            </div>
+          )}
+          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold ${config.pillBg}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+            {t.status[displayStatus]}
           </div>
         </div>
       </div>

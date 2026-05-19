@@ -316,17 +316,28 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 bg-white dark:bg-gray-900 border-t border-tz-cream-dark dark:border-gray-700">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            © 2026 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg overflow-hidden">
+      <footer className="py-8 px-6 bg-white dark:bg-gray-900 border-t border-tz-cream-dark dark:border-gray-700">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center gap-4 sm:justify-between">
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-start">
+            <p className="text-xs text-muted-foreground">
+              © 2026 Table Zone. {isRTL ? 'جميع الحقوق محفوظة' : 'All rights reserved'}
+            </p>
+            <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'سياسة الخصوصية' : 'Privacy Policy'}
+            </Link>
+            <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'شروط الخدمة' : 'Terms of Service'}
+            </Link>
+            <Link href="/eula" className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors">
+              {isRTL ? 'اتفاقية الترخيص' : 'EULA'}
+            </Link>
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
                 <Image src="/logo.jpg" alt="Table Zone" width={28} height={28} className="w-full h-full object-cover" />
               </div>
-              <span className="font-bold text-sm text-tz-espresso dark:text-white">Table Zone</span>
+              <span className="font-bold text-sm text-tz-espresso dark:text-white whitespace-nowrap">Table Zone</span>
             </div>
             <button
               onClick={() => setLang(isRTL ? 'en' : 'ar')}
