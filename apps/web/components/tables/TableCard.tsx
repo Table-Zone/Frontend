@@ -98,6 +98,8 @@ export default function TableCard({
   const transferPickerRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
   const noteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const oneTimeRevertRef = useRef<number | null>(null);
+  const prevStatusRef = useRef<Table['status']>(table.status);
 
   // Compute effective status locally so warning/alert shows immediately
   // without waiting for the backend scheduler (30s tick)
@@ -156,6 +158,10 @@ export default function TableCard({
     setLoading(true);
     try {
       await tableAPI.stopTimer(workspaceId, table.id);
+      if (oneTimeRevertRef.current !== null) {
+        await tableAPI.updateTimerDuration(workspaceId, table.id, oneTimeRevertRef.current);
+        oneTimeRevertRef.current = null;
+      }
       onUpdate();
     } finally {
       setLoading(false);
@@ -177,11 +183,13 @@ export default function TableCard({
   const handleDurationSave = async () => {
     setIsEditingDuration(false);
     if (timerDuration && timerDuration !== table.timerDurationMinutes) {
+      oneTimeRevertRef.current = table.timerDurationMinutes;
       try {
         await tableAPI.updateTimerDuration(workspaceId, table.id, timerDuration);
         onUpdate();
       } catch {
         setTimerDuration(table.timerDurationMinutes);
+        oneTimeRevertRef.current = null;
       }
     }
   };
@@ -263,6 +271,18 @@ export default function TableCard({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const prevStatus = prevStatusRef.current;
+    prevStatusRef.current = table.status;
+    if (prevStatus !== 'free' && table.status === 'free' && oneTimeRevertRef.current !== null) {
+      const revertTo = oneTimeRevertRef.current;
+      oneTimeRevertRef.current = null;
+      tableAPI.updateTimerDuration(workspaceId, table.id, revertTo)
+        .then(() => onUpdate())
+        .catch(() => {});
+    }
+  }, [table.status]);
 
   useEffect(() => {
     if (!showTransferPicker) return;
