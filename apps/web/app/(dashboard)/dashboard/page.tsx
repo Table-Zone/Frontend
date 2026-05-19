@@ -34,6 +34,7 @@ interface Table {
 interface Workspace {
   id: string;
   name: string;
+  defaultTimerDurationMinutes: number;
   subscription: { status: string } | null;
 }
 
@@ -308,6 +309,7 @@ export default function DashboardPage() {
         <TableGridView
           tables={tables}
           workspaceId={workspace?.id || ''}
+          defaultTimerDurationMinutes={workspace?.defaultTimerDurationMinutes ?? 45}
           subscriptionActive={subscriptionActive}
           onUpdate={fetchTables}
           onDelete={fetchTables}

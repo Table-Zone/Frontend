@@ -25,6 +25,7 @@ interface TableCardProps {
   table: Table;
   allTables?: Table[];
   workspaceId: string;
+  defaultTimerDurationMinutes: number;
   subscriptionActive: boolean;
   onUpdate: () => void;
   onDelete?: () => void;
@@ -77,6 +78,7 @@ export default function TableCard({
   table,
   allTables = [],
   workspaceId,
+  defaultTimerDurationMinutes,
   subscriptionActive,
   onUpdate,
   onDelete,
@@ -183,7 +185,7 @@ export default function TableCard({
   const handleDurationSave = async () => {
     setIsEditingDuration(false);
     if (timerDuration && timerDuration !== table.timerDurationMinutes) {
-      oneTimeRevertRef.current = table.timerDurationMinutes;
+      oneTimeRevertRef.current = defaultTimerDurationMinutes;
       try {
         await tableAPI.updateTimerDuration(workspaceId, table.id, timerDuration);
         onUpdate();
