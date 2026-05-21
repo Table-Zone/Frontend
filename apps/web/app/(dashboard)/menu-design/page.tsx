@@ -10,6 +10,14 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { qrMenuAPI, workspaceAPI, getImageUrl } from '@/lib/api';
 import { QRCodeSVG } from 'qrcode.react';
+import { DetailsEditor } from '@/components/menu/DetailsEditor';
+import {
+  MenuDetailPair,
+  parseDetailsPairs,
+  buildDetailsPayload,
+  formatDetailLabel,
+  formatDetailValue,
+} from '@/lib/menu-details';
 
 interface Template {
   id: string;
@@ -26,6 +34,7 @@ interface MenuItem {
   name: string;
   nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   price: number;
   imageUrl?: string;
   details?: any;
@@ -194,12 +203,12 @@ export default function MenuDesignPage() {
   // Form states
   const [newCategory, setNewCategory] = useState({ name: '', nameEn: '' });
   const [newItem, setNewItem] = useState({
-    name: '', nameEn: '', description: '', price: '', categoryId: '',
+    name: '', nameEn: '', description: '', descriptionEn: '', price: '', categoryId: '',
   });
-  const [newItemDetails, setNewItemDetails] = useState<{ key: string; value: string }[]>([]);
+  const [newItemDetails, setNewItemDetails] = useState<MenuDetailPair[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editItemData, setEditItemData] = useState<any>({});
-  const [editItemDetails, setEditItemDetails] = useState<{ key: string; value: string }[]>([]);
+  const [editItemDetails, setEditItemDetails] = useState<MenuDetailPair[]>([]);
 
   // Colors
   const [customPrimary, setCustomPrimary] = useState('');
@@ -266,28 +275,18 @@ export default function MenuDesignPage() {
     await refreshMenu();
   };
 
-  const buildDetailsObject = (pairs: { key: string; value: string }[]) => {
-    const obj: any = {};
-    pairs.forEach((p) => { if (p.key) obj[p.key] = p.value; });
-    return obj;
-  };
-
-  const parseDetailsPairs = (details?: any): { key: string; value: string }[] => {
-    if (!details || typeof details !== 'object') return [];
-    return Object.entries(details).map(([k, v]) => ({ key: k, value: String(v) }));
-  };
-
   const handleAddItem = async () => {
     if (!workspaceId || !newItem.name || !newItem.price || !newItem.categoryId) return;
     await qrMenuAPI.createItem(workspaceId, newItem.categoryId, {
       name: newItem.name,
       nameEn: newItem.nameEn || undefined,
       description: newItem.description || undefined,
+      descriptionEn: newItem.descriptionEn || undefined,
       price: parseFloat(newItem.price),
-      details: buildDetailsObject(newItemDetails),
+      details: buildDetailsPayload(newItemDetails),
     });
     await refreshMenu();
-    setNewItem({ name: '', nameEn: '', description: '', price: '', categoryId: '' });
+    setNewItem({ name: '', nameEn: '', description: '', descriptionEn: '', price: '', categoryId: '' });
     setNewItemDetails([]);
   };
 
@@ -303,6 +302,7 @@ export default function MenuDesignPage() {
       name: item.name,
       nameEn: item.nameEn || '',
       description: item.description || '',
+      descriptionEn: item.descriptionEn || '',
       price: item.price,
     });
     setEditItemDetails(parseDetailsPairs(item.details));
@@ -313,7 +313,7 @@ export default function MenuDesignPage() {
     await qrMenuAPI.updateItem(workspaceId, itemId, {
       ...editItemData,
       price: parseFloat(editItemData.price),
-      details: buildDetailsObject(editItemDetails),
+      details: buildDetailsPayload(editItemDetails),
     });
     await refreshMenu();
     setEditingItem(null);
@@ -450,89 +450,6 @@ export default function MenuDesignPage() {
   const publicMenuUrl = workspaceSlug
     ? `${typeof window !== 'undefined' ? window.location.origin : ''}/menu/${workspaceSlug}`
     : '';
-
-  const PRESETS = [
-    { key: 'Protein', value: '' },
-    { key: 'Calories', value: '' },
-    { key: 'Size', value: '' },
-    { key: 'Spicy', value: '' },
-    { key: 'Prep Time', value: '' },
-    { key: 'Allergens', value: '' },
-    { key: 'Portion', value: '' },
-    { key: 'Origin', value: '' },
-    { key: 'Chef Note', value: '' },
-  ];
-
-  const DetailsEditor = ({
-    pairs,
-    setPairs,
-  }: {
-    pairs: { key: string; value: string }[];
-    setPairs: (p: { key: string; value: string }[]) => void;
-  }) => (
-    <div className="space-y-2">
-      <p className="text-xs font-medium text-gray-500">{isRTL ? 'التفاصيل (اضغط سريعاً للإضافة)' : 'Details (tap presets to quick-add)'}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {PRESETS.map((p) => (
-          <button
-            key={p.key}
-            onClick={() => {
-              if (!pairs.find((x) => x.key === p.key)) {
-                setPairs([...pairs, { key: p.key, value: p.value }]);
-              }
-            }}
-            className="text-[10px] px-2 py-1 rounded-full border bg-white hover:bg-gray-50 transition-colors"
-            style={{ opacity: pairs.find((x) => x.key === p.key) ? 0.4 : 1 }}
-          >
-            + {p.key}
-          </button>
-        ))}
-      </div>
-      {pairs.map((pair, idx) => (
-        <div key={idx} className="flex gap-2">
-          <input
-            type="text"
-            placeholder={isRTL ? 'الاسم' : 'Name'}
-            value={pair.key}
-            onChange={(e) => {
-              const next = [...pairs];
-              next[idx].key = e.target.value;
-              setPairs(next);
-            }}
-            className="flex-1 px-2 py-1 border rounded text-sm"
-          />
-          <input
-            type="text"
-            placeholder={isRTL ? 'القيمة' : 'Value'}
-            value={pair.value}
-            onChange={(e) => {
-              const next = [...pairs];
-              next[idx].value = e.target.value;
-              setPairs(next);
-            }}
-            className="flex-1 px-2 py-1 border rounded text-sm"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="shrink-0 h-8 w-8"
-            onClick={() => setPairs(pairs.filter((_, i) => i !== idx))}
-          >
-            <X className="w-3 h-3" />
-          </Button>
-        </div>
-      ))}
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setPairs([...pairs, { key: '', value: '' }])}
-        className="gap-1"
-      >
-        <Plus className="w-3 h-3" />
-        {isRTL ? 'إضافة تفصيل' : 'Add Detail'}
-      </Button>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -857,19 +774,33 @@ export default function MenuDesignPage() {
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <h3 className="font-medium">{isRTL ? 'إضافة منتج' : 'Add Product'}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
                 type="text"
-                placeholder={isRTL ? 'اسم المنتج' : 'Product Name'}
+                placeholder={isRTL ? 'اسم المنتج (عربي)' : 'Product Name (Arabic)'}
                 value={newItem.name}
                 onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                 className="px-3 py-2 border rounded-lg text-sm"
               />
               <input
                 type="text"
-                placeholder={isRTL ? 'الوصف' : 'Description'}
+                placeholder={isRTL ? 'اسم المنتج (إنجليزي)' : 'Product Name (English)'}
+                value={newItem.nameEn}
+                onChange={(e) => setNewItem({ ...newItem, nameEn: e.target.value })}
+                className="px-3 py-2 border rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder={isRTL ? 'الوصف (عربي)' : 'Description (Arabic)'}
                 value={newItem.description}
                 onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                className="px-3 py-2 border rounded-lg text-sm"
+              />
+              <input
+                type="text"
+                placeholder={isRTL ? 'الوصف (إنجليزي)' : 'Description (English)'}
+                value={newItem.descriptionEn}
+                onChange={(e) => setNewItem({ ...newItem, descriptionEn: e.target.value })}
                 className="px-3 py-2 border rounded-lg text-sm"
               />
               <input
@@ -890,7 +821,7 @@ export default function MenuDesignPage() {
                 ))}
               </select>
             </div>
-            <DetailsEditor pairs={newItemDetails} setPairs={setNewItemDetails} />
+            <DetailsEditor pairs={newItemDetails} setPairs={setNewItemDetails} isRTL={isRTL} />
             <Button onClick={handleAddItem}>
               <Plus className="w-4 h-4 mr-2" />
               {isRTL ? 'إضافة منتج' : 'Add Product'}
@@ -906,28 +837,46 @@ export default function MenuDesignPage() {
                     <div key={item.id} className="bg-white border rounded-xl p-4">
                       {editingItem === item.id ? (
                         <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <input
                               type="text"
                               value={editItemData.name}
                               onChange={(e) => setEditItemData({ ...editItemData, name: e.target.value })}
                               className="px-3 py-2 border rounded-lg text-sm"
+                              placeholder={isRTL ? 'الاسم (عربي)' : 'Name (Arabic)'}
+                            />
+                            <input
+                              type="text"
+                              value={editItemData.nameEn}
+                              onChange={(e) => setEditItemData({ ...editItemData, nameEn: e.target.value })}
+                              className="px-3 py-2 border rounded-lg text-sm"
+                              placeholder={isRTL ? 'الاسم (إنجليزي)' : 'Name (English)'}
                             />
                             <input
                               type="number"
                               value={editItemData.price}
                               onChange={(e) => setEditItemData({ ...editItemData, price: e.target.value })}
                               className="px-3 py-2 border rounded-lg text-sm"
+                              placeholder={isRTL ? 'السعر' : 'Price'}
                             />
                           </div>
-                          <input
-                            type="text"
-                            value={editItemData.description}
-                            onChange={(e) => setEditItemData({ ...editItemData, description: e.target.value })}
-                            className="w-full px-3 py-2 border rounded-lg text-sm"
-                            placeholder={isRTL ? 'الوصف' : 'Description'}
-                          />
-                          <DetailsEditor pairs={editItemDetails} setPairs={setEditItemDetails} />
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              value={editItemData.description}
+                              onChange={(e) => setEditItemData({ ...editItemData, description: e.target.value })}
+                              className="px-3 py-2 border rounded-lg text-sm"
+                              placeholder={isRTL ? 'الوصف (عربي)' : 'Description (Arabic)'}
+                            />
+                            <input
+                              type="text"
+                              value={editItemData.descriptionEn}
+                              onChange={(e) => setEditItemData({ ...editItemData, descriptionEn: e.target.value })}
+                              className="px-3 py-2 border rounded-lg text-sm"
+                              placeholder={isRTL ? 'الوصف (إنجليزي)' : 'Description (English)'}
+                            />
+                          </div>
+                          <DetailsEditor pairs={editItemDetails} setPairs={setEditItemDetails} isRTL={isRTL} />
                           <div className="flex gap-2">
                             <Button size="sm" onClick={() => handleUpdateItem(item.id)}>
                               <Save className="w-3 h-3 mr-1" /> {isRTL ? 'حفظ' : 'Save'}
@@ -949,12 +898,17 @@ export default function MenuDesignPage() {
                             )}
                             <div>
                               <p className="font-medium">{item.name}</p>
+                              {item.nameEn && <p className="text-sm text-gray-500">{item.nameEn}</p>}
                               {item.description && <p className="text-sm text-gray-500">{item.description}</p>}
-                              {item.details && Object.keys(item.details).length > 0 && (
+                              {item.descriptionEn && <p className="text-sm text-gray-400">{item.descriptionEn}</p>}
+                              {parseDetailsPairs(item.details).length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                  {Object.entries(item.details).map(([k, v]) => (
-                                    <span key={k} className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">
-                                      {k}: {String(v)}
+                                  {parseDetailsPairs(item.details).map((pair, i) => (
+                                    <span key={i} className="text-xs px-2 py-0.5 bg-gray-100 rounded-full text-gray-600">
+                                      {formatDetailLabel(pair, false)}: {formatDetailValue(pair, false)}
+                                      {pair.keyEn && pair.keyEn !== pair.key && (
+                                        <span className="text-gray-400"> / {formatDetailLabel(pair, true)}: {formatDetailValue(pair, true)}</span>
+                                      )}
                                     </span>
                                   ))}
                                 </div>

@@ -3,13 +3,22 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { publicMenuAPI, getImageUrl } from '@/lib/api';
-import { Loader2, Star, Plus } from 'lucide-react';
+import { Loader2, Star, Plus, Languages } from 'lucide-react';
+import {
+  pickItemName,
+  pickItemDescription,
+  pickCategoryName,
+  pickMenuTitle,
+  getDetailsEntries,
+} from '@/lib/menu-display';
+import { formatDetailLabel, formatDetailValue } from '@/lib/menu-details';
 
 interface MenuItem {
   id: string;
   name: string;
   nameEn?: string;
   description?: string;
+  descriptionEn?: string;
   price: number;
   imageUrl?: string;
   details?: any;
@@ -43,6 +52,13 @@ export default function PublicMenuPage() {
   const [menu, setMenu] = useState<MenuData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isEnglish, setIsEnglish] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && !navigator.language.toLowerCase().startsWith('ar')) {
+      setIsEnglish(true);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -78,22 +94,57 @@ export default function PublicMenuPage() {
   }
 
   const template = menu.templateId || 'noir';
+  const langToggle = (
+    <button
+      type="button"
+      onClick={() => setIsEnglish((v) => !v)}
+      className="fixed top-4 z-[100] flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/20"
+      style={{ [isEnglish ? 'left' : 'right']: '1rem' }}
+    >
+      <Languages className="w-3.5 h-3.5" />
+      {isEnglish ? 'العربية' : 'English'}
+    </button>
+  );
 
   switch (template) {
     case 'noir':
     case 'default':
-      return <NoirTemplate menu={menu} />;
+      return <>{langToggle}<NoirTemplate menu={menu} isEnglish={isEnglish} /></>;
     case 'editorial':
-      return <EditorialTemplate menu={menu} />;
+      return <>{langToggle}<EditorialTemplate menu={menu} isEnglish={isEnglish} /></>;
     case 'poster':
-      return <PosterTemplate menu={menu} />;
+      return <>{langToggle}<PosterTemplate menu={menu} isEnglish={isEnglish} /></>;
     case 'taker':
-      return <TakerTemplate menu={menu} />;
+      return <>{langToggle}<TakerTemplate menu={menu} isEnglish={isEnglish} /></>;
     case 'bistro':
-      return <BistroTemplate menu={menu} />;
+      return <>{langToggle}<BistroTemplate menu={menu} isEnglish={isEnglish} /></>;
     default:
-      return <NoirTemplate menu={menu} />;
+      return <>{langToggle}<NoirTemplate menu={menu} isEnglish={isEnglish} /></>;
   }
+}
+
+function ItemDetailTags({
+  details,
+  isEnglish,
+  className,
+  spanClassName,
+}: {
+  details?: unknown;
+  isEnglish: boolean;
+  className?: string;
+  spanClassName?: string;
+}) {
+  const entries = getDetailsEntries(details);
+  if (!entries.length) return null;
+  return (
+    <div className={className}>
+      {entries.map((pair, i) => (
+        <span key={i} className={spanClassName}>
+          {formatDetailLabel(pair, isEnglish)}: {formatDetailValue(pair, isEnglish)}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 /* ========================================================================
@@ -131,7 +182,7 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
    TEMPLATE 1: NOIR LUXE
    Banner = hero header. Background = full page backdrop (optional).
    ======================================================================== */
-function NoirTemplate({ menu }: any) {
+function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const bg = menu.primaryColor || '#0C0C0C';
   const accent = menu.accentColor || '#C9A96E';
@@ -141,7 +192,7 @@ function NoirTemplate({ menu }: any) {
   const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir="rtl">
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
       <div className="relative z-10">
         <header className="relative">
@@ -162,7 +213,7 @@ function NoirTemplate({ menu }: any) {
               </div>
             )}
             <h1 className="text-3xl md:text-4xl font-bold tracking-wide">{menu.workspaceName}</h1>
-            <p className="text-sm mt-1 tracking-widest uppercase" style={{ color: accent }}>{menu.titleAr}</p>
+            <p className="text-sm mt-1 tracking-widest uppercase" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
           </div>
         </header>
 
@@ -176,7 +227,7 @@ function NoirTemplate({ menu }: any) {
           {menu.categories.map((cat: any) => (
             <div key={cat.id} className="border-b last:border-b-0" style={{ borderColor: dividerColor }}>
               <button onClick={() => setOpenCategory(openCategory === cat.id ? null : cat.id)} className="w-full flex items-center justify-between py-5 px-2 group">
-                <h3 className="text-lg font-medium">{cat.name}</h3>
+                <h3 className="text-lg font-medium">{pickCategoryName(cat, isEnglish)}</h3>
                 <svg className={`w-5 h-5 transition-all ${openCategory === cat.id ? 'rotate-180' : ''}`} style={{ color: openCategory === cat.id ? accent : mutedColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </button>
               {openCategory === cat.id && (
@@ -187,24 +238,25 @@ function NoirTemplate({ menu }: any) {
                         <img src={getImageUrl(item.imageUrl)} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border" style={{ borderColor: dividerColor }} />
                       ) : (
                         <div className="w-20 h-20 rounded-lg shrink-0 flex items-center justify-center text-xl font-bold border" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: `${accent}60`, borderColor: dividerColor }}>
-                          {item.name.charAt(0)}
+                          {pickItemName(item, isEnglish).charAt(0)}
                         </div>
                       )}
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                         <div>
                           <div className="flex items-start justify-between gap-3">
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <span className="font-bold shrink-0 whitespace-nowrap" style={{ color: accent }}>{item.price} ر.س</span>
+                            <h4 className="font-semibold">{pickItemName(item, isEnglish)}</h4>
+                            <span className="font-bold shrink-0 whitespace-nowrap" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                           </div>
-                          {item.description && <p className="text-sm mt-1 leading-relaxed" style={{ color: mutedColor }}>{item.description}</p>}
+                          {pickItemDescription(item, isEnglish) && (
+                            <p className="text-sm mt-1 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
+                          )}
                         </div>
-                        {item.details && Object.keys(item.details).length > 0 && (
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {Object.entries(item.details).map(([k, v]: [string, any]) => (
-                              <span key={k} className="text-xs font-semibold px-2.5 py-1 rounded" style={{ color: mutedColor, border: `1px solid ${dividerColor}` }}>{k}: {String(v)}</span>
-                            ))}
-                          </div>
-                        )}
+                        <ItemDetailTags
+                          details={item.details}
+                          isEnglish={isEnglish}
+                          className="flex flex-wrap gap-2 mt-2"
+                          spanClassName="text-xs font-semibold px-2.5 py-1 rounded border border-current/20 opacity-80"
+                        />
                       </div>
                     </div>
                   ))}
@@ -225,7 +277,7 @@ function NoirTemplate({ menu }: any) {
 /* ========================================================================
    TEMPLATE 2: EDITORIAL FEAST
    ======================================================================== */
-function EditorialTemplate({ menu }: any) {
+function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const featuredItem = menu.categories[0]?.items[0];
   const bg = menu.primaryColor || '#F5F0EB';
   const accent = menu.accentColor || '#C75B3F';
@@ -235,7 +287,7 @@ function EditorialTemplate({ menu }: any) {
   const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir="rtl">
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
       <div className="relative z-10">
         <header className="relative">
@@ -258,7 +310,7 @@ function EditorialTemplate({ menu }: any) {
               )}
               <div className="pb-3">
                 <h1 className="text-3xl font-bold">{menu.workspaceName}</h1>
-                <p className="text-sm mt-0.5 font-medium" style={{ color: accent }}>{menu.titleAr}</p>
+                <p className="text-sm mt-0.5 font-medium" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
               </div>
             </div>
           </div>
@@ -275,9 +327,9 @@ function EditorialTemplate({ menu }: any) {
                 )}
                 <div className="p-5 flex flex-col justify-center">
                   <span className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: accent }}>Chef&apos;s Pick</span>
-                  <h4 className="font-bold text-lg">{featuredItem.name}</h4>
-                  <p className="text-sm mt-1 line-clamp-2" style={{ color: mutedColor }}>{featuredItem.description}</p>
-                  <span className="font-bold mt-2" style={{ color: accent }}>{featuredItem.price} ر.س</span>
+                  <h4 className="font-bold text-lg">{pickItemName(featuredItem, isEnglish)}</h4>
+                  <p className="text-sm mt-1 line-clamp-2" style={{ color: mutedColor }}>{pickItemDescription(featuredItem, isEnglish)}</p>
+                  <span className="font-bold mt-2" style={{ color: accent }}>{featuredItem.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                 </div>
               </div>
             </div>
@@ -289,7 +341,7 @@ function EditorialTemplate({ menu }: any) {
             <div key={cat.id}>
               <div className="flex items-center gap-4 mb-6">
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
-                <h3 className="font-bold text-lg tracking-wide whitespace-nowrap">{cat.name}</h3>
+                <h3 className="font-bold text-lg tracking-wide whitespace-nowrap">{pickCategoryName(cat, isEnglish)}</h3>
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
               </div>
               <div className="space-y-6">
@@ -299,22 +351,23 @@ function EditorialTemplate({ menu }: any) {
                       <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" />
                     ) : (
                       <div className="w-28 h-28 rounded-2xl shrink-0 flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
-                        {item.name.charAt(0)}
+                        {pickItemName(item, isEnglish).charAt(0)}
                       </div>
                     )}
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
                       <div className="flex items-baseline justify-between gap-3">
-                        <h4 className="font-bold text-base">{item.name}</h4>
-                        <span className="font-bold shrink-0" style={{ color: accent }}>{item.price} ر.س</span>
+                        <h4 className="font-bold text-base">{pickItemName(item, isEnglish)}</h4>
+                        <span className="font-bold shrink-0" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                       </div>
-                      {item.description && <p className="text-sm mt-1.5 leading-relaxed" style={{ color: mutedColor }}>{item.description}</p>}
-                      {item.details && Object.keys(item.details).length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {Object.entries(item.details).map(([k, v]: [string, any]) => (
-                            <span key={k} className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ backgroundColor: `${accent}18`, color: accent }}>{k}: {String(v)}</span>
-                          ))}
-                        </div>
+                      {pickItemDescription(item, isEnglish) && (
+                        <p className="text-sm mt-1.5 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
                       )}
+                      <ItemDetailTags
+                        details={item.details}
+                        isEnglish={isEnglish}
+                        className="flex flex-wrap gap-2 mt-2"
+                        spanClassName="text-xs font-bold px-3 py-1.5 rounded-full opacity-90"
+                      />
                     </div>
                   </div>
                 ))}
@@ -324,7 +377,7 @@ function EditorialTemplate({ menu }: any) {
         </main>
 
         <footer className="text-center py-8 text-xs" style={{ color: mutedColor }}>
-          <p>{menu.workspaceName} &mdash; {menu.titleAr}</p>
+          <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
         </footer>
       </div>
     </div>
@@ -334,7 +387,7 @@ function EditorialTemplate({ menu }: any) {
 /* ========================================================================
    TEMPLATE 3: POSTER MINIMAL
    ======================================================================== */
-function PosterTemplate({ menu }: any) {
+function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const bg = menu.primaryColor || '#EEF1F5';
   const accent = menu.accentColor || '#2E5AAC';
   const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
@@ -342,7 +395,7 @@ function PosterTemplate({ menu }: any) {
   const bgOverlay = menu.backgroundUrl ? `${bg}E6` : bg;
 
   return (
-    <div className="min-h-screen relative" style={{ color: accent }} dir="rtl">
+    <div className="min-h-screen relative" style={{ color: accent }} dir={isEnglish ? 'ltr' : 'rtl'}>
       <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-10 pb-16">
         <div className="text-center mb-8">
@@ -371,22 +424,23 @@ function PosterTemplate({ menu }: any) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-10">
           {menu.categories.map((cat: any) => (
             <div key={cat.id}>
-              <h3 className="text-xl font-black mb-4 pb-2 border-b-2" style={{ color: accent, borderColor: `${accent}30` }}>{cat.name}</h3>
+              <h3 className="text-xl font-black mb-4 pb-2 border-b-2" style={{ color: accent, borderColor: `${accent}30` }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="space-y-3">
                 {cat.items.map((item: any) => (
                   <div key={item.id}>
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-bold" style={{ color: textColor }}>{item.name}</span>
-                      <span className="font-bold shrink-0" style={{ color: `${accent}CC` }}>{item.price} ر.س</span>
+                      <span className="font-bold" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</span>
+                      <span className="font-bold shrink-0" style={{ color: `${accent}CC` }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                     </div>
-                    {item.description && <p className="text-sm mt-0.5" style={{ color: mutedColor }}>{item.description}</p>}
-                    {item.details && Object.keys(item.details).length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {Object.entries(item.details).map(([k, v]: [string, any]) => (
-                          <span key={k} className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${accent}15`, color: accent }}>{k}: {String(v)}</span>
-                        ))}
-                      </div>
+                    {pickItemDescription(item, isEnglish) && (
+                      <p className="text-sm mt-0.5" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
                     )}
+                    <ItemDetailTags
+                      details={item.details}
+                      isEnglish={isEnglish}
+                      className="flex flex-wrap gap-2 mt-2"
+                      spanClassName="text-xs font-bold px-2.5 py-1 rounded-full opacity-90"
+                    />
                   </div>
                 ))}
               </div>
@@ -395,7 +449,7 @@ function PosterTemplate({ menu }: any) {
         </div>
 
         <div className="mt-12 pt-6 border-t text-center text-xs font-semibold tracking-widest uppercase" style={{ borderColor: `${accent}18`, color: `${accent}60` }}>
-          <p>{menu.titleAr}</p>
+          <p>{pickMenuTitle(menu, isEnglish)}</p>
         </div>
       </div>
     </div>
@@ -405,7 +459,7 @@ function PosterTemplate({ menu }: any) {
 /* ========================================================================
    TEMPLATE 4: TAKER GRID
    ======================================================================== */
-function TakerTemplate({ menu }: any) {
+function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const [activeTab, setActiveTab] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -426,7 +480,7 @@ function TakerTemplate({ menu }: any) {
   };
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir="rtl">
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
       <div className="relative z-10">
         <header className="relative">
@@ -437,7 +491,7 @@ function TakerTemplate({ menu }: any) {
               <div className="absolute bottom-4 right-4 left-4 flex items-end justify-between">
                 <div>
                   <h1 className="text-2xl font-bold">{menu.workspaceName}</h1>
-                  <p className="text-sm" style={{ color: mutedColor }}>{menu.titleAr}</p>
+                  <p className="text-sm" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
                 </div>
                 {menu.logoUrl && <img src={getImageUrl(menu.logoUrl)} alt="" className="w-14 h-14 rounded-xl object-cover border-2" style={{ borderColor: `${accent}30` }} />}
               </div>
@@ -448,7 +502,7 @@ function TakerTemplate({ menu }: any) {
                 {menu.logoUrl && <img src={getImageUrl(menu.logoUrl)} alt="" className="w-12 h-12 rounded-xl object-cover" />}
                 <div>
                   <h1 className="text-xl font-bold">{menu.workspaceName}</h1>
-                  <p className="text-sm" style={{ color: mutedColor }}>{menu.titleAr}</p>
+                  <p className="text-sm" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
                 </div>
               </div>
             </div>
@@ -468,7 +522,7 @@ function TakerTemplate({ menu }: any) {
                   color: activeTab === idx ? (isLightColor(accent) ? '#171717' : '#ffffff') : mutedColor,
                 }}
               >
-                {cat.name}
+                {pickCategoryName(cat, isEnglish)}
               </button>
             ))}
           </div>
@@ -485,21 +539,22 @@ function TakerTemplate({ menu }: any) {
                     </div>
                   ) : (
                     <div className="aspect-square flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
-                      {item.name.charAt(0)}
+                      {pickItemName(item, isEnglish).charAt(0)}
                     </div>
                   )}
                   <div className="p-2.5">
-                    <h4 className="font-bold text-sm line-clamp-1">{item.name}</h4>
-                    {item.description && <p className="text-xs mt-0.5 line-clamp-1" style={{ color: mutedColor }}>{item.description}</p>}
-                    {item.details && Object.keys(item.details).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {Object.entries(item.details).map(([k, v]: [string, any]) => (
-                          <span key={k} className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${accent}12`, color: accent }}>{k}: {String(v)}</span>
-                        ))}
-                      </div>
+                    <h4 className="font-bold text-sm line-clamp-1">{pickItemName(item, isEnglish)}</h4>
+                    {pickItemDescription(item, isEnglish) && (
+                      <p className="text-xs mt-0.5 line-clamp-1" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
                     )}
+                    <ItemDetailTags
+                      details={item.details}
+                      isEnglish={isEnglish}
+                      className="flex flex-wrap gap-1 mt-1.5"
+                      spanClassName="text-[10px] font-bold px-1.5 py-0.5 rounded opacity-80"
+                    />
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-sm">{item.price} <span className="text-xs font-normal" style={{ color: mutedColor }}>ر.س</span></span>
+                      <span className="font-bold text-sm">{item.price} <span className="text-xs font-normal" style={{ color: mutedColor }}>{isEnglish ? 'SAR' : 'ر.س'}</span></span>
                       <button className="w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold transition-colors" style={{ backgroundColor: accent, color: isLightColor(accent) ? '#171717' : '#ffffff' }}><Plus className="w-4 h-4" /></button>
                     </div>
                   </div>
@@ -516,7 +571,7 @@ function TakerTemplate({ menu }: any) {
 /* ========================================================================
    TEMPLATE 5: BISTRO LIST
    ======================================================================== */
-function BistroTemplate({ menu }: any) {
+function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const bg = menu.primaryColor || '#1A1A1A';
   const accent = menu.accentColor || '#F5F0E8';
   const textColor = isLightColor(bg) ? '#171717' : '#F5F0E8';
@@ -524,7 +579,7 @@ function BistroTemplate({ menu }: any) {
   const bgOverlay = menu.backgroundUrl ? `${bg}E8` : bg;
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir="rtl">
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 pb-16">
         <div className="text-center mb-10">
@@ -537,7 +592,7 @@ function BistroTemplate({ menu }: any) {
           )}
           <h1 className="text-3xl font-light tracking-[0.2em] uppercase">{menu.workspaceName}</h1>
           <div className="w-12 h-px mx-auto mt-3" style={{ backgroundColor: `${accent}30` }} />
-          <p className="text-sm mt-3 tracking-wider" style={{ color: mutedColor }}>{menu.titleAr}</p>
+          <p className="text-sm mt-3 tracking-wider" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
         </div>
 
         {menu.bannerUrl && (
@@ -549,23 +604,24 @@ function BistroTemplate({ menu }: any) {
         <div className="space-y-10">
           {menu.categories.map((cat: any) => (
             <div key={cat.id}>
-              <h3 className="text-sm font-bold tracking-[0.3em] uppercase mb-5" style={{ color: `${accent}60` }}>{cat.name}</h3>
+              <h3 className="text-sm font-bold tracking-[0.3em] uppercase mb-5" style={{ color: `${accent}60` }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="space-y-0">
                 {cat.items.map((item: any, idx: number) => (
                   <div key={item.id} className="py-4" style={{ borderBottom: idx !== cat.items.length - 1 ? `1px solid ${hexToRgba(accent, 0.1)}` : 'none' }}>
                     <div className="flex items-baseline justify-between gap-4">
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className="font-medium">{pickItemName(item, isEnglish)}</h4>
                       <div className="flex-1 border-b mx-2 self-end mb-1.5" style={{ borderStyle: 'dotted', borderColor: `${hexToRgba(accent, 0.2)}` }} />
-                      <span className="font-light shrink-0" style={{ color: `${accent}CC` }}>{item.price} ر.س</span>
+                      <span className="font-light shrink-0" style={{ color: `${accent}CC` }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                     </div>
-                    {item.description && <p className="text-sm mt-1 italic" style={{ color: `${accent}50` }}>{item.description}</p>}
-                    {item.details && Object.keys(item.details).length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {Object.entries(item.details).map(([k, v]: [string, any]) => (
-                          <span key={k} className="text-xs font-bold px-2.5 py-1 rounded" style={{ color: `${accent}AA`, border: `1px solid ${hexToRgba(accent, 0.2)}` }}>{k}: {String(v)}</span>
-                        ))}
-                      </div>
+                    {pickItemDescription(item, isEnglish) && (
+                      <p className="text-sm mt-1 italic" style={{ color: `${accent}50` }}>{pickItemDescription(item, isEnglish)}</p>
                     )}
+                    <ItemDetailTags
+                      details={item.details}
+                      isEnglish={isEnglish}
+                      className="flex flex-wrap gap-2 mt-2"
+                      spanClassName="text-xs font-bold px-2.5 py-1 rounded border border-current/20 opacity-70"
+                    />
                   </div>
                 ))}
               </div>
