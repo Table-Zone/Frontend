@@ -279,7 +279,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {['بدون رسوم تركيب', 'تجربة مجانية ١٤ يوم', 'دعم عربي ٢٤/٧'].map((txt, i) => (
+              {['بدون رسوم تركيب', 'دعم عربي ٢٤/٧'].map((txt, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: TZ.espresso, opacity: 0.75 }}>
                   <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#1F8A5B', display: 'grid', placeItems: 'center', color: '#fff', flexShrink: 0 }}>
                     <IcoCheck style={{ width: 9, height: 9 }} />
@@ -460,7 +460,7 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>ابدأ تجربة مجانية</Link>
+                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>ابدأ الآن</Link>
                 </div>
               )}
               {quarterlyPlan && (
@@ -489,7 +489,7 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>ابدأ تجربة مجانية</Link>
+                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>ابدأ الآن</Link>
                 </div>
               )}
               {!monthlyPlan && !quarterlyPlan && (
@@ -506,12 +506,6 @@ export default function LandingPage() {
           <div style={{ background: `radial-gradient(700px 400px at 80% 30%, rgba(224,122,63,0.30), transparent 70%), ${TZ.espresso}`, color: TZ.cream, borderRadius: 32, padding: 64, textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', bottom: -40, left: -40, width: 220, height: 220, opacity: 0.08, transform: 'rotate(-12deg)' }}>
               <QRSvg size={220} seed={3} />
-            </div>
-            <div style={{ marginBottom: 14 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 12px', background: 'rgba(255,255,255,0.1)', color: TZ.orangeLt, borderRadius: 999, fontSize: 13, fontWeight: 700 }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: TZ.orangeLt, animation: 'pulseDot 1.8s ease-in-out infinite' }}></span>
-                تجربة مجانية ١٤ يوم
-              </div>
             </div>
             <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: '#fff', margin: '0 0 14px' }}>جاهز تشغّل مطعمك بشكل أذكى؟</h2>
             <p style={{ color: 'rgba(250,247,242,.78)', fontSize: 17, maxWidth: 560, margin: '0 auto 28px' }}>
