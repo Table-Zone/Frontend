@@ -125,9 +125,6 @@ function PhoneMock() {
               </div>
             </div>
           ))}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: TZ.orangeTint, borderRadius: 8, padding: '7px 10px', fontSize: 9.5, fontWeight: 600, color: TZ.orangeDk }}>
-            <span>👀</span><span>للاطلاع على القائمة فقط</span>
-          </div>
         </div>
       </div>
     </div>
@@ -278,16 +275,6 @@ export default function LandingPage() {
                 {t.login}
               </Link>
             </div>
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', justifyContent: 'center' }}>
-              {['بدون رسوم تركيب', 'دعم عربي ٢٤/٧'].map((txt, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: TZ.espresso, opacity: 0.75 }}>
-                  <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#1F8A5B', display: 'grid', placeItems: 'center', color: '#fff', flexShrink: 0 }}>
-                    <IcoCheck style={{ width: 9, height: 9 }} />
-                  </span>
-                  {txt}
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Two product cards */}
@@ -341,11 +328,6 @@ export default function LandingPage() {
                   <div style={{ fontSize: 9, color: TZ.muted }}>طاولة ٠٤</div>
                 </div>
               </div>
-              <div style={{ padding: '0 14px 14px' }}>
-                <div style={{ background: TZ.orangeTint, borderRadius: 12, padding: '10px 14px', fontSize: 12, fontWeight: 600, color: TZ.orangeDk, textAlign: 'center' }}>
-                  تصفح القائمة فقط — الطلب المباشر قريباً
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -394,9 +376,6 @@ export default function LandingPage() {
                     </div>
                   </div>
                 ))}
-              </div>
-              <div style={{ marginTop: 28, display: 'inline-flex', alignItems: 'center', gap: 6, background: TZ.cream, borderRadius: 10, padding: '8px 14px', fontSize: 13, fontWeight: 600, color: TZ.muted }}>
-                <span style={{ color: TZ.orangeDk, fontWeight: 700 }}>قريباً:</span> الطلب المباشر من الجوال
               </div>
             </div>
             <div style={{ display: 'grid', placeItems: 'center', padding: '20px 0' }}>
