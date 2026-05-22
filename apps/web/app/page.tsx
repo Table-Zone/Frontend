@@ -139,7 +139,6 @@ const IcoClock = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" 
 const IcoQR = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>;
 const IcoBell = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>;
 const IcoArrow = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M19 12H5M12 19l-7-7 7-7"/></svg>;
-const IcoTransfer = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></svg>;
 const IcoWA = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.2-.2.3-.7.9-.8 1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.2-1.3-.8-.7-1.4-1.6-1.5-1.9-.2-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.6-1.5-.9-2-.2-.5-.5-.4-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.3-1 1-1 2.3 0 1.4 1 2.7 1.1 2.9.1.2 2 3.1 4.9 4.4.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3M12 22c-1.8 0-3.4-.5-4.9-1.3L3 22l1.3-4c-.9-1.5-1.4-3.2-1.4-5C2.9 7.5 7 3.4 12 3.4S21.1 7.5 21.1 13c.1 5.5-4 9-9.1 9"/></svg>;
 
 interface Plan {
@@ -186,7 +185,6 @@ export default function LandingPage() {
     { name: 'طاولة ٤', status: 'alert' as const,    secs: -94  },
   ];
   const [tables, setTables] = useState(INIT_TABLES);
-  const [showcaseSecs, setShowcaseSecs] = useState({ occupied: 896, warning: 214, alert: -62 });
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 8);
@@ -199,10 +197,6 @@ export default function LandingPage() {
     return () => clearInterval(tick);
   }, []);
 
-  useEffect(() => {
-    const tick = setInterval(() => setShowcaseSecs(p => ({ occupied: p.occupied - 1, warning: p.warning - 1, alert: p.alert - 1 })), 1000);
-    return () => clearInterval(tick);
-  }, []);
 
   const fetchPlans = () => {
     setPlansLoading(true);
@@ -220,7 +214,9 @@ export default function LandingPage() {
   return (
     <div dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", background: TZ.cream, color: TZ.espresso, minHeight: '100vh' }}>
       <style>{`
-        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } }
+        .marquee-track { display:flex; width:max-content; animation:marquee 18s linear infinite; will-change:transform; }
+        .marquee-track:hover { animation-play-state:paused; }
         @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(1.4); } }
         @keyframes blinkRed { 0%,100% { opacity:1; } 50% { opacity:.3; } }
         @keyframes spinLoader { to { transform: rotate(360deg); } }
@@ -230,8 +226,7 @@ export default function LandingPage() {
         .footer-link:hover { color:${TZ.orange}; }
         @media(max-width:900px){
           .hero-cards { grid-template-columns:1fr !important; }
-          .timer-cards { grid-template-columns:repeat(2,1fr) !important; }
-          .qr-grid { grid-template-columns:1fr !important; }
+.qr-grid { grid-template-columns:1fr !important; }
           .pricing-grid { grid-template-columns:1fr !important; max-width:400px !important; }
           .footer-grid { grid-template-columns:1fr 1fr !important; }
           .nav-links-center { display:none !important; }
@@ -248,7 +243,7 @@ export default function LandingPage() {
             Table Zone
           </div>
           <div className="nav-links-center" style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
-            {([['#timers', 'المؤقتات'], ['#qr', 'QR Menu'], ['#pricing', 'الأسعار'], ['#partners', 'شركاؤنا']] as [string, string][]).map(([href, label]) => (
+            {([['#qr', 'QR Menu'], ['#pricing', 'الأسعار'], ['#partners', 'شركاؤنا']] as [string, string][]).map(([href, label]) => (
               <a key={href} href={href} className="nav-link">{label}</a>
             ))}
           </div>
@@ -357,58 +352,23 @@ export default function LandingPage() {
       </section>
 
       {/* ── PARTNERS ── */}
-      <section id="partners" style={{ background: '#fff', padding: '52px 0', borderTop: `1px solid rgba(44,24,16,0.07)`, borderBottom: `1px solid rgba(44,24,16,0.07)` }}>
-        <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 700, color: TZ.muted, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 24 }}>شركاؤنا</div>
-        <div dir="ltr" style={{ overflow: 'hidden', maskImage: 'linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)' }}>
-          <div style={{ display: 'flex', gap: 18, width: 'max-content', animation: 'marquee 28s linear infinite' }}>
-            {[...partners, ...partners, ...partners, ...partners].map((p, i) => (
-              <div key={i} style={{ width: 160, height: 80, borderRadius: 16, flexShrink: 0, background: TZ.cream, border: `1px solid rgba(44,24,16,0.09)`, display: 'grid', placeItems: 'center', overflow: 'hidden' }}>
-                <img src={p.img} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <section id="partners" className="py-12 bg-white border-y border-tz-cream-dark overflow-hidden">
+        <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            {isRTL ? 'شركاؤنا' : 'Our Partners'}
+          </p>
+        </div>
+        <div className="overflow-hidden" dir="ltr">
+          <div className="marquee-track">
+            {[...partners, ...partners, ...partners].map((p, i) => (
+              <div key={i} className="flex items-center justify-center mx-4 sm:mx-8 rounded-2xl overflow-hidden bg-white border border-tz-cream-dark w-24 h-16 sm:w-32 sm:h-20 shrink-0">
+                <img src={p.img} alt={p.name} className="w-full h-full object-cover" />
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── TIMER SHOWCASE ── */}
-      <section id="timers" style={{ padding: '88px 0', background: TZ.cream }}>
-        <div style={shell}>
-          <div style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
-            <div style={{ marginBottom: 16 }}><Eyebrow>المؤقتات الحية</Eyebrow></div>
-            <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>تابع كل طاولة، لحظة بلحظة</h2>
-            <p style={{ fontSize: 17, color: TZ.muted }}>أربع حالات واضحة تحافظ على سير الخدمة بدون ارتباك.</p>
-          </div>
-          <div className="timer-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
-            {([
-              { status: 'free' as const,     time: '––:––',                        label: 'فارغة',  desc: 'الطاولة فارغة وجاهزة لجلسة جديدة.' },
-              { status: 'occupied' as const, time: fmtTime(showcaseSecs.occupied), label: 'مشغولة', desc: 'جلسة نشطة — المؤقت يعدّ تنازلياً.' },
-              { status: 'warning' as const,  time: fmtTime(showcaseSecs.warning),  label: 'تحذير',  desc: 'أقل من ٥ دقائق — تنبيه للنادل.' },
-              { status: 'alert' as const,    time: fmtTime(showcaseSecs.alert),    label: 'تجاوز',  desc: 'تجاوز الوقت — إجراء فوري مطلوب.' },
-            ]).map((c, i) => {
-              const m = STATUS_META[c.status];
-              return (
-                <div key={i} style={{ background: '#fff', borderRadius: 20, border: `2px solid ${m.bd}`, padding: '24px 20px 22px', display: 'flex', flexDirection: 'column', gap: 12, boxShadow: `0 4px 16px ${m.bg}` }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: 'fit-content', background: m.bg, borderRadius: 999, padding: '4px 10px' }}>
-                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.color, flexShrink: 0, ...(c.status === 'alert' ? { animation: 'blinkRed 1.2s infinite' } : {}) }}></span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{c.label}</span>
-                  </div>
-                  <div style={{ width: 96, height: 96, borderRadius: '50%', background: `linear-gradient(135deg,${m.bg},transparent)`, border: `3px solid ${m.bd}`, display: 'grid', placeItems: 'center', margin: '0 auto' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: 19, fontWeight: 800, color: c.status === 'free' ? TZ.muted : m.color, letterSpacing: '-0.02em' }}>{c.time}</span>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: TZ.espresso, marginBottom: 4 }}>{c.label}</div>
-                    <p style={{ fontSize: 13, color: TZ.muted, lineHeight: 1.55 }}>{c.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{ marginTop: 28, background: '#fff', borderRadius: 16, border: `1px solid rgba(44,24,16,0.08)`, padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <IcoTransfer style={{ width: 18, height: 18, color: TZ.orange, flexShrink: 0 }} />
-            <span style={{ fontWeight: 600, fontSize: 14, color: TZ.espresso }}>انقل الجلسة بين الطاولات بالسحب والإفلات — إذا احتاج زبون طاولة مختلفة يحتفظ بوقته.</span>
-          </div>
-        </div>
-      </section>
 
       {/* ── QR SECTION ── */}
       <section id="qr" style={{ padding: '88px 0', background: '#fff' }}>
