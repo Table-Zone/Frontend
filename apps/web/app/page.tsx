@@ -194,12 +194,9 @@ function PhoneMock() {
         <div style={{ flex: 1, overflowY: 'auto', background: '#fff', padding: '9px 11px 8px' }}>
           {current.sections.map((section, si) => (
             <div key={si}>
-              <div style={{ textAlign: 'center', fontSize: section.subheading ? 9 : 10.5, fontWeight: 800, color: section.headingColor, fontStyle: 'italic', marginBottom: section.subheading ? 2 : 8, letterSpacing: section.subheading ? '0.09em' : '-0.01em' }}>
+              <div style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: section.headingColor, fontStyle: 'italic', marginBottom: 8, letterSpacing: '-0.01em' }}>
                 {section.heading}
               </div>
-              {section.subheading && (
-                <div style={{ textAlign: 'center', fontSize: 7, color: '#BBB', fontStyle: 'italic', marginBottom: 7 }}>{section.subheading}</div>
-              )}
               {section.items.map((item, ii) => (
                 <div key={ii}>
                   <PhoneMenuItem {...item} />
