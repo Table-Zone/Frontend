@@ -419,13 +419,14 @@ export default function LandingPage() {
           .pricing-grid { grid-template-columns:1fr !important; max-width:400px !important; }
           .footer-grid { grid-template-columns:1fr 1fr !important; }
           .nav-links-center { display:none !important; }
+          .nav-btn { padding:7px 12px !important; font-size:12px !important; }
         }
       `}</style>
 
       {/* ── NAV ── */}
       <nav style={{ position: 'sticky', top: 0, zIndex: 50, backdropFilter: 'blur(14px)', background: scrolled ? 'rgba(250,247,242,0.92)' : 'rgba(250,247,242,0.78)', borderBottom: `1px solid ${scrolled ? 'rgba(44,24,16,0.09)' : 'transparent'}`, transition: 'all .2s ease' }}>
         <div style={{ ...shell, display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 800, fontSize: 17, color: TZ.espresso }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontWeight: 800, fontSize: 17, color: TZ.espresso, whiteSpace: 'nowrap' }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, overflow: 'hidden', flexShrink: 0 }}>
               <Image src="/logo.jpg" alt="Table Zone" width={34} height={34} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
@@ -437,10 +438,10 @@ export default function LandingPage() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
+            <Link href="/login" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
               {t.login}
             </Link>
-            <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
+            <Link href="/register" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
               {isRTL ? 'ابدأ الآن' : 'Get Started'}
             </Link>
           </div>
