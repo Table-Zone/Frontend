@@ -55,7 +55,10 @@ export default function PublicMenuPage() {
   const [isEnglish, setIsEnglish] = useState(false);
 
   useEffect(() => {
-    if (typeof navigator !== 'undefined' && !navigator.language.toLowerCase().startsWith('ar')) {
+    const saved = localStorage.getItem('language');
+    if (saved) {
+      setIsEnglish(saved === 'en');
+    } else if (!navigator.language.toLowerCase().startsWith('ar')) {
       setIsEnglish(true);
     }
   }, []);
