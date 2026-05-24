@@ -693,9 +693,25 @@ export default function MenuDesignPage() {
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-gray-800 rounded-b-xl z-10" />
                   <div
                     className="overflow-y-auto max-h-[480px] rounded-[1.5rem]"
-                    style={{ backgroundColor: menu.primaryColor || '#0c0c0c' }}
+                    style={{
+                      backgroundColor: menu.primaryColor || '#0c0c0c',
+                      ...(menu.backgroundUrl ? {
+                        backgroundImage: `url(${getImageUrl(menu.backgroundUrl)})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      } : {}),
+                    }}
                   >
-                    <div className="pt-6 pb-3 px-4 text-center">
+                    {/* Banner */}
+                    {menu.bannerUrl && (
+                      <img
+                        src={getImageUrl(menu.bannerUrl)}
+                        alt="banner"
+                        className="w-full object-cover"
+                        style={{ maxHeight: '80px' }}
+                      />
+                    )}
+                    <div className={`${menu.bannerUrl ? 'pt-3' : 'pt-6'} pb-3 px-4 text-center`}>
                       {menu.logoUrl && (
                         <img
                           src={getImageUrl(menu.logoUrl)}
