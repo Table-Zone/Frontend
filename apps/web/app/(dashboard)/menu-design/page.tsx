@@ -429,8 +429,8 @@ export default function MenuDesignPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold text-tz-espresso">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-tz-espresso">
           {isRTL ? 'تصميم القائمة' : 'Menu Design'}
         </h1>
         <div className="flex gap-2">
@@ -448,7 +448,7 @@ export default function MenuDesignPage() {
 
       {/* Preview banner for non-subscribers */}
       {!subscriptionActive && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <p className="font-medium text-amber-800">
               {isRTL ? 'هذه قائمتك الافتراضية — اشترك لتعديلها وتخصيصها' : 'This is your default menu — subscribe to edit and customize'}
@@ -464,7 +464,7 @@ export default function MenuDesignPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-gray-200 pb-1">
+      <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-1">
         {[
           { key: 'design', label: isRTL ? 'التصميم' : 'Design', icon: Palette },
           { key: 'categories', label: isRTL ? 'التصنيفات' : 'Categories', icon: UtensilsCrossed },
@@ -513,7 +513,7 @@ export default function MenuDesignPage() {
                     <p className="text-xs font-medium truncate">{isRTL ? template.nameAr : template.nameEn}</p>
                   </div>
                   {menu.templateId === template.id && (
-                    <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-tz-primary rounded-full flex items-center justify-center">
+                    <div className={`absolute top-1.5 w-5 h-5 bg-tz-primary rounded-full flex items-center justify-center ${isRTL ? 'left-1.5' : 'right-1.5'}`}>
                       <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
@@ -584,7 +584,7 @@ export default function MenuDesignPage() {
                     </div>
                   </label>
                 </div>
-                <p className="text-[10px] text-gray-400">{isRTL ? 'الحجم المثالي: 400 × 400 بكسل (مربع)' : 'Best size: 400 × 400px (square)'}</p>
+                <p className="text-xs text-gray-400">{isRTL ? 'الحجم المثالي: 400 × 400 بكسل (مربع)' : 'Best size: 400 × 400px (square)'}</p>
               </div>
               {/* Banner */}
               <div className="space-y-2">
@@ -614,7 +614,7 @@ export default function MenuDesignPage() {
                     </div>
                   </label>
                 </div>
-                <p className="text-[10px] text-gray-400">{isRTL ? 'الحجم المثالي: 1200 × 600 بكسل (عرضي). يظهر في أعلى القائمة.' : 'Best size: 1200 × 600px (landscape). Appears at top of menu.'}</p>
+                <p className="text-xs text-gray-400">{isRTL ? 'الحجم المثالي: 1200 × 600 بكسل (عرضي). يظهر في أعلى القائمة.' : 'Best size: 1200 × 600px (landscape). Appears at top of menu.'}</p>
               </div>
               {/* Background */}
               <div className="space-y-2">
@@ -644,7 +644,7 @@ export default function MenuDesignPage() {
                     </div>
                   </label>
                 </div>
-                <p className="text-[10px] text-gray-400">{isRTL ? 'اختياري. يغطي كامل الصفحة خلف القائمة.' : 'Optional. Full page backdrop behind menu.'}</p>
+                <p className="text-xs text-gray-400">{isRTL ? 'اختياري. يغطي كامل الصفحة خلف القائمة.' : 'Optional. Full page backdrop behind menu.'}</p>
               </div>
             </div>
           </div>
@@ -689,7 +689,7 @@ export default function MenuDesignPage() {
       {/* Categories Tab */}
       {activeTab === 'categories' && (
         <div className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               placeholder={isRTL ? 'اسم التصنيف' : 'Category Name'}
@@ -704,11 +704,11 @@ export default function MenuDesignPage() {
               onChange={(e) => setNewCategory({ ...newCategory, nameEn: e.target.value })}
               className="flex-1 px-3 py-2 border rounded-lg text-sm"
             />
-            <Button onClick={handleAddCategory}><Plus className="w-4 h-4" /></Button>
+            <Button onClick={handleAddCategory} className="self-start sm:self-auto shrink-0"><Plus className="w-4 h-4" /></Button>
           </div>
           <div className="space-y-2">
             {menu.categories.map((cat, idx) => (
-              <div key={cat.id} className="flex items-center justify-between bg-white border rounded-xl p-4">
+              <div key={cat.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white border rounded-xl p-4 gap-3">
                 <div className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-tz-primary/10 text-tz-primary text-xs font-bold flex items-center justify-center">{idx + 1}</span>
                   <div>
@@ -717,11 +717,11 @@ export default function MenuDesignPage() {
                     <p className="text-xs text-gray-400">{cat.items.length} items</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 self-end sm:self-auto shrink-0">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-9 w-9 sm:h-8 sm:w-8"
                     disabled={idx === 0}
                     onClick={async () => {
                       if (!workspaceId || !menu || idx === 0) return;
@@ -740,7 +740,7 @@ export default function MenuDesignPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-9 w-9 sm:h-8 sm:w-8"
                     disabled={idx === menu.categories.length - 1}
                     onClick={async () => {
                       if (!workspaceId || !menu || idx === menu.categories.length - 1) return;
@@ -756,7 +756,7 @@ export default function MenuDesignPage() {
                   >
                     <ArrowDown className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id)} className="text-red-500 h-8 w-8">
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteCategory(cat.id)} className="text-red-500 h-9 w-9 sm:h-8 sm:w-8">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -884,8 +884,8 @@ export default function MenuDesignPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                          <div className="flex gap-3 w-full sm:w-auto">
                             {item.imageUrl ? (
                               <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover border shrink-0" />
                             ) : (
@@ -913,17 +913,15 @@ export default function MenuDesignPage() {
                               <p className="text-sm font-bold text-tz-primary mt-1">{item.price} ريال</p>
                             </div>
                           </div>
-                          <div className="flex gap-1 shrink-0">
-                            <label className="cursor-pointer">
+                          <div className="flex gap-1 self-end sm:self-auto shrink-0">
+                            <label className="cursor-pointer inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-gray-100">
                               <input type="file" accept="image/*" className="hidden" onChange={(e) => handleUploadItemImage(item.id, e)} />
-                              <div className="p-2 hover:bg-gray-100 rounded-lg">
-                                <Upload className="w-4 h-4 text-gray-500" />
-                              </div>
+                              <Upload className="w-4 h-4 text-gray-500" />
                             </label>
-                            <Button variant="ghost" size="icon" onClick={() => startEditItem(item)}>
+                            <Button variant="ghost" size="icon" onClick={() => startEditItem(item)} className="h-9 w-9 sm:h-8 sm:w-8">
                               <Edit2 className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)} className="text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)} className="text-red-500 h-9 w-9 sm:h-8 sm:w-8">
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -959,7 +957,7 @@ export default function MenuDesignPage() {
             )}
           </div>
 
-          <div className="bg-white border rounded-xl p-8 inline-block">
+          <div className="bg-white border rounded-xl p-4 sm:p-8 inline-block max-w-full">
             <div className="mb-4 flex justify-center">
               {publicMenuUrl && (
                 <QRCodeSVG
@@ -991,12 +989,12 @@ export default function MenuDesignPage() {
 
           <div className="space-y-2">
             <p className="font-medium">{isRTL ? 'رابط القائمة العام' : 'Public Menu URL'}</p>
-            <div className="flex gap-2 max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
               <input
                 type="text"
                 readOnly
                 value={publicMenuUrl}
-                className="flex-1 px-3 py-2 border rounded-lg text-sm bg-gray-50"
+                className="flex-1 px-3 py-2 border rounded-lg text-sm bg-gray-50 min-w-0"
               />
               <Button
                 variant="outline"
@@ -1004,6 +1002,7 @@ export default function MenuDesignPage() {
                   navigator.clipboard.writeText(publicMenuUrl);
                   alert(isRTL ? 'تم النسخ' : 'Copied!');
                 }}
+                className="w-full sm:w-auto"
               >
                 {isRTL ? 'نسخ' : 'Copy'}
               </Button>
