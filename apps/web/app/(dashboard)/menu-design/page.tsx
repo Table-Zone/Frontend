@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   QrCode, Plus, Loader2, Trash2, Edit2, Save, X, Palette,
   UtensilsCrossed, QrCodeIcon, Eye, Upload, ImageIcon,
-  ArrowUp, ArrowDown,
+  ArrowUp, ArrowDown, FileImage,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { qrMenuAPI, workspaceAPI, getImageUrl } from '@/lib/api';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
+import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import { DetailsEditor } from '@/components/menu/DetailsEditor';
 import {
   MenuDetailPair,
@@ -63,6 +64,54 @@ interface MenuData {
   titleEn: string;
   isPublished: boolean;
   categories: MenuCategory[];
+}
+
+function getMockMenu(workspaceSlug: string): MenuData {
+  return {
+    id: 'mock-menu',
+    templateId: 'noir',
+    primaryColor: '#0C0C0C',
+    accentColor: '#C9A96E',
+    fontFamily: 'Tajawal',
+    logoUrl: undefined,
+    bannerUrl: undefined,
+    backgroundUrl: undefined,
+    titleAr: 'قائمة تجريبية',
+    titleEn: 'Demo Menu',
+    isPublished: true,
+    categories: [
+      {
+        id: 'mock-cat-1',
+        name: 'مشروبات',
+        nameEn: 'Drinks',
+        sortOrder: 0,
+        items: [
+          { id: 'mock-item-1', name: 'قهوة عربية', nameEn: 'Arabic Coffee', description: 'قهوة عربية أصيلة', descriptionEn: 'Authentic Arabic coffee', price: 18, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+          { id: 'mock-item-2', name: 'موكا', nameEn: 'Mocha', description: 'إسبريسو مع شوكولاتة', descriptionEn: 'Espresso with chocolate', price: 22, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+          { id: 'mock-item-3', name: 'لاتيه', nameEn: 'Latte', description: 'حليب بخاري مع إسبريسو', descriptionEn: 'Steamed milk with espresso', price: 20, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+        ],
+      },
+      {
+        id: 'mock-cat-2',
+        name: 'وجبات رئيسية',
+        nameEn: 'Main Course',
+        sortOrder: 1,
+        items: [
+          { id: 'mock-item-4', name: 'برجر لحم', nameEn: 'Beef Burger', description: 'برجر لحم أنجوس مع جبنة', descriptionEn: 'Angus beef burger with cheese', price: 45, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+          { id: 'mock-item-5', name: 'دجاج مشوي', nameEn: 'Grilled Chicken', description: 'دجاج مشوي مع الخضار', descriptionEn: 'Grilled chicken with vegetables', price: 38, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+        ],
+      },
+      {
+        id: 'mock-cat-3',
+        name: 'حلويات',
+        nameEn: 'Desserts',
+        sortOrder: 2,
+        items: [
+          { id: 'mock-item-6', name: 'كيكة الشوكولاتة', nameEn: 'Chocolate Cake', description: 'كيكة غنية بالشوكولاتة', descriptionEn: 'Rich chocolate cake', price: 25, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
+        ],
+      },
+    ],
+  };
 }
 
 function TemplateMiniPreview({ template, small }: { template: any; small?: boolean }) {
@@ -214,6 +263,23 @@ export default function MenuDesignPage() {
   const [customPrimary, setCustomPrimary] = useState('');
   const [customAccent, setCustomAccent] = useState('');
 
+  // QR download ref
+  const qrCanvasRef = useRef<HTMLDivElement>(null);
+
+  const downloadQRCodePNG = () => {
+    if (!qrCanvasRef.current) return;
+    const canvas = qrCanvasRef.current.querySelector('canvas');
+    if (!canvas) return;
+
+    const link = document.createElement('a');
+    link.download = `${workspaceSlug || 'menu'}-qr.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  const [showSubscribe, setShowSubscribe] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
+
   const refreshMenu = useCallback(async () => {
     if (!workspaceId) return;
     const res = await qrMenuAPI.getMenu(workspaceId);
@@ -231,11 +297,19 @@ export default function MenuDesignPage() {
         if (workspace?.id) {
           setWorkspaceId(workspace.id);
           setWorkspaceSlug(workspace.slug);
+          const hasQr = workspace.subscription?.features?.includes('qrcode') ?? false;
+          setSubscriptionActive(hasQr);
           const menuRes = await qrMenuAPI.getMenu(workspace.id);
-          setMenu(menuRes.data?.data?.menu || null);
-          if (menuRes.data?.data?.menu) {
-            setCustomPrimary(menuRes.data.data.menu.primaryColor);
-            setCustomAccent(menuRes.data.data.menu.accentColor);
+          const realMenu = menuRes.data?.data?.menu || null;
+          if (realMenu) {
+            setMenu(realMenu);
+            setCustomPrimary(realMenu.primaryColor);
+            setCustomAccent(realMenu.accentColor);
+          } else if (!hasQr) {
+            // Show mock preview menu for non-subscribers
+            setMenu(getMockMenu(workspace.slug));
+            setCustomPrimary('#0C0C0C');
+            setCustomAccent('#C9A96E');
           }
         }
         setTemplates(templatesRes.data?.data?.templates || []);
@@ -250,6 +324,10 @@ export default function MenuDesignPage() {
 
   const handleCreateMenu = async () => {
     if (!workspaceId) return;
+    if (!subscriptionActive) {
+      setShowSubscribe(true);
+      return;
+    }
     try {
       const res = await qrMenuAPI.createMenu(workspaceId, { templateId: selectedTemplate });
       setMenu(res.data?.data?.menu || null);
@@ -264,6 +342,7 @@ export default function MenuDesignPage() {
 
   const handleAddCategory = async () => {
     if (!workspaceId || !newCategory.name) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.createCategory(workspaceId, newCategory);
     await refreshMenu();
     setNewCategory({ name: '', nameEn: '' });
@@ -271,12 +350,14 @@ export default function MenuDesignPage() {
 
   const handleDeleteCategory = async (categoryId: string) => {
     if (!workspaceId || !confirm('Delete this category and all its items?')) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.deleteCategory(workspaceId, categoryId);
     await refreshMenu();
   };
 
   const handleAddItem = async () => {
     if (!workspaceId || !newItem.name || !newItem.price || !newItem.categoryId) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.createItem(workspaceId, newItem.categoryId, {
       name: newItem.name,
       nameEn: newItem.nameEn || undefined,
@@ -292,6 +373,7 @@ export default function MenuDesignPage() {
 
   const handleDeleteItem = async (itemId: string) => {
     if (!workspaceId || !confirm('Delete this item?')) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.deleteItem(workspaceId, itemId);
     await refreshMenu();
   };
@@ -310,6 +392,7 @@ export default function MenuDesignPage() {
 
   const handleUpdateItem = async (itemId: string) => {
     if (!workspaceId) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateItem(workspaceId, itemId, {
       ...editItemData,
       price: parseFloat(editItemData.price),
@@ -323,12 +406,14 @@ export default function MenuDesignPage() {
 
   const handlePublishToggle = async () => {
     if (!workspaceId || !menu) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateMenu(workspaceId, { isPublished: !menu.isPublished });
     await refreshMenu();
   };
 
   const handleColorUpdate = async () => {
     if (!workspaceId) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateMenu(workspaceId, {
       primaryColor: customPrimary,
       accentColor: customAccent,
@@ -338,6 +423,7 @@ export default function MenuDesignPage() {
 
   const handleUploadLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!workspaceId || !e.target.files?.[0]) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     const fd = new FormData();
     fd.append('image', e.target.files[0]);
     await qrMenuAPI.uploadLogo(workspaceId, fd);
@@ -346,6 +432,7 @@ export default function MenuDesignPage() {
 
   const handleUploadBanner = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!workspaceId || !e.target.files?.[0]) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     const fd = new FormData();
     fd.append('image', e.target.files[0]);
     await qrMenuAPI.uploadBanner(workspaceId, fd);
@@ -354,6 +441,7 @@ export default function MenuDesignPage() {
 
   const handleUploadBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!workspaceId || !e.target.files?.[0]) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     const fd = new FormData();
     fd.append('image', e.target.files[0]);
     await qrMenuAPI.uploadBackground(workspaceId, fd);
@@ -362,24 +450,28 @@ export default function MenuDesignPage() {
 
   const handleRemoveLogo = async () => {
     if (!workspaceId || !menu?.logoUrl) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateMenu(workspaceId, { logoUrl: null });
     await refreshMenu();
   };
 
   const handleRemoveBanner = async () => {
     if (!workspaceId || !menu?.bannerUrl) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateMenu(workspaceId, { bannerUrl: null });
     await refreshMenu();
   };
 
   const handleRemoveBackground = async () => {
     if (!workspaceId || !menu?.backgroundUrl) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.updateMenu(workspaceId, { backgroundUrl: null });
     await refreshMenu();
   };
 
   const handleUploadItemImage = async (itemId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
     const fd = new FormData();
     fd.append('image', e.target.files[0]);
     await qrMenuAPI.uploadItemImage(itemId, fd);
@@ -471,6 +563,23 @@ export default function MenuDesignPage() {
         </div>
       </div>
 
+      {/* Preview banner for non-subscribers */}
+      {!subscriptionActive && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <p className="font-medium text-amber-800">
+              {isRTL ? 'هذه قائمة تجريبية — اشترك لإنشاء قائمتك الخاصة' : 'This is a preview menu — subscribe to create your own'}
+            </p>
+            <p className="text-sm text-amber-600">
+              {isRTL ? 'يمكنك تصفح جميع الميزات لكن لا يمكنك الحفظ' : 'You can browse all features but cannot save changes'}
+            </p>
+          </div>
+          <Button size="sm" onClick={() => setShowSubscribe(true)} className="bg-amber-600 hover:bg-amber-700 text-white">
+            {isRTL ? 'الاشتراك الآن' : 'Subscribe Now'}
+          </Button>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-2 border-b border-gray-200 pb-1">
         {[
@@ -506,6 +615,7 @@ export default function MenuDesignPage() {
                   key={template.id}
                   onClick={async () => {
                     if (!workspaceId) return;
+                    if (!subscriptionActive) { setShowSubscribe(true); return; }
                     await qrMenuAPI.updateMenu(workspaceId, { templateId: template.id });
                     await refreshMenu();
                   }}
@@ -667,6 +777,7 @@ export default function MenuDesignPage() {
                   defaultValue={menu.titleAr}
                   onBlur={async (e) => {
                     if (!workspaceId) return;
+                    if (!subscriptionActive) { setShowSubscribe(true); return; }
                     await qrMenuAPI.updateMenu(workspaceId, { titleAr: e.target.value });
                     await refreshMenu();
                   }}
@@ -680,6 +791,7 @@ export default function MenuDesignPage() {
                   defaultValue={menu.titleEn}
                   onBlur={async (e) => {
                     if (!workspaceId) return;
+                    if (!subscriptionActive) { setShowSubscribe(true); return; }
                     await qrMenuAPI.updateMenu(workspaceId, { titleEn: e.target.value });
                     await refreshMenu();
                   }}
@@ -730,6 +842,7 @@ export default function MenuDesignPage() {
                     disabled={idx === 0}
                     onClick={async () => {
                       if (!workspaceId || !menu || idx === 0) return;
+                      if (!subscriptionActive) { setShowSubscribe(true); return; }
                       const reordered = [...menu.categories];
                       const [moved] = reordered.splice(idx, 1);
                       reordered.splice(idx - 1, 0, moved);
@@ -748,6 +861,7 @@ export default function MenuDesignPage() {
                     disabled={idx === menu.categories.length - 1}
                     onClick={async () => {
                       if (!workspaceId || !menu || idx === menu.categories.length - 1) return;
+                      if (!subscriptionActive) { setShowSubscribe(true); return; }
                       const reordered = [...menu.categories];
                       const [moved] = reordered.splice(idx, 1);
                       reordered.splice(idx + 1, 0, moved);
@@ -944,6 +1058,24 @@ export default function MenuDesignPage() {
       {/* QR Code Tab */}
       {activeTab === 'qr' && (
         <div className="text-center space-y-6">
+          {/* Hidden high-res canvas for downloads */}
+          <div ref={qrCanvasRef} className="absolute -left-[9999px] top-0">
+            {publicMenuUrl && (
+              <QRCodeCanvas
+                value={publicMenuUrl}
+                size={2048}
+                level="M"
+                includeMargin
+                imageSettings={menu.logoUrl ? {
+                  src: getImageUrl(menu.logoUrl),
+                  height: 320,
+                  width: 320,
+                  excavate: true,
+                } : undefined}
+              />
+            )}
+          </div>
+
           <div className="bg-white border rounded-xl p-8 inline-block">
             <div className="mb-4 flex justify-center">
               {publicMenuUrl && (
@@ -953,7 +1085,7 @@ export default function MenuDesignPage() {
                   level="M"
                   includeMargin
                   imageSettings={menu.logoUrl ? {
-                    src: menu.logoUrl,
+                    src: getImageUrl(menu.logoUrl),
                     height: 30,
                     width: 30,
                     excavate: true,
@@ -963,6 +1095,15 @@ export default function MenuDesignPage() {
             </div>
             <p className="text-sm text-gray-500 mb-2">{isRTL ? 'امسح الكود لعرض القائمة' : 'Scan to view menu'}</p>
             <p className="text-xs text-gray-400 break-all">{publicMenuUrl}</p>
+          </div>
+
+          {/* Download buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button variant="outline" onClick={downloadQRCodePNG} className="gap-2">
+              <FileImage className="w-4 h-4" />
+              {isRTL ? 'تحميل PNG' : 'Download PNG'}
+            </Button>
+
           </div>
 
           <div className="space-y-2">
@@ -986,6 +1127,10 @@ export default function MenuDesignPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {showSubscribe && workspaceId && (
+        <SubscriptionPopup workspaceId={workspaceId} onClose={() => setShowSubscribe(false)} />
       )}
     </div>
   );

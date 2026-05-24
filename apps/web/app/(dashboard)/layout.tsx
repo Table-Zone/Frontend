@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { href: makeHref('/profile'), icon: UserCircle, label: t.profile },
       ];
 
-  const navItems = planFeatures.includes('qrcode') && isOwner
+  const navItems = isOwner
     ? [
         ...baseNavItems.slice(0, 1),
         { href: makeHref('/menu-design'), icon: QrCode, label: t.menuDesign },

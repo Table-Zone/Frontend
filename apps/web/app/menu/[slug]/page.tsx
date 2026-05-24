@@ -172,7 +172,7 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
   if (!url) return <div className="fixed inset-0 z-0" style={{ backgroundColor: overlayColor }} />;
   return (
     <div className="fixed inset-0 z-0">
-      <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover" />
+      <img src={getImageUrl(url)} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
       <div className="absolute inset-0" style={{ backgroundColor: overlayColor }} />
     </div>
   );
@@ -180,7 +180,6 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
 
 /* ========================================================================
    TEMPLATE 1: NOIR LUXE
-   Banner = hero header. Background = full page backdrop (optional).
    ======================================================================== */
 function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
@@ -198,7 +197,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
         <header className="relative">
           {menu.bannerUrl ? (
             <div className="relative w-full h-64 md:h-80">
-              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" />
+              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
               <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${bgOverlay}, ${hexToRgba(bg, 0.6)}, transparent)` }} />
             </div>
           ) : (
@@ -206,7 +205,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
           )}
           <div className="relative -mt-16 px-6 pb-4 text-center">
             {menu.logoUrl ? (
-              <img src={getImageUrl(menu.logoUrl)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 shadow-2xl" style={{ borderColor: `${accent}60` }} />
+              <img src={getImageUrl(menu.logoUrl)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 shadow-2xl" fetchPriority="high" decoding="async" style={{ borderColor: `${accent}60` }} />
             ) : (
               <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold border" style={{ backgroundColor: `${accent}15`, color: accent, borderColor: `${accent}40` }}>
                 {menu.workspaceName?.charAt(0)}
@@ -235,7 +234,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
                   {cat.items.map((item: any) => (
                     <div key={item.id} className="flex gap-4">
                       {item.imageUrl ? (
-                        <img src={getImageUrl(item.imageUrl)} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border" style={{ borderColor: dividerColor }} />
+                        <img src={getImageUrl(item.imageUrl)} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border" loading="lazy" decoding="async" style={{ borderColor: dividerColor }} />
                       ) : (
                         <div className="w-20 h-20 rounded-lg shrink-0 flex items-center justify-center text-xl font-bold border" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: `${accent}60`, borderColor: dividerColor }}>
                           {pickItemName(item, isEnglish).charAt(0)}
@@ -293,7 +292,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         <header className="relative">
           {menu.bannerUrl ? (
             <div className="relative w-full h-72 md:h-[28rem]">
-              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" />
+              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
               <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${bgOverlay}, transparent, ${hexToRgba(isLightColor(bg) ? '#000' : '#fff', 0.2)})` }} />
             </div>
           ) : (
@@ -302,7 +301,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
           <div className="relative -mt-20 px-6 pb-2">
             <div className="flex items-end gap-5">
               {menu.logoUrl ? (
-                <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-2xl object-cover shadow-xl border-4" style={{ borderColor: bgOverlay }} />
+                <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-2xl object-cover shadow-xl border-4" fetchPriority="high" decoding="async" style={{ borderColor: bgOverlay }} />
               ) : (
                 <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-xl border-4" style={{ backgroundColor: accent, borderColor: bgOverlay }}>
                   {menu.workspaceName?.charAt(0)}
@@ -322,7 +321,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
               <div className="flex">
                 {featuredItem.imageUrl && (
                   <div className="w-2/5 shrink-0">
-                    <img src={getImageUrl(featuredItem.imageUrl)} alt="" className="w-full h-full object-cover min-h-[140px]" />
+                    <img src={getImageUrl(featuredItem.imageUrl)} alt="" className="w-full h-full object-cover min-h-[140px]" loading="lazy" decoding="async" />
                   </div>
                 )}
                 <div className="p-5 flex flex-col justify-center">
@@ -348,7 +347,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
                 {cat.items.map((item: any, idx: number) => (
                   <div key={item.id} className={`flex gap-5 ${idx % 2 === 1 ? 'flex-row-reverse' : ''}`}>
                     {item.imageUrl ? (
-                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" />
+                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-28 h-28 rounded-2xl shrink-0 flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
                         {pickItemName(item, isEnglish).charAt(0)}
@@ -379,259 +378,6 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         <footer className="text-center py-8 text-xs" style={{ color: mutedColor }}>
           <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
         </footer>
-      </div>
-    </div>
-  );
-}
-
-/* ========================================================================
-   TEMPLATE 3: POSTER MINIMAL
-   ======================================================================== */
-function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const bg = menu.primaryColor || '#EEF1F5';
-  const accent = menu.accentColor || '#2E5AAC';
-  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
-  const mutedColor = isLightColor(bg) ? '#737373' : '#a3a3a3';
-  const bgOverlay = menu.backgroundUrl ? `${bg}E6` : bg;
-
-  return (
-    <div className="min-h-screen relative" style={{ color: accent }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
-      <div className="relative z-10 max-w-3xl mx-auto px-6 py-10 pb-16">
-        <div className="text-center mb-8">
-          <h1 className="text-7xl md:text-8xl font-black tracking-tighter leading-none" style={{ color: accent }}>MENU</h1>
-          <div className="flex items-center justify-center gap-6 mt-3 text-xs font-semibold tracking-widest uppercase" style={{ color: `${accent}AA` }}>
-            <span>Open Everyday</span>
-            <span className="w-1 h-1 rounded-full" style={{ backgroundColor: `${accent}60` }} />
-            <span style={{ color: textColor }}>{menu.workspaceName}</span>
-            <span className="w-1 h-1 rounded-full" style={{ backgroundColor: `${accent}60` }} />
-            <span>07:00AM - 10:00PM</span>
-          </div>
-        </div>
-
-        {menu.logoUrl && (
-          <div className="flex justify-center mb-8">
-            <img src={getImageUrl(menu.logoUrl)} alt="" className="w-16 h-16 rounded-full object-cover border-2" style={{ borderColor: `${accent}30` }} />
-          </div>
-        )}
-
-        {menu.bannerUrl && (
-          <div className="mb-8 rounded-xl overflow-hidden h-40">
-            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-10">
-          {menu.categories.map((cat: any) => (
-            <div key={cat.id}>
-              <h3 className="text-xl font-black mb-4 pb-2 border-b-2" style={{ color: accent, borderColor: `${accent}30` }}>{pickCategoryName(cat, isEnglish)}</h3>
-              <div className="space-y-3">
-                {cat.items.map((item: any) => (
-                  <div key={item.id}>
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="font-bold" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</span>
-                      <span className="font-bold shrink-0" style={{ color: `${accent}CC` }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                    </div>
-                    {pickItemDescription(item, isEnglish) && (
-                      <p className="text-sm mt-0.5" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
-                    )}
-                    <ItemDetailTags
-                      details={item.details}
-                      isEnglish={isEnglish}
-                      className="flex flex-wrap gap-2 mt-2"
-                      spanClassName="text-xs font-bold px-2.5 py-1 rounded-full opacity-90"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-12 pt-6 border-t text-center text-xs font-semibold tracking-widest uppercase" style={{ borderColor: `${accent}18`, color: `${accent}60` }}>
-          <p>{pickMenuTitle(menu, isEnglish)}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ========================================================================
-   TEMPLATE 4: TAKER GRID
-   ======================================================================== */
-function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const [activeTab, setActiveTab] = useState(0);
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const bg = menu.primaryColor || '#FFFFFF';
-  const accent = menu.accentColor || '#171717';
-  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
-  const mutedColor = isLightColor(bg) ? '#737373' : '#a3a3a3';
-  const cardBg = isLightColor(bg) ? '#ffffff' : '#262626';
-  const bgOverlay = menu.backgroundUrl ? `${bg}E6` : bg;
-
-  const scrollToTab = (idx: number) => {
-    setActiveTab(idx);
-    const el = tabRefs.current[idx];
-    if (el && scrollRef.current) {
-      const container = scrollRef.current;
-      container.scrollTo({ left: el.offsetLeft - container.offsetWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' });
-    }
-  };
-
-  return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
-      <div className="relative z-10">
-        <header className="relative">
-          {menu.bannerUrl ? (
-            <div className="relative w-full h-48 md:h-60">
-              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${hexToRgba(bgOverlay, 0.95)}, transparent)` }} />
-              <div className="absolute bottom-4 right-4 left-4 flex items-end justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold">{menu.workspaceName}</h1>
-                  <p className="text-sm" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
-                </div>
-                {menu.logoUrl && <img src={getImageUrl(menu.logoUrl)} alt="" className="w-14 h-14 rounded-xl object-cover border-2" style={{ borderColor: `${accent}30` }} />}
-              </div>
-            </div>
-          ) : (
-            <div className="px-4 py-6" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717' }}>
-              <div className="flex items-center gap-3">
-                {menu.logoUrl && <img src={getImageUrl(menu.logoUrl)} alt="" className="w-12 h-12 rounded-xl object-cover" />}
-                <div>
-                  <h1 className="text-xl font-bold">{menu.workspaceName}</h1>
-                  <p className="text-sm" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
-                </div>
-              </div>
-            </div>
-          )}
-        </header>
-
-        <div className="sticky top-0 z-30 border-b shadow-sm" style={{ backgroundColor: cardBg, borderColor: isLightColor(bg) ? '#f5f5f5' : '#262626' }}>
-          <div ref={scrollRef} className="flex gap-1 px-2 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-            {menu.categories.map((cat: any, idx: number) => (
-              <button
-                key={cat.id}
-                ref={(el) => { tabRefs.current[idx] = el; }}
-                onClick={() => scrollToTab(idx)}
-                className="shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all"
-                style={{
-                  backgroundColor: activeTab === idx ? accent : isLightColor(bg) ? '#f5f5f5' : '#171717',
-                  color: activeTab === idx ? (isLightColor(accent) ? '#171717' : '#ffffff') : mutedColor,
-                }}
-              >
-                {pickCategoryName(cat, isEnglish)}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <main className="max-w-xl mx-auto px-3 py-4 pb-20">
-          {menu.categories[activeTab] && (
-            <div className="grid grid-cols-2 gap-3">
-              {menu.categories[activeTab].items.map((item: any) => (
-                <div key={item.id} className="rounded-xl border overflow-hidden shadow-sm hover:shadow-md transition-shadow" style={{ backgroundColor: cardBg, borderColor: isLightColor(bg) ? '#f5f5f5' : '#262626' }}>
-                  {item.imageUrl ? (
-                    <div className="aspect-square overflow-hidden">
-                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                    </div>
-                  ) : (
-                    <div className="aspect-square flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
-                      {pickItemName(item, isEnglish).charAt(0)}
-                    </div>
-                  )}
-                  <div className="p-2.5">
-                    <h4 className="font-bold text-sm line-clamp-1">{pickItemName(item, isEnglish)}</h4>
-                    {pickItemDescription(item, isEnglish) && (
-                      <p className="text-xs mt-0.5 line-clamp-1" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
-                    )}
-                    <ItemDetailTags
-                      details={item.details}
-                      isEnglish={isEnglish}
-                      className="flex flex-wrap gap-1 mt-1.5"
-                      spanClassName="text-[10px] font-bold px-1.5 py-0.5 rounded opacity-80"
-                    />
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-sm">{item.price} <span className="text-xs font-normal" style={{ color: mutedColor }}>{isEnglish ? 'SAR' : 'ر.س'}</span></span>
-                      <button className="w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold transition-colors" style={{ backgroundColor: accent, color: isLightColor(accent) ? '#171717' : '#ffffff' }}><Plus className="w-4 h-4" /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
-      </div>
-    </div>
-  );
-}
-
-/* ========================================================================
-   TEMPLATE 5: BISTRO LIST
-   ======================================================================== */
-function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const bg = menu.primaryColor || '#1A1A1A';
-  const accent = menu.accentColor || '#F5F0E8';
-  const textColor = isLightColor(bg) ? '#171717' : '#F5F0E8';
-  const mutedColor = isLightColor(bg) ? '#737373' : '#F5F0E880';
-  const bgOverlay = menu.backgroundUrl ? `${bg}E8` : bg;
-
-  return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
-      <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 pb-16">
-        <div className="text-center mb-10">
-          {menu.logoUrl ? (
-            <img src={getImageUrl(menu.logoUrl)} alt="" className="w-16 h-16 rounded-full object-cover mx-auto mb-4 border" style={{ borderColor: `${accent}30` }} />
-          ) : (
-            <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold border" style={{ borderColor: `${accent}30` }}>
-              {menu.workspaceName?.charAt(0)}
-            </div>
-          )}
-          <h1 className="text-3xl font-light tracking-[0.2em] uppercase">{menu.workspaceName}</h1>
-          <div className="w-12 h-px mx-auto mt-3" style={{ backgroundColor: `${accent}30` }} />
-          <p className="text-sm mt-3 tracking-wider" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
-        </div>
-
-        {menu.bannerUrl && (
-          <div className="mb-10 rounded-lg overflow-hidden h-40 opacity-80">
-            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
-
-        <div className="space-y-10">
-          {menu.categories.map((cat: any) => (
-            <div key={cat.id}>
-              <h3 className="text-sm font-bold tracking-[0.3em] uppercase mb-5" style={{ color: `${accent}60` }}>{pickCategoryName(cat, isEnglish)}</h3>
-              <div className="space-y-0">
-                {cat.items.map((item: any, idx: number) => (
-                  <div key={item.id} className="py-4" style={{ borderBottom: idx !== cat.items.length - 1 ? `1px solid ${hexToRgba(accent, 0.1)}` : 'none' }}>
-                    <div className="flex items-baseline justify-between gap-4">
-                      <h4 className="font-medium">{pickItemName(item, isEnglish)}</h4>
-                      <div className="flex-1 border-b mx-2 self-end mb-1.5" style={{ borderStyle: 'dotted', borderColor: `${hexToRgba(accent, 0.2)}` }} />
-                      <span className="font-light shrink-0" style={{ color: `${accent}CC` }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                    </div>
-                    {pickItemDescription(item, isEnglish) && (
-                      <p className="text-sm mt-1 italic" style={{ color: `${accent}50` }}>{pickItemDescription(item, isEnglish)}</p>
-                    )}
-                    <ItemDetailTags
-                      details={item.details}
-                      isEnglish={isEnglish}
-                      className="flex flex-wrap gap-2 mt-2"
-                      spanClassName="text-xs font-bold px-2.5 py-1 rounded border border-current/20 opacity-70"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16 pt-6 border-t text-center" style={{ borderColor: `${hexToRgba(accent, 0.1)}` }}>
-          <p className="text-xs tracking-[0.3em] uppercase" style={{ color: `${accent}30` }}>{menu.workspaceName}</p>
-        </div>
       </div>
     </div>
   );
