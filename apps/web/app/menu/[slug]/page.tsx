@@ -86,8 +86,14 @@ export default function PublicMenuPage() {
     return (
       <div className="min-h-screen flex items-center justify-center text-center p-4 bg-neutral-950 text-white">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Menu Not Found</h1>
-          <p className="text-neutral-500">{error || 'This menu is not available.'}</p>
+          <h1 className="text-2xl font-bold mb-3">
+            {isEnglish ? 'Menu Not Available' : 'القائمة غير متاحة'}
+          </h1>
+          <p className="text-neutral-400 text-sm leading-relaxed">
+            {isEnglish
+              ? 'This menu hasn\'t been published yet. If you\'re the owner, go to your dashboard and publish your menu to make it visible.'
+              : 'هذه القائمة لم يتم نشرها بعد. إذا كنت صاحب المطعم، توجّه إلى لوحة التحكم وانشر قائمتك لتظهر للزوار.'}
+          </p>
         </div>
       </div>
     );
