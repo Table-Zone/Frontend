@@ -565,7 +565,7 @@ export default function MenuDesignPage() {
                       <img src={getImageUrl(menu.logoUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                       <button
                         onClick={handleRemoveLogo}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                         title={isRTL ? 'حذف' : 'Remove'}
                       >
                         <X className="w-3 h-3" />
@@ -595,7 +595,7 @@ export default function MenuDesignPage() {
                       <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                       <button
                         onClick={handleRemoveBanner}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                         title={isRTL ? 'حذف' : 'Remove'}
                       >
                         <X className="w-3 h-3" />
@@ -625,7 +625,7 @@ export default function MenuDesignPage() {
                       <img src={getImageUrl(menu.backgroundUrl)} alt="" className="w-16 h-16 rounded-lg object-cover border" />
                       <button
                         onClick={handleRemoveBackground}
-                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm"
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                         title={isRTL ? 'حذف' : 'Remove'}
                       >
                         <X className="w-3 h-3" />
