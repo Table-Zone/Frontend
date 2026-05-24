@@ -66,54 +66,6 @@ interface MenuData {
   categories: MenuCategory[];
 }
 
-function getMockMenu(workspaceSlug: string): MenuData {
-  return {
-    id: 'mock-menu',
-    templateId: 'noir',
-    primaryColor: '#0C0C0C',
-    accentColor: '#C9A96E',
-    fontFamily: 'Tajawal',
-    logoUrl: undefined,
-    bannerUrl: undefined,
-    backgroundUrl: undefined,
-    titleAr: 'قائمة تجريبية',
-    titleEn: 'Demo Menu',
-    isPublished: true,
-    categories: [
-      {
-        id: 'mock-cat-1',
-        name: 'مشروبات',
-        nameEn: 'Drinks',
-        sortOrder: 0,
-        items: [
-          { id: 'mock-item-1', name: 'قهوة عربية', nameEn: 'Arabic Coffee', description: 'قهوة عربية أصيلة', descriptionEn: 'Authentic Arabic coffee', price: 18, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-          { id: 'mock-item-2', name: 'موكا', nameEn: 'Mocha', description: 'إسبريسو مع شوكولاتة', descriptionEn: 'Espresso with chocolate', price: 22, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-          { id: 'mock-item-3', name: 'لاتيه', nameEn: 'Latte', description: 'حليب بخاري مع إسبريسو', descriptionEn: 'Steamed milk with espresso', price: 20, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-        ],
-      },
-      {
-        id: 'mock-cat-2',
-        name: 'وجبات رئيسية',
-        nameEn: 'Main Course',
-        sortOrder: 1,
-        items: [
-          { id: 'mock-item-4', name: 'برجر لحم', nameEn: 'Beef Burger', description: 'برجر لحم أنجوس مع جبنة', descriptionEn: 'Angus beef burger with cheese', price: 45, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-          { id: 'mock-item-5', name: 'دجاج مشوي', nameEn: 'Grilled Chicken', description: 'دجاج مشوي مع الخضار', descriptionEn: 'Grilled chicken with vegetables', price: 38, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-        ],
-      },
-      {
-        id: 'mock-cat-3',
-        name: 'حلويات',
-        nameEn: 'Desserts',
-        sortOrder: 2,
-        items: [
-          { id: 'mock-item-6', name: 'كيكة الشوكولاتة', nameEn: 'Chocolate Cake', description: 'كيكة غنية بالشوكولاتة', descriptionEn: 'Rich chocolate cake', price: 25, imageUrl: undefined, details: {}, timeOfDay: 'ALL', isAvailable: true },
-        ],
-      },
-    ],
-  };
-}
-
 function TemplateMiniPreview({ template, small }: { template: any; small?: boolean }) {
   const h = small ? 'h-16' : 'h-28';
   const scale = small ? 'scale-[0.55]' : 'scale-[0.85]';
@@ -247,7 +199,6 @@ export default function MenuDesignPage() {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspaceSlug, setWorkspaceSlug] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'design' | 'categories' | 'items' | 'qr'>('design');
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('default');
 
   // Form states
   const [newCategory, setNewCategory] = useState({ name: '', nameEn: '' });
@@ -305,11 +256,6 @@ export default function MenuDesignPage() {
             setMenu(realMenu);
             setCustomPrimary(realMenu.primaryColor);
             setCustomAccent(realMenu.accentColor);
-          } else if (!hasQr) {
-            // Show mock preview menu for non-subscribers
-            setMenu(getMockMenu(workspace.slug));
-            setCustomPrimary('#0C0C0C');
-            setCustomAccent('#C9A96E');
           }
         }
         setTemplates(templatesRes.data?.data?.templates || []);
@@ -321,24 +267,6 @@ export default function MenuDesignPage() {
     };
     init();
   }, []);
-
-  const handleCreateMenu = async () => {
-    if (!workspaceId) return;
-    if (!subscriptionActive) {
-      setShowSubscribe(true);
-      return;
-    }
-    try {
-      const res = await qrMenuAPI.createMenu(workspaceId, { templateId: selectedTemplate });
-      setMenu(res.data?.data?.menu || null);
-      if (res.data?.data?.menu) {
-        setCustomPrimary(res.data.data.menu.primaryColor);
-        setCustomAccent(res.data.data.menu.accentColor);
-      }
-    } catch {
-      alert('Failed to create menu');
-    }
-  };
 
   const handleAddCategory = async () => {
     if (!workspaceId || !newCategory.name) return;
@@ -486,55 +414,10 @@ export default function MenuDesignPage() {
     );
   }
 
-  // Template selection screen
   if (!menu) {
     return (
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h1 className="text-2xl font-bold text-tz-espresso">
-            {isRTL ? 'تصميم القائمة' : 'Menu Design'}
-          </h1>
-          <p className="text-muted-foreground">
-            {isRTL
-              ? 'اختر تصميماً لقائمتك وابدأ بإضافة منتجاتك'
-              : 'Choose a design for your menu and start adding your products'}
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {templates.map((template) => (
-            <button
-              key={template.id}
-              onClick={() => setSelectedTemplate(template.id)}
-              className={`rounded-xl border-2 overflow-hidden text-left transition-all ${
-                selectedTemplate === template.id
-                  ? 'border-tz-primary shadow-lg ring-2 ring-tz-primary/20'
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-              }`}
-            >
-              <TemplateMiniPreview template={template} />
-              <div className="p-3">
-                <p className="font-medium text-sm">{isRTL ? template.nameAr : template.nameEn}</p>
-                <div className="flex gap-2 mt-2">
-                  <div className="w-5 h-5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: template.primaryColor }} />
-                  <div className="w-5 h-5 rounded-full border border-gray-200 shadow-sm" style={{ backgroundColor: template.accentColor }} />
-                </div>
-              </div>
-              {selectedTemplate === template.id && (
-                <div className="absolute top-2 right-2 w-6 h-6 bg-tz-primary rounded-full flex items-center justify-center">
-                  <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              )}
-            </button>
-          ))}
-        </div>
-        <div className="text-center">
-          <Button onClick={handleCreateMenu} className="gap-2">
-            <Plus className="w-4 h-4" />
-            {isRTL ? 'إنشاء القائمة' : 'Create Menu'}
-          </Button>
-        </div>
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <p className="text-muted-foreground">{isRTL ? 'تعذر تحميل القائمة' : 'Failed to load menu'}</p>
       </div>
     );
   }
@@ -568,10 +451,10 @@ export default function MenuDesignPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="font-medium text-amber-800">
-              {isRTL ? 'هذه قائمة تجريبية — اشترك لإنشاء قائمتك الخاصة' : 'This is a preview menu — subscribe to create your own'}
+              {isRTL ? 'هذه قائمتك الافتراضية — اشترك لتعديلها وتخصيصها' : 'This is your default menu — subscribe to edit and customize'}
             </p>
             <p className="text-sm text-amber-600">
-              {isRTL ? 'يمكنك تصفح جميع الميزات لكن لا يمكنك الحفظ' : 'You can browse all features but cannot save changes'}
+              {isRTL ? 'يمكنك تصفح القائمة لكن التعديل يتطلب الاشتراك' : 'You can browse the menu but editing requires a subscription'}
             </p>
           </div>
           <Button size="sm" onClick={() => setShowSubscribe(true)} className="bg-amber-600 hover:bg-amber-700 text-white">
