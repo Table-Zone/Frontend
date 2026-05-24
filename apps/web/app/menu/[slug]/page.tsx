@@ -98,7 +98,7 @@ export default function PublicMenuPage() {
     <button
       type="button"
       onClick={() => setIsEnglish((v) => !v)}
-      className="fixed top-4 z-[100] flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/20"
+      className="fixed top-6 z-[100] flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/20"
       style={{ [isEnglish ? 'left' : 'right']: '1rem' }}
     >
       <Languages className="w-3.5 h-3.5" />
@@ -242,8 +242,8 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
                       )}
                       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                         <div>
-                          <div className="flex items-start justify-between gap-3">
-                            <h4 className="font-semibold">{pickItemName(item, isEnglish)}</h4>
+                          <div className="flex items-start justify-between gap-3 min-w-0">
+                            <h4 className="font-semibold break-words min-w-0">{pickItemName(item, isEnglish)}</h4>
                             <span className="font-bold shrink-0 whitespace-nowrap" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                           </div>
                           {pickItemDescription(item, isEnglish) && (
@@ -307,9 +307,9 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
                   {menu.workspaceName?.charAt(0)}
                 </div>
               )}
-              <div className="pb-3">
-                <h1 className="text-3xl font-bold">{menu.workspaceName}</h1>
-                <p className="text-sm mt-0.5 font-medium" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
+              <div className="pb-3 min-w-0">
+                <h1 className="text-3xl font-bold break-words">{menu.workspaceName}</h1>
+                <p className="text-sm mt-0.5 font-medium break-words" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
               </div>
             </div>
           </div>
@@ -340,12 +340,12 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
             <div key={cat.id}>
               <div className="flex items-center gap-4 mb-6">
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
-                <h3 className="font-bold text-lg tracking-wide whitespace-nowrap">{pickCategoryName(cat, isEnglish)}</h3>
+                <h3 className="font-bold text-lg tracking-wide max-w-full">{pickCategoryName(cat, isEnglish)}</h3>
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
               </div>
               <div className="space-y-6">
                 {cat.items.map((item: any, idx: number) => (
-                  <div key={item.id} className={`flex gap-5 ${idx % 2 === 1 ? 'flex-row-reverse' : ''}`}>
+                  <div key={item.id} className={`flex flex-col sm:flex-row gap-5 ${idx % 2 === 1 ? 'sm:flex-row-reverse' : ''}`}>
                     {item.imageUrl ? (
                       <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" loading="lazy" decoding="async" />
                     ) : (
@@ -354,8 +354,8 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
                       </div>
                     )}
                     <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h4 className="font-bold text-base">{pickItemName(item, isEnglish)}</h4>
+                      <div className="flex items-baseline justify-between gap-3 min-w-0">
+                        <h4 className="font-bold text-base break-words min-w-0">{pickItemName(item, isEnglish)}</h4>
                         <span className="font-bold shrink-0" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                       </div>
                       {pickItemDescription(item, isEnglish) && (
@@ -402,7 +402,7 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
           {menu.logoUrl && (
             <img src={getImageUrl(menu.logoUrl)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-4 shadow-md" fetchPriority="high" decoding="async" />
           )}
-          <h1 className="text-4xl font-black tracking-tight">{pickMenuTitle(menu, isEnglish)}</h1>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight break-words">{pickMenuTitle(menu, isEnglish)}</h1>
           <p className="text-sm mt-2 font-medium" style={{ color: accent }}>{menu.workspaceName}</p>
         </header>
 
@@ -459,7 +459,7 @@ function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean
                 <h3 className="font-bold text-sm tracking-wide">{pickCategoryName(cat, isEnglish)}</h3>
                 <div className="h-px flex-1" style={{ backgroundColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }} />
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {cat.items.map((item: any) => (
                   <div key={item.id} className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: isLightColor(bg) ? '#fafafa' : '#262626' }}>
                     {item.imageUrl ? (
@@ -502,7 +502,7 @@ function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
           {menu.bannerUrl && (
             <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-40 object-cover rounded-xl mb-4 shadow-md" fetchPriority="high" decoding="async" />
           )}
-          <h1 className="text-3xl font-bold">{pickMenuTitle(menu, isEnglish)}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold break-words">{pickMenuTitle(menu, isEnglish)}</h1>
           <div className="w-12 h-0.5 mx-auto mt-3" style={{ backgroundColor: accent }} />
         </header>
 
@@ -512,10 +512,10 @@ function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
               <h3 className="font-bold text-sm tracking-widest uppercase mb-4 text-center" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="space-y-0">
                 {cat.items.map((item: any) => (
-                  <div key={item.id} className="flex items-baseline gap-2 py-3 border-b" style={{ borderColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }}>
-                    <span className="font-bold text-sm shrink-0">{pickItemName(item, isEnglish)}</span>
-                    <span className="flex-1 border-b border-dotted" style={{ borderColor: isLightColor(bg) ? '#d4d4d4' : '#525252' }} />
-                    <span className="font-bold text-sm shrink-0" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
+                  <div key={item.id} className="flex items-baseline gap-2 py-3 border-b min-w-0" style={{ borderColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }}>
+                    <span className="font-bold text-sm min-w-0 truncate">{pickItemName(item, isEnglish)}</span>
+                    <span className="flex-1 border-b border-dotted min-w-[1rem]" style={{ borderColor: isLightColor(bg) ? '#d4d4d4' : '#525252' }} />
+                    <span className="font-bold text-sm shrink-0">{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
                   </div>
                 ))}
               </div>
