@@ -437,12 +437,6 @@ export default function MenuDesignPage() {
           <Button variant={menu.isPublished ? 'default' : 'outline'} onClick={handlePublishToggle}>
             {menu.isPublished ? (isRTL ? 'منشور' : 'Published') : (isRTL ? 'نشر القائمة' : 'Publish Menu')}
           </Button>
-          <Button variant="outline" asChild>
-            <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
-              <Eye className="w-4 h-4" />
-              {isRTL ? 'معاينة' : 'Preview'}
-            </a>
-          </Button>
         </div>
       </div>
 
@@ -684,93 +678,15 @@ export default function MenuDesignPage() {
             </div>
           </div>
 
-          {/* Live Menu Preview */}
-          {menu.categories.length > 0 && (
-            <div className="mt-2">
-              <h3 className="font-medium mb-4 text-right">{isRTL ? 'معاينة مباشرة' : 'Live Preview'}</h3>
-              <div className="relative mx-auto w-[260px]">
-                <div className="rounded-[2rem] border-[6px] border-gray-800 bg-gray-800 shadow-2xl overflow-hidden">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-gray-800 rounded-b-xl z-10" />
-                  <div
-                    className="overflow-y-auto max-h-[480px] rounded-[1.5rem]"
-                    style={{
-                      backgroundColor: menu.primaryColor || '#0c0c0c',
-                      ...(menu.backgroundUrl ? {
-                        backgroundImage: `url(${getImageUrl(menu.backgroundUrl)})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                      } : {}),
-                    }}
-                  >
-                    {/* Banner */}
-                    {menu.bannerUrl && (
-                      <img
-                        src={getImageUrl(menu.bannerUrl)}
-                        alt="banner"
-                        className="w-full object-cover"
-                        style={{ maxHeight: '80px' }}
-                      />
-                    )}
-                    <div className={`${menu.bannerUrl ? 'pt-3' : 'pt-6'} pb-3 px-4 text-center`}>
-                      {menu.logoUrl && (
-                        <img
-                          src={getImageUrl(menu.logoUrl)}
-                          alt="logo"
-                          className="w-12 h-12 rounded-full mx-auto mb-2 object-cover border-2"
-                          style={{ borderColor: menu.accentColor || '#c9a96e' }}
-                        />
-                      )}
-                      <p className="text-xs font-bold truncate" style={{ color: menu.accentColor || '#c9a96e' }}>
-                        {isRTL ? menu.titleAr : menu.titleEn}
-                      </p>
-                    </div>
-                    <div className="px-3 pb-6 space-y-4">
-                      {menu.categories.map((cat) => (
-                        <div key={cat.id}>
-                          <p
-                            className="text-[10px] font-bold uppercase tracking-wider mb-2 px-1"
-                            style={{ color: menu.accentColor || '#c9a96e' }}
-                          >
-                            {isRTL ? cat.name : (cat.nameEn || cat.name)}
-                          </p>
-                          <div className="space-y-1.5">
-                            {cat.items.slice(0, 3).map((item) => (
-                              <div
-                                key={item.id}
-                                className="flex items-center justify-between rounded-lg px-2 py-1.5"
-                                style={{ backgroundColor: (menu.accentColor || '#c9a96e') + '15' }}
-                              >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  {item.imageUrl && (
-                                    <img
-                                      src={getImageUrl(item.imageUrl)}
-                                      alt=""
-                                      className="w-7 h-7 rounded-md object-cover flex-shrink-0"
-                                    />
-                                  )}
-                                  <p className="text-[10px] truncate" style={{ color: menu.accentColor || '#c9a96e' }}>
-                                    {isRTL ? item.name : (item.nameEn || item.name)}
-                                  </p>
-                                </div>
-                                <p className="text-[10px] font-bold flex-shrink-0 ml-2" style={{ color: menu.accentColor || '#c9a96e' }}>
-                                  {item.price} ر.س
-                                </p>
-                              </div>
-                            ))}
-                            {cat.items.length > 3 && (
-                              <p className="text-[9px] text-center opacity-50" style={{ color: menu.accentColor || '#c9a96e' }}>
-                                +{cat.items.length - 3} {isRTL ? 'أكثر' : 'more'}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Preview Button */}
+          <div className="flex justify-center pt-2">
+            <Button variant="outline" asChild size="lg" className="gap-2">
+              <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
+                <Eye className="w-5 h-5" />
+                {isRTL ? 'معاينة القائمة' : 'Preview Menu'}
+              </a>
+            </Button>
+          </div>
         </div>
       )}
 
