@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmDialog';
-import { adminAPI } from '@/lib/api';
+import { adminAPI, getImageUrl } from '@/lib/api';
 
 interface Request {
   id: string;
@@ -33,9 +33,11 @@ interface Request {
 
 function getReceiptUrl(relativePath: string | null): string | null {
   if (!relativePath) return null;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const cleanPath = relativePath.replace(/^\.\//, '');
-  return `${baseUrl}/${cleanPath}`;
+  return getImageUrl(relativePath);
+}
+
+function isPdfReceipt(url: string): boolean {
+  return url.toLowerCase().includes('.pdf');
 }
 
 interface Stats {
@@ -60,7 +62,7 @@ export default function AdminPage() {
     approvedRequests: 0,
     rejectedRequests: 0,
   });
-  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const [viewingReceipt, setViewingReceipt] = useState<{ url: string; isPdf: boolean } | null>(null);
   const { showToast } = useToast();
   const confirm = useConfirm();
 
@@ -302,21 +304,46 @@ export default function AdminPage() {
               )}
             </div>
 
-            {req.receiptImageUrl && (
-              <div className="mt-3 pt-3 border-t border-tz-cream-dark">
-                <button
-                  onClick={() => setViewingReceipt(getReceiptUrl(req.receiptImageUrl))}
-                  className="text-sm text-tz-primary hover:underline"
-                >
-                  {isRTL ? 'عرض الإيصال' : 'View Receipt'}
-                </button>
-                {req.bankReference && (
-                  <span className="text-sm text-muted-foreground ml-3">
-                    Ref: {req.bankReference}
-                  </span>
-                )}
-              </div>
-            )}
+            {req.receiptImageUrl && (() => {
+              const receiptUrl = getReceiptUrl(req.receiptImageUrl);
+              if (!receiptUrl) return null;
+              const isPdf = isPdfReceipt(receiptUrl);
+              return (
+                <div className="mt-3 pt-3 border-t border-tz-cream-dark flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setViewingReceipt({ url: receiptUrl, isPdf })}
+                    className="flex items-center gap-2 text-sm text-tz-primary hover:underline"
+                  >
+                    <Receipt className="w-4 h-4 shrink-0" />
+                    {isRTL ? 'عرض الإيصال' : 'View Receipt'}
+                  </button>
+                  {!isPdf && (
+                    <button
+                      type="button"
+                      onClick={() => setViewingReceipt({ url: receiptUrl, isPdf: false })}
+                      className="rounded-lg border border-tz-cream-dark overflow-hidden hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src={receiptUrl}
+                        alt={isRTL ? 'معاينة الإيصال' : 'Receipt preview'}
+                        className="h-16 w-auto max-w-[120px] object-cover"
+                      />
+                    </button>
+                  )}
+                  {isPdf && (
+                    <span className="text-xs text-muted-foreground px-2 py-1 rounded-full bg-tz-cream-dark">
+                      PDF
+                    </span>
+                  )}
+                  {req.bankReference && (
+                    <span className="text-sm text-muted-foreground">
+                      Ref: {req.bankReference}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>
@@ -342,11 +369,30 @@ export default function AdminPage() {
             >
               <X className="w-4 h-4" />
             </button>
-            <img
-              src={viewingReceipt}
-              alt="Receipt"
-              className="w-full h-auto rounded-xl"
-            />
+            {viewingReceipt.isPdf ? (
+              <iframe
+                src={viewingReceipt.url}
+                title="Receipt PDF"
+                className="w-full min-h-[70vh] rounded-xl border-0"
+              />
+            ) : (
+              <img
+                src={viewingReceipt.url}
+                alt="Receipt"
+                className="w-full h-auto rounded-xl"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <a
+              href={viewingReceipt.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-sm text-tz-primary mt-3 hover:underline"
+            >
+              {isRTL ? 'فتح في تبويب جديد' : 'Open in new tab'}
+            </a>
           </motion.div>
         </motion.div>
       )}

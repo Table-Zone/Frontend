@@ -327,6 +327,7 @@ interface Plan {
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
+  features: string;
 }
 
 const partners = [
@@ -354,6 +355,7 @@ export default function LandingPage() {
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'quarterly'>('monthly');
 
   const INIT_TABLES = [
     { name: 'طاولة ١', status: 'occupied' as const, secs: 1742 },
@@ -396,8 +398,8 @@ export default function LandingPage() {
   };
   useEffect(() => { fetchPlans(); }, []);
 
-  const monthlyPlan = plans.find((p) => p.name === 'monthly');
-  const quarterlyPlan = plans.find((p) => p.name === 'quarterly');
+  const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
+  const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
 
   return (
     <div dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", background: TZ.cream, color: TZ.espresso, minHeight: '100vh' }}>
@@ -614,6 +616,21 @@ export default function LandingPage() {
             <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>
               {isRTL ? 'ابدأ الآن ونظم عملك' : 'Start Now '}
             </h2>
+            {/* Billing Period Toggle */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', background: '#fff', borderRadius: 16, padding: 6, border: '1px solid rgba(44,24,16,0.08)', gap: 4, marginTop: 12 }}>
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                style={{ padding: '10px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .2s', ...(billingPeriod === 'monthly' ? { background: TZ.orange, color: '#fff', boxShadow: '0 2px 8px rgba(199,91,34,0.25)' } : { background: 'transparent', color: TZ.muted }) }}
+              >
+                {isRTL ? 'شهري' : 'Monthly'}
+              </button>
+              <button
+                onClick={() => setBillingPeriod('quarterly')}
+                style={{ padding: '10px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .2s', ...(billingPeriod === 'quarterly' ? { background: TZ.orange, color: '#fff', boxShadow: '0 2px 8px rgba(199,91,34,0.25)' } : { background: 'transparent', color: TZ.muted }) }}
+              >
+                {isRTL ? '3 أشهر' : 'Quarterly'}
+              </button>
+            </div>
           </div>
 
           {plansLoading ? (
@@ -628,21 +645,22 @@ export default function LandingPage() {
             </div>
           ) : (
             <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 18, maxWidth: 720, margin: '0 auto' }}>
-              {monthlyPlan && (
-                <div style={{ background: '#fff', border: `1px solid rgba(44,24,16,0.08)`, borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? monthlyPlan.labelAr : monthlyPlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>شهري</h3>
+              {tablesPlan && (
+                <div style={{ background: '#fff', border: '1px solid rgba(44,24,16,0.08)', borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? tablesPlan.labelAr : tablesPlan.labelEn}</div>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'إدارة الطاولات' : 'Table Management'}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{monthlyPlan.priceSar}</span>
-                    <span style={{ fontSize: 13, color: TZ.muted }}>ر.س / شهر</span>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{tablesPlan.priceSar}</span>
+                    <span style={{ fontSize: 13, color: TZ.muted }}>SAR</span>
                   </div>
-                  <p style={{ fontSize: 14, color: TZ.muted, marginBottom: 20 }}>{monthlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+                  <p style={{ fontSize: 14, color: TZ.muted, marginBottom: 20 }}>{tablesPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
                   <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {[
-                      isRTL ? (monthlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${monthlyPlan.baseStaffSeats} مقاعد موظفين`) : `${monthlyPlan.baseStaffSeats} staff seat`,
-                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                      isRTL ? 'قائمة QR' : 'QR Menu',
-                      isRTL ? 'دعم فني' : 'Support',
+                      isRTL ? 'مؤقتات ذكية للطاولات' : 'Smart table timers',
+                      isRTL ? 'تتبع حالة الطاولات' : 'Track table status',
+                      isRTL ? 'تنبيهات وقت الاستخدام' : 'Usage time alerts',
+                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
+                      isRTL ? 'دعم فني' : 'Technical support',
                     ].map((f, k) => (
                       <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: TZ.espresso }}>
                         <span style={{ width: 18, height: 18, borderRadius: '50%', background: TZ.orangeTint, color: TZ.orangeDk, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -652,26 +670,28 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>ابدأ الآن</Link>
+                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: '1px solid rgba(44,24,16,0.14)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
                 </div>
               )}
-              {quarterlyPlan && (
+              {qrcodePlan && (
                 <div style={{ background: TZ.espresso, borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column', position: 'relative', transform: 'translateY(-12px)', boxShadow: '0 24px 60px rgba(44,24,16,0.14)' }}>
-                  <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: TZ.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 999, whiteSpace: 'nowrap' }}>الأكثر شعبية</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.orangeLt, marginBottom: 6 }}>{isRTL ? quarterlyPlan.labelAr : quarterlyPlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#FAF7F2', margin: '0 0 14px' }}>ربع سنوي</h3>
+                  <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: TZ.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 999, whiteSpace: 'nowrap' }}>{isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.orangeLt, marginBottom: 6 }}>{isRTL ? qrcodePlan.labelAr : qrcodePlan.labelEn}</div>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#FAF7F2', margin: '0 0 14px' }}>{isRTL ? 'الطاولات + قائمة QR' : 'Tables + QR Menu'}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: '#FAF7F2', letterSpacing: '-0.02em' }}>{quarterlyPlan.priceSar}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(250,247,242,0.6)' }}>ر.س / ربع سنة</span>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: '#FAF7F2', letterSpacing: '-0.02em' }}>{qrcodePlan.priceSar}</span>
+                    <span style={{ fontSize: 13, color: 'rgba(250,247,242,0.6)' }}>SAR</span>
                   </div>
-                  <p style={{ fontSize: 14, color: 'rgba(250,247,242,0.6)', marginBottom: 20 }}>{quarterlyPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+                  <p style={{ fontSize: 14, color: 'rgba(250,247,242,0.6)', marginBottom: 20 }}>{qrcodePlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
                   <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {[
-                      isRTL ? (quarterlyPlan.baseStaffSeats === 1 ? 'مقعد موظف واحد' : `${quarterlyPlan.baseStaffSeats} مقاعد موظفين`) : `${quarterlyPlan.baseStaffSeats} staff seat`,
-                      isRTL ? 'مؤقتات غير محدودة' : 'Unlimited timers',
-                      isRTL ? 'قائمة QR متقدمة' : 'Advanced QR Menu',
-                      isRTL ? 'دعم ٢٤/٧ بأولوية' : '24/7 Priority support',
-                      isRTL ? 'توفير أكثر' : 'Save more',
+                      isRTL ? 'كل مميزات خطة الطاولات' : 'All Table Management features',
+                      isRTL ? 'قائمة رقمية بتصميم QR' : 'Digital QR menu',
+                      isRTL ? '4 قوالب تصميم جاهزة' : '4 ready-made design templates',
+                      isRTL ? 'تخصيص الألوان والشعار' : 'Customize colors & logo',
+                      isRTL ? 'إدارة المنتجات والتصنيفات' : 'Manage products & categories',
+                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
+                      isRTL ? 'دعم فني' : 'Technical support',
                     ].map((f, k) => (
                       <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: 'rgba(250,247,242,0.85)' }}>
                         <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(224,122,63,0.25)', color: TZ.orangeLt, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -681,14 +701,13 @@ export default function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>ابدأ الآن</Link>
+                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
                 </div>
               )}
-              {!monthlyPlan && !quarterlyPlan && (
+              {!tablesPlan && !qrcodePlan && (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: TZ.muted, padding: '24px 0' }}>لا توجد خطط متاحة حالياً</div>
               )}
             </div>
-          )}
         </div>
       </section>
 

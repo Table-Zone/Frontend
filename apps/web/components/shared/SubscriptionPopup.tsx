@@ -16,6 +16,7 @@ interface Plan {
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
+  features: string;
 }
 
 interface SubscriptionPopupProps {
@@ -33,6 +34,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
   const [bankReference, setBankReference] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'quarterly'>('monthly');
 
   useEffect(() => {
     subscriptionAPI.getPlans().then((res) => {
@@ -75,6 +77,16 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     navigator.clipboard.writeText(text);
   };
 
+  const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
+  const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
+
+  const tablesFeatures = isRTL
+    ? ['مؤقتات ذكية للطاولات', 'تتبع حالة الطاولات', 'تنبيهات وقت الاستخدام', 'مقعد موظف واحد', 'دعم فني']
+    : ['Smart table timers', 'Track table status', 'Usage time alerts', '1 staff seat', 'Technical support'];
+  const qrcodeFeatures = isRTL
+    ? ['كل مميزات خطة الطاولات', 'قائمة رقمية بتصميم QR', '4 قوالب تصميم جاهزة', 'تخصيص الألوان والشعار', 'إدارة المنتجات والتصنيفات', 'مقعد موظف واحد', 'دعم فني']
+    : ['All Table Management features', 'Digital QR menu', '4 ready-made templates', 'Customize colors & logo', 'Manage products & categories', '1 staff seat', 'Technical support'];
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -88,7 +100,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-tz-cream-dark">
@@ -116,33 +128,106 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
               <p className="text-muted-foreground text-sm mb-4">
                 {t.subscriptionRequiredDesc}
               </p>
-              {plans.map((plan) => (
-                <motion.div
-                  key={plan.id}
-                  whileHover={{ scale: 1.02 }}
-                  className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-colors ${
-                    selectedPlan?.id === plan.id
-                      ? 'border-tz-primary bg-tz-primary/5'
-                      : 'border-tz-cream-dark hover:border-tz-primary/50'
-                  }`}
-                  onClick={() => handleSelectPlan(plan)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg">
-                        {isRTL ? plan.labelAr : plan.labelEn}
-                      </h3>
+
+              {/* Billing Period Toggle */}
+              <div className="flex items-center justify-center mb-4">
+                <div className="inline-flex items-center bg-tz-cream rounded-2xl p-1.5 border border-tz-cream-dark">
+                  <button
+                    onClick={() => setBillingPeriod('monthly')}
+                    className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                      billingPeriod === 'monthly'
+                        ? 'bg-tz-primary text-white shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {isRTL ? 'شهري' : 'Monthly'}
+                  </button>
+                  <button
+                    onClick={() => setBillingPeriod('quarterly')}
+                    className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                      billingPeriod === 'quarterly'
+                        ? 'bg-tz-primary text-white shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    {isRTL ? '3 أشهر' : 'Quarterly'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Plan Cards */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {/* Tables Only */}
+                {tablesPlan && (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="relative rounded-2xl border-2 border-tz-cream-dark p-5 cursor-pointer transition-colors hover:border-tz-primary/50 flex flex-col"
+                    onClick={() => handleSelectPlan(tablesPlan)}
+                  >
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg">{isRTL ? 'إدارة الطاولات' : 'Table Management'}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {plan.durationDays} {isRTL ? 'يوم' : 'days'} · {plan.baseStaffSeats} {t.staffSeats}
+                        {isRTL ? 'مؤقتات ذكية وتنظيم الطاولات' : 'Smart timers & table organization'}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-tz-primary">{plan.priceSar}</p>
-                      <p className="text-xs text-muted-foreground">{isRTL ? 'ر.س' : 'SAR'}</p>
+                    <div className="mb-4">
+                      <span className="text-3xl font-extrabold text-tz-espresso">{tablesPlan.priceSar}</span>
+                      <span className="text-sm text-muted-foreground"> {isRTL ? 'ر.س' : 'SAR'}</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isRTL ? `لمدة ${tablesPlan.durationDays} يوم` : `For ${tablesPlan.durationDays} days`}
+                      </p>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                    <ul className="space-y-2 flex-1">
+                      {tablesFeatures.map((item) => (
+                        <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso">
+                          <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                )}
+
+                {/* Tables + QR */}
+                {qrcodePlan && (
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    className="relative rounded-2xl border-2 border-tz-primary bg-tz-primary/5 p-5 cursor-pointer transition-colors flex flex-col"
+                    onClick={() => handleSelectPlan(qrcodePlan)}
+                  >
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-tz-primary text-white text-xs font-bold">
+                      {isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg">{isRTL ? 'الطاولات + قائمة QR' : 'Tables + QR Menu'}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isRTL ? 'كل شيء في خطة الطاولات + قائمة رقمية' : 'Everything in Tables + digital menu'}
+                      </p>
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-3xl font-extrabold text-tz-primary">{qrcodePlan.priceSar}</span>
+                      <span className="text-sm text-muted-foreground"> {isRTL ? 'ر.س' : 'SAR'}</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isRTL ? `لمدة ${qrcodePlan.durationDays} يوم` : `For ${qrcodePlan.durationDays} days`}
+                      </p>
+                    </div>
+                    <ul className="space-y-2 flex-1">
+                      {qrcodeFeatures.map((item) => (
+                        <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso">
+                          <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                )}
+              </div>
+
+              {plans.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {isRTL ? 'لا توجد خطط متاحة' : 'No plans available'}
+                </div>
+              )}
             </div>
           )}
 
