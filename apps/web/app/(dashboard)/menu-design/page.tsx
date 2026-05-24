@@ -12,7 +12,6 @@ import { qrMenuAPI, workspaceAPI, getImageUrl } from '@/lib/api';
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import { DetailsEditor } from '@/components/menu/DetailsEditor';
-import { MenuTemplateRenderer } from '@/components/menu/MenuTemplates';
 import {
   MenuDetailPair,
   parseDetailsPairs,
@@ -679,27 +678,14 @@ export default function MenuDesignPage() {
             </div>
           </div>
 
-          {/* Live Preview */}
-          <div className="mt-2">
-            <h3 className="font-medium mb-4 text-right">{isRTL ? 'معاينة مباشرة' : 'Live Preview'}</h3>
-            <div className="relative mx-auto" style={{ width: '260px' }}>
-              <div className="rounded-[2rem] border-[6px] border-gray-800 bg-gray-800 shadow-2xl overflow-hidden" style={{ height: '500px' }}>
-                <div style={{ width: '375px', height: '722px', transform: 'scale(0.693)', transformOrigin: 'top left', overflow: 'hidden', pointerEvents: 'none' }}>
-                  <MenuTemplateRenderer
-                    menu={{ ...menu, workspaceName: isRTL ? menu.titleAr : menu.titleEn }}
-                    isEnglish={!isRTL}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-center mt-4">
-              <Button variant="outline" asChild size="sm" className="gap-2">
-                <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
-                  <Eye className="w-4 h-4" />
-                  {isRTL ? 'فتح القائمة' : 'Open Menu'}
-                </a>
-              </Button>
-            </div>
+          {/* Preview Button */}
+          <div className="flex justify-center pt-2">
+            <Button variant="outline" asChild size="lg" className="gap-2">
+              <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
+                <Eye className="w-5 h-5" />
+                {isRTL ? 'معاينة القائمة' : 'Preview Menu'}
+              </a>
+            </Button>
           </div>
         </div>
       )}
