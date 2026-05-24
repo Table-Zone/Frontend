@@ -748,7 +748,7 @@ export default function MenuDesignPage() {
                                       className="w-7 h-7 rounded-md object-cover flex-shrink-0"
                                     />
                                   )}
-                                  <p className="text-[10px] text-white truncate">
+                                  <p className="text-[10px] truncate" style={{ color: menu.accentColor || '#c9a96e' }}>
                                     {isRTL ? item.name : (item.nameEn || item.name)}
                                   </p>
                                 </div>
