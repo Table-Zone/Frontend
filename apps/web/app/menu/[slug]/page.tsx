@@ -382,3 +382,151 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
     </div>
   );
 }
+
+
+/* ========================================================================
+   TEMPLATE 3: POSTER MINIMAL
+   ======================================================================== */
+function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
+  const bg = menu.primaryColor || '#EEF1F5';
+  const accent = menu.accentColor || '#2E5AAC';
+  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
+  const mutedColor = isLightColor(bg) ? '#525252' : '#a3a3a3';
+  const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+
+  return (
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
+      <div className="relative z-10 max-w-xl mx-auto px-6 py-10">
+        <header className="text-center mb-10">
+          {menu.logoUrl && (
+            <img src={getImageUrl(menu.logoUrl)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-4 shadow-md" fetchPriority="high" decoding="async" />
+          )}
+          <h1 className="text-4xl font-black tracking-tight">{pickMenuTitle(menu, isEnglish)}</h1>
+          <p className="text-sm mt-2 font-medium" style={{ color: accent }}>{menu.workspaceName}</p>
+        </header>
+
+        <main className="space-y-10 pb-16">
+          {menu.categories.map((cat: any) => (
+            <div key={cat.id}>
+              <h3 className="text-center font-bold text-lg mb-4 tracking-widest uppercase" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {cat.items.map((item: any) => (
+                  <div key={item.id} className="text-center">
+                    <h4 className="font-bold text-sm">{pickItemName(item, isEnglish)}</h4>
+                    <p className="text-xs mt-0.5" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
+                    <span className="text-xs font-bold mt-1 inline-block" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   TEMPLATE 4: TAKER GRID
+   ======================================================================== */
+function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
+  const bg = menu.primaryColor || '#FFFFFF';
+  const accent = menu.accentColor || '#171717';
+  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
+  const mutedColor = isLightColor(bg) ? '#737373' : '#a3a3a3';
+  const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+
+  return (
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
+      <div className="relative z-10">
+        <header className="px-5 pt-8 pb-4 flex items-center gap-4">
+          {menu.logoUrl && (
+            <img src={getImageUrl(menu.logoUrl)} alt="" className="w-14 h-14 rounded-xl object-cover shadow-sm" fetchPriority="high" decoding="async" />
+          )}
+          <div>
+            <h1 className="text-xl font-bold">{menu.workspaceName}</h1>
+            <p className="text-xs mt-0.5" style={{ color: mutedColor }}>{pickMenuTitle(menu, isEnglish)}</p>
+          </div>
+        </header>
+
+        <main className="px-4 pb-16">
+          {menu.categories.map((cat: any) => (
+            <div key={cat.id} className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-px flex-1" style={{ backgroundColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }} />
+                <h3 className="font-bold text-sm tracking-wide">{pickCategoryName(cat, isEnglish)}</h3>
+                <div className="h-px flex-1" style={{ backgroundColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {cat.items.map((item: any) => (
+                  <div key={item.id} className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: isLightColor(bg) ? '#fafafa' : '#262626' }}>
+                    {item.imageUrl ? (
+                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
+                    ) : (
+                      <div className="w-full aspect-square flex items-center justify-center text-2xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
+                        {pickItemName(item, isEnglish).charAt(0)}
+                      </div>
+                    )}
+                    <div className="p-2.5">
+                      <h4 className="font-bold text-xs truncate">{pickItemName(item, isEnglish)}</h4>
+                      <span className="text-xs font-bold" style={{ color: accent }}>{item.price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   TEMPLATE 5: BISTRO LIST
+   ======================================================================== */
+function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
+  const bg = menu.primaryColor || '#1A1A1A';
+  const accent = menu.accentColor || '#F5F0E8';
+  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
+  const mutedColor = isLightColor(bg) ? '#737373' : '#a3a3a3';
+  const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+
+  return (
+    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
+      <div className="relative z-10 max-w-xl mx-auto px-6 py-10">
+        <header className="text-center mb-8">
+          {menu.bannerUrl && (
+            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-40 object-cover rounded-xl mb-4 shadow-md" fetchPriority="high" decoding="async" />
+          )}
+          <h1 className="text-3xl font-bold">{pickMenuTitle(menu, isEnglish)}</h1>
+          <div className="w-12 h-0.5 mx-auto mt-3" style={{ backgroundColor: accent }} />
+        </header>
+
+        <main className="pb-16 space-y-8">
+          {menu.categories.map((cat: any) => (
+            <div key={cat.id}>
+              <h3 className="font-bold text-sm tracking-widest uppercase mb-4 text-center" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
+              <div className="space-y-0">
+                {cat.items.map((item: any) => (
+                  <div key={item.id} className="flex items-baseline gap-2 py-3 border-b" style={{ borderColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }}>
+                    <span className="font-bold text-sm shrink-0">{pickItemName(item, isEnglish)}</span>
+                    <span className="flex-1 border-b border-dotted" style={{ borderColor: isLightColor(bg) ? '#d4d4d4' : '#525252' }} />
+                    <span className="font-bold text-sm shrink-0" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </main>
+
+        <footer className="text-center text-xs" style={{ color: mutedColor }}>
+          <p>{menu.workspaceName}</p>
+        </footer>
+      </div>
+    </div>
+  );
+}
