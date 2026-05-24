@@ -708,6 +708,7 @@ export default function LandingPage() {
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: TZ.muted, padding: '24px 0' }}>لا توجد خطط متاحة حالياً</div>
               )}
             </div>
+          )}
         </div>
       </section>
 
