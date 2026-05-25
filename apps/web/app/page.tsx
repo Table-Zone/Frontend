@@ -501,6 +501,7 @@ export default function LandingPage() {
   };
   useEffect(() => { fetchPlans(); }, []);
 
+  const menuPlan   = plans.find((p) => p.name === `${billingPeriod}-menu`);
   const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
   const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
 
@@ -727,11 +728,42 @@ export default function LandingPage() {
               <button onClick={fetchPlans} style={{ padding: '10px 24px', borderRadius: 999, background: TZ.orange, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', border: 'none' }}>حاول مجدداً</button>
             </div>
           ) : (
-            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 18, maxWidth: 720, margin: '0 auto' }}>
+            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18, maxWidth: 980, margin: '0 auto' }}>
+              {/* Menu only */}
+              {menuPlan && (
+                <div style={{ background: '#fff', border: '1px solid rgba(44,24,16,0.08)', borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? menuPlan.labelAr : menuPlan.labelEn}</div>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'قائمة QR' : 'QR Menu'}</h3>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+                    <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{menuPlan.priceSar}</span>
+                    <span style={{ fontSize: 13, color: TZ.muted }}>SAR</span>
+                  </div>
+                  <p style={{ fontSize: 14, color: TZ.muted, marginBottom: 20 }}>{menuPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                    {[
+                      isRTL ? 'قائمة رقمية بتصميم QR' : 'Digital QR menu',
+                      isRTL ? '4 قوالب تصميم جاهزة' : '4 ready-made design templates',
+                      isRTL ? 'تخصيص الألوان والشعار' : 'Customize colors & logo',
+                      isRTL ? 'إدارة المنتجات والتصنيفات' : 'Manage products & categories',
+                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
+                      isRTL ? 'دعم فني' : 'Technical support',
+                    ].map((f, k) => (
+                      <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: TZ.espresso }}>
+                        <span style={{ width: 18, height: 18, borderRadius: '50%', background: TZ.orangeTint, color: TZ.orangeDk, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                          <IcoCheck style={{ width: 10, height: 10 }} />
+                        </span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: '1px solid rgba(44,24,16,0.14)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
+                </div>
+              )}
+              {/* Tables only */}
               {tablesPlan && (
                 <div style={{ background: '#fff', border: '1px solid rgba(44,24,16,0.08)', borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? tablesPlan.labelAr : tablesPlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'إدارة الطاولات' : 'Table Management'}</h3>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'الطاولات' : 'Table Management'}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{tablesPlan.priceSar}</span>
                     <span style={{ fontSize: 13, color: TZ.muted }}>SAR</span>
@@ -756,11 +788,12 @@ export default function LandingPage() {
                   <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: '1px solid rgba(44,24,16,0.14)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
                 </div>
               )}
+              {/* Menu + Tables combo */}
               {qrcodePlan && (
                 <div style={{ background: TZ.espresso, borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column', position: 'relative', transform: 'translateY(-12px)', boxShadow: '0 24px 60px rgba(44,24,16,0.14)' }}>
                   <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: TZ.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 999, whiteSpace: 'nowrap' }}>{isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: TZ.orangeLt, marginBottom: 6 }}>{isRTL ? qrcodePlan.labelAr : qrcodePlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#FAF7F2', margin: '0 0 14px' }}>{isRTL ? 'الطاولات + قائمة QR' : 'Tables + QR Menu'}</h3>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#FAF7F2', margin: '0 0 14px' }}>{isRTL ? 'الطاولات + القائمة' : 'Tables + Menu'}</h3>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 44, fontWeight: 900, color: '#FAF7F2', letterSpacing: '-0.02em' }}>{qrcodePlan.priceSar}</span>
                     <span style={{ fontSize: 13, color: 'rgba(250,247,242,0.6)' }}>SAR</span>
@@ -769,10 +802,8 @@ export default function LandingPage() {
                   <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
                     {[
                       isRTL ? 'كل مميزات خطة الطاولات' : 'All Table Management features',
-                      isRTL ? 'قائمة رقمية بتصميم QR' : 'Digital QR menu',
-                      isRTL ? '4 قوالب تصميم جاهزة' : '4 ready-made design templates',
-                      isRTL ? 'تخصيص الألوان والشعار' : 'Customize colors & logo',
-                      isRTL ? 'إدارة المنتجات والتصنيفات' : 'Manage products & categories',
+                      isRTL ? 'كل مميزات خطة القائمة' : 'All QR Menu features',
+                      isRTL ? 'تكامل كامل بين المنتجين' : 'Full integration between both',
                       isRTL ? 'مقعد موظف واحد' : '1 staff seat',
                       isRTL ? 'دعم فني' : 'Technical support',
                     ].map((f, k) => (
@@ -787,7 +818,7 @@ export default function LandingPage() {
                   <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
                 </div>
               )}
-              {!tablesPlan && !qrcodePlan && (
+              {!menuPlan && !tablesPlan && !qrcodePlan && (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: TZ.muted, padding: '24px 0' }}>لا توجد خطط متاحة حالياً</div>
               )}
             </div>
