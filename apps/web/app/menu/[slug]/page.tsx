@@ -240,7 +240,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
               </button>
               {openCategory === cat.id && (
                 <div className="pb-5 px-2 space-y-5">
-                  {cat.items.map((item: any) => (
+                  {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                     <div key={item.id} className="flex gap-4">
                       {item.imageUrl ? (
                         <img src={getImageUrl(item.imageUrl)} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border" loading="lazy" decoding="async" style={{ borderColor: dividerColor }} />
@@ -353,7 +353,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
               </div>
               <div className="space-y-6">
-                {cat.items.map((item: any, idx: number) => (
+                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any, idx: number) => (
                   <div key={item.id} className={`flex flex-col sm:flex-row gap-5 ${idx % 2 === 1 ? 'sm:flex-row-reverse' : ''}`}>
                     {item.imageUrl ? (
                       <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" loading="lazy" decoding="async" />
@@ -420,7 +420,7 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
             <div key={cat.id}>
               <h3 className="text-center font-bold text-lg mb-4 tracking-widest uppercase" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                {cat.items.map((item: any) => (
+                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                   <div key={item.id} className="text-center">
                     <h4 className="font-bold text-sm">{pickItemName(item, isEnglish)}</h4>
                     <p className="text-xs mt-0.5" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
@@ -469,7 +469,7 @@ function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean
                 <div className="h-px flex-1" style={{ backgroundColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }} />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {cat.items.map((item: any) => (
+                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                   <div key={item.id} className="rounded-xl overflow-hidden shadow-sm" style={{ backgroundColor: isLightColor(bg) ? '#fafafa' : '#262626' }}>
                     {item.imageUrl ? (
                       <img src={getImageUrl(item.imageUrl)} alt="" className="w-full aspect-square object-cover" loading="lazy" decoding="async" />
@@ -520,7 +520,7 @@ function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
             <div key={cat.id}>
               <h3 className="font-bold text-sm tracking-widest uppercase mb-4 text-center" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="space-y-0">
-                {cat.items.map((item: any) => (
+                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                   <div key={item.id} className="flex items-baseline gap-2 py-3 border-b min-w-0" style={{ borderColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }}>
                     <span className="font-bold text-sm min-w-0 truncate">{pickItemName(item, isEnglish)}</span>
                     <span className="flex-1 border-b border-dotted min-w-[1rem]" style={{ borderColor: isLightColor(bg) ? '#d4d4d4' : '#525252' }} />
