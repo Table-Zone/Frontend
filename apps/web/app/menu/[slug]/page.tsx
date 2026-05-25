@@ -232,7 +232,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
         </div>
 
         <main className="max-w-2xl mx-auto px-4 pb-16 space-y-2">
-          {menu.categories.map((cat: any) => (
+          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
             <div key={cat.id} className="border-b last:border-b-0" style={{ borderColor: dividerColor }}>
               <button onClick={() => setOpenCategory(openCategory === cat.id ? null : cat.id)} className="w-full flex items-center justify-between py-5 px-2 group">
                 <h3 className="text-lg font-medium">{pickCategoryName(cat, isEnglish)}</h3>
@@ -345,7 +345,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         )}
 
         <main className="max-w-xl mx-auto px-4 py-8 pb-16 space-y-8">
-          {menu.categories.map((cat: any) => (
+          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
             <div key={cat.id}>
               <div className="flex items-center gap-4 mb-6">
                 <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
@@ -416,7 +416,7 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
         </header>
 
         <main className="space-y-10 pb-16">
-          {menu.categories.map((cat: any) => (
+          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
             <div key={cat.id}>
               <h3 className="text-center font-bold text-lg mb-4 tracking-widest uppercase" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
@@ -461,7 +461,7 @@ function TakerTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean
         </header>
 
         <main className="px-4 pb-16">
-          {menu.categories.map((cat: any) => (
+          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
             <div key={cat.id} className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <div className="h-px flex-1" style={{ backgroundColor: isLightColor(bg) ? '#e5e5e5' : '#404040' }} />
@@ -516,7 +516,7 @@ function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
         </header>
 
         <main className="pb-16 space-y-8">
-          {menu.categories.map((cat: any) => (
+          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
             <div key={cat.id}>
               <h3 className="font-bold text-sm tracking-widest uppercase mb-4 text-center" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
               <div className="space-y-0">
