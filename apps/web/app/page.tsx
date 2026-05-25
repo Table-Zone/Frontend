@@ -137,6 +137,55 @@ const PHONE_TABS = [
   },
 ];
 
+const CAFE_TABS = [
+  {
+    label: 'المشروبات الساخنة',
+    sections: [
+      {
+        heading: '~ الأكثر طلبًا ~',
+        headingColor: '#6B4226',
+        items: [
+          { name: 'لاتيه', price: '١٨ ر.س', desc: 'إسبريسو مع حليب مبخّر ', img: '/Latte.jpg', cal: '١٨٠ سعرة' },
+          { name: 'ايس دريب', price: '٢٠ ر.س', desc: 'محصول يمني', img: '/iceCoffee.jpg', cal: '١٥٠ سعرة' },
+        ],
+      },
+      {
+        heading: 'قهوة مختصة',
+        headingColor: '#9B7730',
+        items: [
+          { name: 'V60', price: '١٢ ر.س', desc: 'محصول اثيوبي', img: '/hotcoffee.jpg', cal: '٤٠ سعرة' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'الحلويات',
+    sections: [
+      {
+        heading: '~ طازج يوميًا ~',
+        headingColor: '#9B7730',
+        items: [
+          { name: 'كوكيز', price: '١٤ ر.س', desc: 'طازج يوميًا من الفرن', img: '/cookies.jpg', cal: '٣٨٠ سعرة' },
+          { name:  'تشيز كيك مدريد', price: '٢٢ ر.س', desc: 'كريمي وبارد', img: '/cheesecake.jpg', cal: '٤٢٠ سعرة' },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'بارد',
+    sections: [
+      {
+        heading: '~ مشروبات باردة ~',
+        headingColor: '#6B4226',
+        items: [
+          { name: ' آيس تي خوخ', price: '٢٠ ر.س', desc: 'يوقيك من حر الصيف', img: '/IceTea.jpg', cal: '٢٠٠ سعرة' },
+          { name: 'فريدو', price: '١٨ ر.س', desc: 'اسبريسو مبخر', img: '/Freddo.jpg', cal: '٢٢٠ سعرة' },
+        ],
+      },
+    ],
+  },
+];
+
 
 function PhoneMenuItem({ name, price, desc, img /*, cal */ }: { name: string; price: string; desc: string; img: string | null; cal?: string }) {
   return (
@@ -161,9 +210,10 @@ function PhoneMenuItem({ name, price, desc, img /*, cal */ }: { name: string; pr
   );
 }
 
-function PhoneMock() {
+function PhoneMock({ tabs = PHONE_TABS }: { tabs?: typeof PHONE_TABS }) {
   const [tab, setTab] = useState(0);
-  const current = PHONE_TABS[tab];
+  const safeTab = Math.min(tab, tabs.length - 1);
+  const current = tabs[safeTab];
   return (
     <div dir="rtl" style={{ width: 196, background: '#1A1A1A', borderRadius: 38, padding: 10, boxShadow: '0 28px 60px rgba(44,24,16,0.30), 0 8px 20px rgba(44,24,16,0.14)', position: 'relative', flexShrink: 0 }}>
       <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', width: 64, height: 18, background: '#1A1A1A', borderRadius: 999, zIndex: 3 }}></div>
@@ -185,8 +235,8 @@ function PhoneMock() {
 
         {/* Category tabs */}
         <div style={{ display: 'flex', padding: '5px 11px 0', borderBottom: '1px solid #EBEBEB', gap: 2, flexShrink: 0 }}>
-          {PHONE_TABS.map((t, i) => (
-            <button key={i} onClick={() => setTab(i)} style={{ padding: '3px 7px 5px', fontSize: 8.5, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', color: tab === i ? '#1A1A1A' : '#999', borderBottom: tab === i ? '1.5px solid #1A1A1A' : '1.5px solid transparent', flexShrink: 0, transition: 'color .15s' }}>{t.label}</button>
+          {tabs.map((t, i) => (
+            <button key={i} onClick={() => setTab(i)} style={{ padding: '3px 7px 5px', fontSize: 8.5, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', color: safeTab === i ? '#1A1A1A' : '#999', borderBottom: safeTab === i ? '1.5px solid #1A1A1A' : '1.5px solid transparent', flexShrink: 0, transition: 'color .15s' }}>{t.label}</button>
           ))}
         </div>
 
@@ -349,6 +399,59 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
+function QRMenuCard() {
+  const [venue, setVenue] = useState<'restaurant' | 'cafe'>('restaurant');
+  const tabs = venue === 'restaurant' ? PHONE_TABS : CAFE_TABS;
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Sticker — outside the overflow:hidden card so it's never clipped */}
+      <div style={{ position: 'absolute', top: 10, left: -6, zIndex: 10, transform: 'rotate(-4deg)', transformOrigin: 'left center' }}>
+        <div style={{ background: '#FFF8E1', border: '1.5px solid #F0C040', borderRadius: 8, padding: '5px 11px', boxShadow: '2px 3px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ fontSize: 13 }}>✏️</span>
+          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7A5C00', lineHeight: 1.3, direction: 'rtl' }}>قائمتك قابلة<br />للتخصيص بالكامل</span>
+        </div>
+      </div>
+
+    <div style={{ background: '#fff', borderRadius: 24, border: `1.5px solid ${TZ.orange}`, boxShadow: `0 8px 32px rgba(199,91,18,0.12)`, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ background: `linear-gradient(135deg, ${TZ.orange}, ${TZ.orangeDk})`, padding: '18px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.20)', display: 'grid', placeItems: 'center', color: '#fff' }}>
+            <IcoQR style={{ width: 15, height: 15 }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>قائمة QR</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.65)', marginTop: 1 }}>منيو رقمي للزبائن</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Venue toggle — own row so the phone never overlaps it */}
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 20px 0' }}>
+        <div style={{ display: 'flex', background: TZ.cream2, borderRadius: 999, padding: 4, gap: 2 }} dir="rtl">
+          {(['restaurant', 'cafe'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setVenue(v)}
+              style={{ padding: '6px 16px', borderRadius: 999, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .18s', background: venue === v ? TZ.orange : 'transparent', color: venue === v ? '#fff' : TZ.muted, boxShadow: venue === v ? '0 2px 6px rgba(199,91,18,0.30)' : 'none' }}
+            >
+              {v === 'restaurant' ? ' مطعم' : ' كوفي'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '14px 20px 18px', display: 'flex', gap: 16, alignItems: 'flex-start', justifyContent: 'center' }}>
+        <PhoneMock tabs={tabs} />
+        <div style={{ background: TZ.cream, borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 20, border: `1px solid rgba(44,24,16,0.08)` }}>
+          <QRSvg size={72} seed={17} />
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: TZ.espresso, textAlign: 'center', lineHeight: 1.4 }}>امسح<br />للقائمة</div>
+        </div>
+      </div>
+    </div>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   const { t, isRTL, setLang } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -497,27 +600,7 @@ export default function LandingPage() {
             </div>
 
             {/* Product 2 — QR Menu */}
-            <div style={{ background: '#fff', borderRadius: 24, border: `1.5px solid ${TZ.orange}`, boxShadow: `0 8px 32px rgba(199,91,18,0.12)`, overflow: 'hidden', position: 'relative' }}>
-              <div style={{ background: `linear-gradient(135deg, ${TZ.orange}, ${TZ.orangeDk})`, padding: '18px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.20)', display: 'grid', placeItems: 'center', color: '#fff' }}>
-                    <IcoQR style={{ width: 15, height: 15 }} />
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>قائمة QR</div>
-                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.65)', marginTop: 1 }}>منيو رقمي للزبائن</div>
-                  </div>
-                </div>
-              </div>
-              <div style={{ padding: '18px 20px', display: 'flex', gap: 16, alignItems: 'flex-start', justifyContent: 'center' }}>
-                <PhoneMock />
-                <div style={{ background: TZ.cream, borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 20, border: `1px solid rgba(44,24,16,0.08)` }}>
-                  <QRSvg size={72} seed={17} />
-                  <div style={{ fontSize: 9.5, fontWeight: 700, color: TZ.espresso, textAlign: 'center', lineHeight: 1.4 }}>امسح<br />للقائمة</div>
-                  <div style={{ fontSize: 9, color: TZ.muted }}>طاولة ٠٤</div>
-                </div>
-              </div>
-            </div>
+            <QRMenuCard />
           </div>
         </div>
       </section>
