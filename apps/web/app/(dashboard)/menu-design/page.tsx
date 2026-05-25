@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   QrCode, Plus, Loader2, Trash2, Edit2, Save, X, Palette,
-  UtensilsCrossed, QrCodeIcon, Eye, Upload, ImageIcon,
+  UtensilsCrossed, QrCodeIcon, Eye, EyeOff, Upload, ImageIcon,
   ArrowUp, ArrowDown, FileImage,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -303,6 +303,13 @@ export default function MenuDesignPage() {
     if (!workspaceId || !confirm('Delete this item?')) return;
     if (!subscriptionActive) { setShowSubscribe(true); return; }
     await qrMenuAPI.deleteItem(workspaceId, itemId);
+    await refreshMenu();
+  };
+
+  const handleToggleItemVisibility = async (item: MenuItem) => {
+    if (!workspaceId) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
+    await qrMenuAPI.updateItem(workspaceId, item.id, { isAvailable: !item.isAvailable });
     await refreshMenu();
   };
 
@@ -835,7 +842,7 @@ export default function MenuDesignPage() {
                 <h3 className="font-medium text-lg mb-2">{cat.name}</h3>
                 <div className="space-y-2">
                   {cat.items.map((item) => (
-                    <div key={item.id} className="bg-white border rounded-xl p-4">
+                    <div key={item.id} className={`bg-white border rounded-xl p-4 transition-opacity ${!item.isAvailable ? 'opacity-50' : ''}`}>
                       {editingItem === item.id ? (
                         <div className="space-y-3">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -924,6 +931,9 @@ export default function MenuDesignPage() {
                             </label>
                             <Button variant="ghost" size="icon" onClick={() => startEditItem(item)} className="h-9 w-9 sm:h-8 sm:w-8">
                               <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleToggleItemVisibility(item)} className={`h-9 w-9 sm:h-8 sm:w-8 ${item.isAvailable ? 'text-gray-400 hover:text-gray-600' : 'text-amber-500 hover:text-amber-600'}`} title={item.isAvailable ? 'Hide item' : 'Show item'}>
+                              {item.isAvailable ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteItem(item.id)} className="text-red-500 h-9 w-9 sm:h-8 sm:w-8">
                               <Trash2 className="w-4 h-4" />
