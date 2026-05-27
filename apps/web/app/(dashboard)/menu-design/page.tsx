@@ -190,6 +190,39 @@ function TemplateMiniPreview({ template, small }: { template: any; small?: boole
     </div>
   );
 
+  const bakery = (
+    <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
+      <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
+        {/* Hero bar */}
+        <div className="w-full h-8 relative" style={{ backgroundColor: template.accentColor + '30' }}>
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-6 h-6 rounded-full border-2" style={{ backgroundColor: template.accentColor, borderColor: template.primaryColor }} />
+        </div>
+        {/* Title */}
+        <div className="text-center mt-5 mb-1.5 px-1">
+          <div className="h-1.5 w-12 rounded mx-auto" style={{ backgroundColor: '#f0ede4' }} />
+        </div>
+        {/* Category pills */}
+        <div className="flex gap-1 px-2 mb-1.5">
+          <div className="h-2 w-6 rounded-full" style={{ backgroundColor: '#988264' }} />
+          <div className="h-2 w-6 rounded-full opacity-40" style={{ backgroundColor: '#988264' }} />
+          <div className="h-2 w-6 rounded-full opacity-40" style={{ backgroundColor: '#988264' }} />
+        </div>
+        {/* Cards */}
+        <div className="px-2 space-y-1">
+          {[1, 2].map((i) => (
+            <div key={i} className="flex gap-1 rounded-lg overflow-hidden" style={{ backgroundColor: '#ffffff' }}>
+              <div className="w-7 h-7 shrink-0" style={{ backgroundColor: '#988264' + '30' }} />
+              <div className="flex-1 py-1 pr-1 flex flex-col justify-between">
+                <div className="h-1 w-10 rounded" style={{ backgroundColor: '#33333330' }} />
+                <div className="h-1.5 w-7 rounded" style={{ backgroundColor: '#988264' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
   switch (template.id) {
     case 'noir':
     case 'default':
@@ -202,6 +235,8 @@ function TemplateMiniPreview({ template, small }: { template: any; small?: boole
       return taker;
     case 'bistro':
       return bistro;
+    case 'bakery':
+      return bakery;
     default:
       return noir;
   }

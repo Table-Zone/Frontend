@@ -127,6 +127,8 @@ export default function PublicMenuPage() {
       return <>{langToggle}<TakerTemplate menu={menu} isEnglish={isEnglish} /></>;
     case 'bistro':
       return <>{langToggle}<BistroTemplate menu={menu} isEnglish={isEnglish} /></>;
+    case 'bakery':
+      return <>{langToggle}<BakeryTemplate menu={menu} isEnglish={isEnglish} /></>;
     default:
       return <>{langToggle}<NoirTemplate menu={menu} isEnglish={isEnglish} /></>;
   }
@@ -536,6 +538,144 @@ function BistroTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
           <p>{menu.workspaceName}</p>
         </footer>
       </div>
+    </div>
+  );
+}
+
+/* ========================================================================
+   TEMPLATE 6: BAKERY — inspired by lets-bake.menus-sa.com
+   Dark maroon + amber, hero slider, sticky category pills, card grid
+   ======================================================================== */
+function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const bg = menu.primaryColor || '#5c0707';
+  const accent = menu.accentColor || '#ffaa00';
+  const categoryBg = '#988264';
+  const titleColor = '#f0ede4';
+  const textColor = '#f5f5f5';
+  const mutedColor = '#d4bfa8';
+  const cardBg = '#ffffff';
+
+  const allItems = menu.categories.flatMap((c: any) =>
+    c.items.filter((i: any) => i.isAvailable !== false).map((i: any) => ({ ...i, _catId: c.id }))
+  );
+
+  const visibleCategories = menu.categories.filter((c: any) =>
+    c.items.some((i: any) => i.isAvailable !== false)
+  );
+
+  const displayedItems =
+    activeCategory === 'all'
+      ? allItems
+      : allItems.filter((i: any) => i._catId === activeCategory);
+
+  return (
+    <div className="min-h-screen" style={{ backgroundColor: bg, color: textColor, fontFamily: 'Tajawal, sans-serif' }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      {/* Google Font */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');`}</style>
+
+      {/* Hero */}
+      <div className="relative w-full" style={{ height: '260px', overflow: 'hidden' }}>
+        {menu.bannerUrl ? (
+          <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
+        ) : (
+          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${bg}, ${hexToRgba(accent, 0.3)})` }} />
+        )}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%)' }} />
+
+        {/* Circular logo */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
+          {menu.logoUrl ? (
+            <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-full object-cover shadow-xl border-4" fetchPriority="high" decoding="async" style={{ borderColor: bg }} />
+          ) : (
+            <div className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-bold shadow-xl border-4" style={{ backgroundColor: accent, color: bg, borderColor: bg }}>
+              {menu.workspaceName?.charAt(0)}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Store name */}
+      <div className="text-center mt-16 mb-4 px-4">
+        <h1 className="text-2xl font-bold" style={{ color: titleColor }}>{menu.workspaceName}</h1>
+        {pickMenuTitle(menu, isEnglish) && (
+          <p className="text-sm mt-1 font-medium" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
+        )}
+      </div>
+
+      {/* Sticky category scroller */}
+      <div
+        className="sticky top-0 z-20 flex gap-2 overflow-x-auto px-4 py-3"
+        style={{ backgroundColor: bg, borderBottom: `1px solid ${hexToRgba(accent, 0.2)}` }}
+      >
+        <button
+          onClick={() => setActiveCategory('all')}
+          className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+          style={activeCategory === 'all'
+            ? { backgroundColor: categoryBg, color: '#fff' }
+            : { backgroundColor: hexToRgba(categoryBg, 0.2), color: mutedColor, border: `1px solid ${hexToRgba(categoryBg, 0.4)}` }}
+        >
+          {isEnglish ? 'All' : 'الكل'}
+        </button>
+        {visibleCategories.map((cat: any) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
+            style={activeCategory === cat.id
+              ? { backgroundColor: categoryBg, color: '#fff' }
+              : { backgroundColor: hexToRgba(categoryBg, 0.2), color: mutedColor, border: `1px solid ${hexToRgba(categoryBg, 0.4)}` }}
+          >
+            {pickCategoryName(cat, isEnglish)}
+          </button>
+        ))}
+      </div>
+
+      {/* Product grid */}
+      <main className="max-w-2xl mx-auto px-3 py-5 pb-20">
+        <div className="flex flex-col gap-3">
+          {displayedItems.map((item: any) => (
+            <div
+              key={item.id}
+              className="flex gap-3 rounded-2xl overflow-hidden shadow-sm"
+              style={{ backgroundColor: cardBg }}
+            >
+              {/* Image */}
+              <div className="shrink-0" style={{ width: '107px', height: '107px' }}>
+                {item.imageUrl ? (
+                  <img src={getImageUrl(item.imageUrl)} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold" style={{ backgroundColor: hexToRgba(categoryBg, 0.15), color: categoryBg }}>
+                    {pickItemName(item, isEnglish).charAt(0)}
+                  </div>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0 py-3 pr-3 flex flex-col justify-between">
+                <div>
+                  <h4 className="font-bold text-sm text-gray-900 leading-tight">{pickItemName(item, isEnglish)}</h4>
+                  {pickItemDescription(item, isEnglish) && (
+                    <p className="text-xs mt-1 leading-relaxed text-gray-500 line-clamp-2">{pickItemDescription(item, isEnglish)}</p>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <span
+                    className="inline-block text-xs font-semibold px-2 py-1 rounded-lg"
+                    style={{ backgroundColor: categoryBg, color: '#fff' }}
+                  >
+                    {item.price} {isEnglish ? 'SAR' : 'ر.س'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </main>
+
+      <footer className="text-center py-6 text-xs" style={{ color: hexToRgba(titleColor, 0.4) }}>
+        <p>{menu.workspaceName}</p>
+      </footer>
     </div>
   );
 }
