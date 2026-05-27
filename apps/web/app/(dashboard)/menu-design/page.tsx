@@ -12,6 +12,7 @@ import { qrMenuAPI, workspaceAPI, getImageUrl } from '@/lib/api';
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
 import SubscriptionPopup from '@/components/shared/SubscriptionPopup';
 import { DetailsEditor } from '@/components/menu/DetailsEditor';
+import QRStickersTab from '@/components/menu/QRStickersTab';
 import {
   MenuDetailPair,
   parseDetailsPairs,
@@ -1188,30 +1189,7 @@ export default function MenuDesignPage() {
 
       {/* Stickers Tab */}
       {activeTab === 'stickers' && (
-        <div className="space-y-6">
-          <div className="text-center space-y-1">
-            <h2 className="text-lg font-bold text-tz-espresso">
-              {isRTL ? 'ملصقات الباركود' : 'QR Stickers'}
-            </h2>
-            <p className="text-sm text-gray-500">
-              {isRTL
-                ? 'حمّل الملصق المناسب، أضف الباركود الخاص بك في أي برنامج تصميم، ثم اطبعها بسهولة'
-                : 'Download a sticker, add your QR code in any design app, then print it easily'}
-            </p>
-          </div>
-
-          {/* Empty grid — sticker cards go here */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="bg-white border rounded-2xl overflow-hidden flex flex-col shadow-sm">
-                <div className="flex-1 bg-gray-100 aspect-[3/4] animate-pulse" />
-                <div className="p-3">
-                  <div className="h-8 bg-gray-100 rounded-full animate-pulse" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <QRStickersTab publicMenuUrl={publicMenuUrl} isRTL={isRTL} />
       )}
 
       {showSubscribe && workspaceId && (
