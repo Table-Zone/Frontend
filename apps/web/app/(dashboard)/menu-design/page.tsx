@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   QrCode, Plus, Loader2, Trash2, Edit2, Save, X, Palette,
   UtensilsCrossed, QrCodeIcon, Eye, EyeOff, Upload, ImageIcon,
-  ArrowUp, ArrowDown, FileImage,
+  ArrowUp, ArrowDown, FileImage, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -198,7 +198,7 @@ export default function MenuDesignPage() {
   const [loading, setLoading] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspaceSlug, setWorkspaceSlug] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'design' | 'categories' | 'items' | 'qr'>('design');
+  const [activeTab, setActiveTab] = useState<'design' | 'categories' | 'items' | 'qr' | 'stickers'>('design');
 
   // Form states
   const [newCategory, setNewCategory] = useState({ name: '', nameEn: '' });
@@ -455,7 +455,7 @@ export default function MenuDesignPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl sm:text-2xl font-bold text-tz-espresso">
-          {isRTL ? 'تصميم القائمة' : 'Menu Design'}
+          {isRTL ? 'QR منيو' : 'QR Menu'}
         </h1>
         <div className="flex gap-2">
           <Button
@@ -494,7 +494,8 @@ export default function MenuDesignPage() {
           { key: 'design', label: isRTL ? 'التصميم' : 'Design', icon: Palette },
           { key: 'categories', label: isRTL ? 'التصنيفات' : 'Categories', icon: UtensilsCrossed },
           { key: 'items', label: isRTL ? 'المنتجات' : 'Items', icon: Plus },
-          { key: 'qr', label: isRTL ? 'QR Code' : 'QR Code', icon: QrCodeIcon },
+          { key: 'qr', label: 'QR Code', icon: QrCodeIcon },
+          { key: 'stickers', label: isRTL ? 'ملصقات الباركود' : 'QR Stickers', icon: Tag },
         ].map((tab) => (
           <button
             key={tab.key}
@@ -721,6 +722,12 @@ export default function MenuDesignPage() {
                       ? '📌 القائمة مخفية حالياً — فعّل الرؤية حتى يتمكن العملاء من الوصول إليها'
                       : '📌 Menu is hidden — enable visibility so customers can access it'}
                   </p>
+                  <button
+                    onClick={handlePublishToggle}
+                    className="mt-2 px-3 py-1 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-xs font-semibold rounded-full transition-colors"
+                  >
+                    {isRTL ? 'تفعيل الرؤية ←' : 'Enable Visibility →'}
+                  </button>
                 </div>
               </div>
             )}
@@ -1107,6 +1114,34 @@ export default function MenuDesignPage() {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Stickers Tab */}
+      {activeTab === 'stickers' && (
+        <div className="space-y-6">
+          <div className="text-center space-y-1">
+            <h2 className="text-lg font-bold text-tz-espresso">
+              {isRTL ? 'ملصقات الباركود' : 'QR Stickers'}
+            </h2>
+            <p className="text-sm text-gray-500">
+              {isRTL
+                ? 'حمّل الملصق المناسب، أضف الباركود الخاص بك في أي برنامج تصميم، ثم اطبعها بسهولة'
+                : 'Download a sticker, add your QR code in any design app, then print it easily'}
+            </p>
+          </div>
+
+          {/* Empty grid — sticker cards go here */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="bg-white border rounded-2xl overflow-hidden flex flex-col shadow-sm">
+                <div className="flex-1 bg-gray-100 aspect-[3/4] animate-pulse" />
+                <div className="p-3">
+                  <div className="h-8 bg-gray-100 rounded-full animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
