@@ -574,16 +574,18 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
       {/* Google Font */}
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');`}</style>
 
-      {/* Hero */}
-      <div className="relative w-full" style={{ height: '260px', overflow: 'hidden' }}>
-        {menu.bannerUrl ? (
-          <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
-        ) : (
-          <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${bg}, ${hexToRgba(accent, 0.3)})` }} />
-        )}
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%)' }} />
+      {/* Hero — overflow visible so logo circle can bleed out */}
+      <div className="relative w-full" style={{ height: '260px' }}>
+        <div className="absolute inset-0 overflow-hidden">
+          {menu.bannerUrl ? (
+            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
+          ) : (
+            <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${bg}, ${hexToRgba(accent, 0.3)})` }} />
+          )}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0) 60%)' }} />
+        </div>
 
-        {/* Circular logo */}
+        {/* Circular logo — sits on top, overflows hero boundary */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-10">
           {menu.logoUrl ? (
             <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-full object-cover shadow-xl border-4" fetchPriority="high" decoding="async" style={{ borderColor: bg }} />
@@ -603,32 +605,56 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
         )}
       </div>
 
-      {/* Sticky category scroller */}
+      {/* Sticky category scroller — circular thumbnails */}
       <div
-        className="sticky top-0 z-20 flex gap-2 overflow-x-auto px-4 py-3"
-        style={{ backgroundColor: bg, borderBottom: `1px solid ${hexToRgba(accent, 0.2)}` }}
+        className="sticky top-0 z-20 overflow-x-auto px-4 py-4"
+        style={{ backgroundColor: bg, borderBottom: `1px solid ${hexToRgba(accent, 0.15)}` }}
       >
-        <button
-          onClick={() => setActiveCategory('all')}
-          className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
-          style={activeCategory === 'all'
-            ? { backgroundColor: categoryBg, color: '#fff' }
-            : { backgroundColor: hexToRgba(categoryBg, 0.2), color: mutedColor, border: `1px solid ${hexToRgba(categoryBg, 0.4)}` }}
-        >
-          {isEnglish ? 'All' : 'الكل'}
-        </button>
-        {visibleCategories.map((cat: any) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className="shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all"
-            style={activeCategory === cat.id
-              ? { backgroundColor: categoryBg, color: '#fff' }
-              : { backgroundColor: hexToRgba(categoryBg, 0.2), color: mutedColor, border: `1px solid ${hexToRgba(categoryBg, 0.4)}` }}
-          >
-            {pickCategoryName(cat, isEnglish)}
+        <div className="flex gap-4" style={{ width: 'max-content' }}>
+          {/* "All" circle */}
+          <button onClick={() => setActiveCategory('all')} className="flex flex-col items-center gap-1.5 shrink-0">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center text-sm font-bold transition-all"
+              style={{
+                backgroundColor: activeCategory === 'all' ? categoryBg : hexToRgba(categoryBg, 0.25),
+                color: '#fff',
+                border: activeCategory === 'all' ? `3px solid ${accent}` : `3px solid transparent`,
+              }}
+            >
+              {isEnglish ? 'All' : 'الكل'}
+            </div>
+            <span className="text-xs font-medium" style={{ color: activeCategory === 'all' ? accent : mutedColor }}>
+              {isEnglish ? 'All' : 'الكل'}
+            </span>
           </button>
-        ))}
+
+          {visibleCategories.map((cat: any) => {
+            const thumb = cat.items.find((i: any) => i.imageUrl)?.imageUrl;
+            const isActive = activeCategory === cat.id;
+            return (
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className="flex flex-col items-center gap-1.5 shrink-0">
+                <div
+                  className="w-16 h-16 rounded-full overflow-hidden transition-all"
+                  style={{
+                    border: isActive ? `3px solid ${accent}` : `3px solid transparent`,
+                    backgroundColor: hexToRgba(categoryBg, 0.25),
+                  }}
+                >
+                  {thumb ? (
+                    <img src={getImageUrl(thumb)} alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-base font-bold" style={{ color: '#fff' }}>
+                      {pickCategoryName(cat, isEnglish).charAt(0)}
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-medium max-w-[64px] text-center leading-tight" style={{ color: isActive ? accent : mutedColor }}>
+                  {pickCategoryName(cat, isEnglish)}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Product grid */}
