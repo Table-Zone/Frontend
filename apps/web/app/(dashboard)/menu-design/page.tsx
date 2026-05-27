@@ -614,15 +614,27 @@ export default function MenuDesignPage() {
               ].map((col, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">{col.label}</span>
-                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl bg-white cursor-pointer hover:border-gray-300 transition-colors">
+                  <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors">
                     <div className="relative w-6 h-6 shrink-0">
                       <div className="w-6 h-6 rounded-md border border-black/10" style={{ backgroundColor: col.val }} />
                       <input type="color" value={col.val} onChange={(e) => col.set(e.target.value)}
                         className="absolute inset-0 opacity-0 cursor-pointer w-full h-full border-none" />
                     </div>
-                    <span className="text-xs font-mono text-gray-500">{col.val.toUpperCase()}</span>
-                    <span className="text-xs text-tz-primary font-semibold">Edit</span>
-                  </label>
+                    <input
+                      type="text"
+                      value={col.val.toUpperCase()}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (/^#[0-9A-Fa-f]{0,6}$/.test(v)) col.set(v.toLowerCase());
+                      }}
+                      onBlur={(e) => {
+                        if (!/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) col.set(col.val);
+                      }}
+                      maxLength={7}
+                      className="w-20 text-xs font-mono text-gray-600 bg-transparent outline-none border-none"
+                      spellCheck={false}
+                    />
+                  </div>
                 </div>
               ))}
               <Button size="sm" onClick={handleColorUpdate}>{isRTL ? 'حفظ الألوان' : 'Save Colors'}</Button>
