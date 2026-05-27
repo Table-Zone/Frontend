@@ -9,22 +9,24 @@ import { Button } from '@/components/ui/button';
 interface Props {
   publicMenuUrl: string;
   isRTL: boolean;
+  workspaceName: string;
 }
 
 interface StickerConfig {
   bgColor: string;
   qrFgColor: string;
   qrBgColor: string;
-  labelText: string;
   restaurantName: string;
+  title: string;
+  subtitle: string;
+  labelText: string;
 }
 
-const DEFAULT_CONFIGS: StickerConfig[] = [
-  { bgColor: '#4318a8', qrFgColor: '#ffffff', qrBgColor: 'transparent', labelText: 'امسح لاستكشاف القائمة', restaurantName: 'TABLE ZONE' },
-  { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', labelText: 'امسح القائمة', restaurantName: 'Table Zone' },
-  { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', labelText: 'قائمة الطعام', restaurantName: 'TABLE ZONE' },
-  { bgColor: '#f5e8ca', qrFgColor: '#3b1a00', qrBgColor: '#fffbf0', labelText: 'امسح لاستكشاف قائمتنا', restaurantName: 'Table Zone' },
-  { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', labelText: 'Scan to explore · امسح للاستكشاف', restaurantName: 'Table Zone' },
+const makeDefaultConfigs = (name: string): StickerConfig[] => [
+  { bgColor: '#4318a8', qrFgColor: '#ffffff', qrBgColor: 'transparent', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
+  { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
+  { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
+  { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
 /* ── Sticker 01: Neon Night ──────────────────────────────────── */
@@ -46,8 +48,8 @@ function StickerNeon({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
       <div style={{ zIndex: 1, textAlign: 'center' }}>
         <div style={{ fontSize: 9.5, letterSpacing: '0.38em', color: '#c4b5fd', fontFamily: 'system-ui, sans-serif', fontWeight: 700, textTransform: 'uppercase', marginBottom: 9, opacity: 0.8 }}>{cfg.restaurantName}</div>
         <div style={{ fontSize: 48, fontWeight: 900, fontFamily: 'system-ui, sans-serif', lineHeight: 0.9, color: cfg.qrFgColor,
-          textShadow: `0 0 12px rgba(255,255,255,.6),0 0 30px rgba(192,160,255,.9),0 0 80px ${cfg.bgColor}` }}>MENU</div>
-        <div style={{ fontSize: 14, color: '#e9d5ff', marginTop: 8, direction: 'rtl' }}>قائمة الطعام</div>
+          textShadow: `0 0 12px rgba(255,255,255,.6),0 0 30px rgba(192,160,255,.9),0 0 80px ${cfg.bgColor}` }}>{cfg.title}</div>
+        {cfg.subtitle && <div style={{ fontSize: 14, color: '#e9d5ff', marginTop: 8, direction: 'rtl' }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ zIndex: 1, position: 'relative' }}>
@@ -80,11 +82,7 @@ function StickerPurple({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
         backgroundImage: 'radial-gradient(circle,rgba(124,58,237,.05) 1px,transparent 1px)', backgroundSize: '18px 18px' }} />
 
-      <div style={{ position: 'absolute', top: 18, left: 18, zIndex: 2, display: 'flex', alignItems: 'center', gap: 7 }}>
-        <div style={{ width: 30, height: 30, borderRadius: 9, background: '#D97757',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 11, fontWeight: 700, color: '#fff', fontFamily: 'system-ui, sans-serif',
-          boxShadow: '0 3px 10px rgba(217,119,87,.45)' }}>TZ</div>
+      <div style={{ position: 'absolute', top: 18, left: 18, zIndex: 2 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: '#1a0d3d', fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
       </div>
 
@@ -94,14 +92,14 @@ function StickerPurple({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 18, padding: '0 24px', zIndex: 1 }}>
-        <div style={{ fontSize: 19, fontWeight: 800, color: '#1a0d3d', fontFamily: 'system-ui, sans-serif', direction: 'rtl' }}>{cfg.labelText}</div>
-        <div style={{ fontSize: 11, color: '#9087aa', fontFamily: 'system-ui, sans-serif', marginTop: 4, letterSpacing: '0.04em' }}>Scan to view our menu</div>
+        {cfg.title && <div style={{ fontSize: 19, fontWeight: 800, color: '#1a0d3d', fontFamily: 'system-ui, sans-serif', direction: 'rtl' }}>{cfg.title}</div>}
+        {cfg.subtitle && <div style={{ fontSize: 11, color: '#9087aa', fontFamily: 'system-ui, sans-serif', marginTop: 4, letterSpacing: '0.04em' }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, background: '#7c3aed' }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,.55)', flexShrink: 0 }} />
-          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.1em' }}>TABLE ZONE · QR MENU</span>
+          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.1em' }}>{cfg.labelText}</span>
         </div>
       </div>
     </div>
@@ -126,7 +124,7 @@ function StickerSeal({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
           <path id="cp-seal" d="M145,145 m-104,0 a104,104 0 1,1 208,0 a104,104 0 1,1-208,0" />
         </defs>
         <text fontFamily="system-ui, sans-serif" fontSize="10.5" fill="#9a7c2a" letterSpacing="6" fontWeight="600">
-          <textPath href="#cp-seal">· TABLE ZONE · امسح الكود · قائمتنا الرقمية · SCAN ME ·</textPath>
+          <textPath href="#cp-seal">{`· ${cfg.restaurantName} · امسح الكود · قائمتنا الرقمية · SCAN ME ·`}</textPath>
         </text>
       </svg>
 
@@ -142,52 +140,7 @@ function StickerSeal({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
   );
 }
 
-/* ── Sticker 04: Warm Craft ──────────────────────────────────── */
-function StickerWarm({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
-  return (
-    <div style={{ width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
-      background: cfg.bgColor, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle,rgba(139,100,20,.08) 1px,transparent 1px)', backgroundSize: '14px 14px' }} />
-      <div style={{ width: '100%', height: 5, background: 'linear-gradient(90deg,#92400e,#b45309)', flexShrink: 0 }} />
-
-      <div style={{ position: 'absolute', top: 16, left: 18, zIndex: 2, display: 'flex', alignItems: 'center', gap: 7 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: '#451a03',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, color: '#fde68a', fontFamily: 'system-ui, sans-serif' }}>TZ</div>
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#451a03', fontFamily: 'system-ui, sans-serif', opacity: 0.8 }}>{cfg.restaurantName}</span>
-      </div>
-
-      <div style={{ textAlign: 'center', marginTop: 56, zIndex: 1, padding: '0 20px' }}>
-        <div style={{ fontSize: 24, fontWeight: 800, color: '#451a03', fontFamily: 'system-ui, sans-serif', lineHeight: 1.2, direction: 'rtl' }}>قائمة الطعام</div>
-        <div style={{ fontSize: 11, color: '#92400e', marginTop: 4, letterSpacing: '0.06em' }}>Our Digital Menu</div>
-      </div>
-
-      <div style={{ marginTop: 16, padding: 16, background: cfg.qrBgColor, borderRadius: 18,
-        border: '1.5px solid rgba(146,64,14,.2)', boxShadow: '0 6px 30px rgba(120,60,0,.15)', zIndex: 1 }}>
-        <QRCodeSVG value={qrUrl} size={120} fgColor={cfg.qrFgColor} bgColor={cfg.qrBgColor} level="M" />
-      </div>
-
-      <div style={{ marginTop: 16, zIndex: 1 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 20,
-          border: '1.5px solid rgba(146,64,14,.25)', background: 'rgba(255,251,240,.8)' }}>
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#b45309', flexShrink: 0 }} />
-          <span style={{ fontSize: 10, color: '#92400e', fontFamily: 'system-ui, sans-serif', fontWeight: 600 }}>{cfg.labelText}</span>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 'auto', paddingBottom: 20, zIndex: 1 }}>
-        <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-          <div style={{ width: 28, height: 3, borderRadius: 2, background: '#92400e', opacity: 0.5 }} />
-          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#92400e', opacity: 0.25 }} />
-          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#92400e', opacity: 0.25 }} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Sticker 05: Minimal Float ───────────────────────────────── */
+/* ── Sticker 04: Minimal Float ───────────────────────────────── */
 function StickerFloat({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
   return (
     <div style={{ width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
@@ -196,15 +149,13 @@ function StickerFloat({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
         backgroundImage: 'radial-gradient(circle,rgba(124,58,237,.07) 1px,transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: '10px 10px' }} />
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 24, zIndex: 1 }}>
-        <div style={{ width: 26, height: 26, borderRadius: 7, background: '#D97757', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: 'system-ui, sans-serif', boxShadow: '0 3px 8px rgba(217,119,87,.4)', flexShrink: 0 }}>TZ</div>
+      <div style={{ marginTop: 24, zIndex: 1 }}>
         <span style={{ color: '#1a0d3d', fontSize: 13, fontWeight: 700, fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 16, padding: '0 20px', zIndex: 1 }}>
-        <div style={{ fontSize: 26, fontWeight: 700, color: cfg.qrFgColor, fontFamily: 'system-ui, sans-serif', lineHeight: 1.2, direction: 'rtl' }}>قائمة الطعام</div>
-        <div style={{ fontSize: 11, color: '#9087aa', marginTop: 4 }}>Digital Food Menu</div>
+        {cfg.title && <div style={{ fontSize: 26, fontWeight: 700, color: cfg.qrFgColor, fontFamily: 'system-ui, sans-serif', lineHeight: 1.2, direction: 'rtl' }}>{cfg.title}</div>}
+        {cfg.subtitle && <div style={{ fontSize: 11, color: '#9087aa', marginTop: 4 }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ marginTop: 22, zIndex: 1, padding: 16, background: cfg.qrBgColor, borderRadius: 20,
@@ -234,12 +185,11 @@ const STICKER_META = [
   { id: 1, name: 'Neon Night',    nameAr: 'ليل نيون',          Comp: StickerNeon },
   { id: 2, name: 'Purple Vision', nameAr: 'الرؤية البنفسجية',   Comp: StickerPurple },
   { id: 3, name: 'Circle Seal',   nameAr: 'الختم الذهبي',       Comp: StickerSeal },
-  { id: 4, name: 'Warm Craft',    nameAr: 'قهوة دافئة',         Comp: StickerWarm },
-  { id: 5, name: 'Minimal Float', nameAr: 'بطاقة عائمة',        Comp: StickerFloat },
+  { id: 4, name: 'Minimal Float', nameAr: 'بطاقة عائمة',        Comp: StickerFloat },
 ];
 
-export default function QRStickersTab({ publicMenuUrl, isRTL }: Props) {
-  const [configs, setConfigs] = useState<StickerConfig[]>(DEFAULT_CONFIGS);
+export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: Props) {
+  const [configs, setConfigs] = useState<StickerConfig[]>(() => makeDefaultConfigs(workspaceName));
   const [selected, setSelected] = useState(0);
   const [downloading, setDownloading] = useState(false);
   const stickerRef = useRef<HTMLDivElement>(null);
@@ -394,7 +344,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL }: Props) {
             {/* Label text */}
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block">
-                {isRTL ? 'نص التسمية' : 'Label Text'}
+                {isRTL ? 'نص البادج السفلي' : 'Bottom Badge'}
               </label>
               <input
                 type="text"
@@ -402,7 +352,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL }: Props) {
                 onChange={e => updateConfig('labelText', e.target.value)}
                 dir="auto"
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-tz-primary focus:ring-2 focus:ring-tz-primary/10 transition-colors"
-                placeholder={isRTL ? 'نص الملصق...' : 'Label text...'}
+                placeholder={isRTL ? 'نص البادج...' : 'Badge text...'}
               />
             </div>
 
@@ -421,40 +371,45 @@ export default function QRStickersTab({ publicMenuUrl, isRTL }: Props) {
               />
             </div>
 
+            {/* Title */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block">
+                {isRTL ? 'العنوان الرئيسي' : 'Title'}
+              </label>
+              <input
+                type="text"
+                value={cfg.title}
+                onChange={e => updateConfig('title', e.target.value)}
+                dir="auto"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-tz-primary focus:ring-2 focus:ring-tz-primary/10 transition-colors"
+                placeholder={isRTL ? 'مثال: MENU' : 'e.g. MENU'}
+              />
+            </div>
+
+            {/* Subtitle */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block">
+                {isRTL ? 'النص الثانوي' : 'Subtitle'}
+              </label>
+              <input
+                type="text"
+                value={cfg.subtitle}
+                onChange={e => updateConfig('subtitle', e.target.value)}
+                dir="auto"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-tz-primary focus:ring-2 focus:ring-tz-primary/10 transition-colors"
+                placeholder={isRTL ? 'مثال: المنيو' : 'e.g. Digital Menu'}
+              />
+            </div>
+
             {/* Reset */}
             <button
-              onClick={() => setConfigs(prev => prev.map((c, i) => i === selected ? DEFAULT_CONFIGS[selected] : c))}
+              onClick={() => setConfigs(prev => prev.map((c, i) => i === selected ? makeDefaultConfigs(workspaceName)[selected] : c))}
               className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors"
             >
               {isRTL ? 'إعادة تعيين الافتراضي' : 'Reset to default'}
             </button>
           </div>
 
-          {/* Quick palette presets */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
-            <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'لوحات جاهزة' : 'Quick Palettes'}</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: isRTL ? 'نيون' : 'Neon',        bg: '#4318a8', qr: '#ffffff', qrBg: 'transparent' },
-                { label: isRTL ? 'بنفسجي' : 'Purple',    bg: '#ffffff', qr: '#7c3aed', qrBg: '#faf8ff' },
-                { label: isRTL ? 'ذهبي' : 'Gold',        bg: '#fffdf5', qr: '#2c1a00', qrBg: '#ffffff' },
-                { label: isRTL ? 'دافئ' : 'Warm',        bg: '#f5e8ca', qr: '#3b1a00', qrBg: '#fffbf0' },
-                { label: isRTL ? 'نعناع' : 'Mint',       bg: '#f0fdf4', qr: '#14532d', qrBg: '#ffffff' },
-                { label: isRTL ? 'وردي' : 'Rose',        bg: '#fff1f2', qr: '#9f1239', qrBg: '#ffffff' },
-                { label: isRTL ? 'ليلي' : 'Midnight',    bg: '#0f172a', qr: '#e2e8f0', qrBg: 'transparent' },
-                { label: isRTL ? 'برتقالي' : 'Orange',   bg: '#fff7ed', qr: '#c2410c', qrBg: '#ffffff' },
-              ].map((p) => (
-                <button
-                  key={p.label}
-                  onClick={() => setConfigs(prev => prev.map((c, i) => i === selected ? { ...c, bgColor: p.bg, qrFgColor: p.qr, qrBgColor: p.qrBg } : c))}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-gray-200 hover:border-gray-300 text-left transition-colors"
-                >
-                  <div className="w-5 h-5 rounded-md border border-black/10 shrink-0" style={{ backgroundColor: p.bg === '#ffffff' || p.bg === '#f0fdf4' || p.bg === '#fff1f2' || p.bg === '#fff7ed' || p.bg === '#fffdf5' || p.bg === '#f5e8ca' || p.bg === '#fff1f2' ? p.qr : p.bg, opacity: p.bg === '#ffffff' ? 1 : undefined }} />
-                  <span className="text-[11px] font-medium text-gray-700 truncate">{p.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>
