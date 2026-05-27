@@ -510,12 +510,6 @@ export default function MenuDesignPage() {
             <div className={`w-1.5 h-1.5 rounded-full ${menu.isPublished ? 'bg-green-500' : 'bg-gray-400'}`} />
             {menu.isPublished ? (isRTL ? 'مرئية' : 'Visible') : (isRTL ? 'مخفية' : 'Hidden')}
           </div>
-          <Button variant="outline" asChild size="sm" className="gap-1.5">
-            <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
-              <Eye className="w-3.5 h-3.5" />
-              {isRTL ? 'معاينة' : 'Preview'}
-            </a>
-          </Button>
         </div>
       </div>
 
