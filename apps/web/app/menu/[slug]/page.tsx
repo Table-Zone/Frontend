@@ -608,10 +608,10 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
 
       {/* Sticky category scroller — circular thumbnails */}
       <div
-        className="sticky top-0 z-20 overflow-x-auto px-4 py-4"
+        className="sticky top-0 z-20 overflow-x-auto py-4"
         style={{ backgroundColor: bg, borderBottom: `1px solid ${hexToRgba(accent, 0.15)}` }}
       >
-        <div className="flex gap-4" style={{ width: 'max-content' }}>
+        <div className="flex justify-center gap-4 px-4" style={{ width: 'max-content', minWidth: '100%' }}>
           {/* "All" circle */}
           <button onClick={() => setActiveCategory('all')} className="flex flex-col items-center gap-1.5 shrink-0">
             <div
