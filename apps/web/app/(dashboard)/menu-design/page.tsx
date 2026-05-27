@@ -214,6 +214,7 @@ export default function MenuDesignPage() {
   const [loading, setLoading] = useState(true);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [workspaceSlug, setWorkspaceSlug] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'design' | 'categories' | 'items' | 'qr' | 'stickers'>('design');
 
   // Form states
@@ -270,6 +271,7 @@ export default function MenuDesignPage() {
         if (workspace?.id) {
           setWorkspaceId(workspace.id);
           setWorkspaceSlug(workspace.slug);
+          setWorkspaceName(workspace.name || workspace.slug || '');
           const hasQr = workspace.subscription?.features?.includes('qrcode') ?? false;
           setSubscriptionActive(hasQr);
           const menuRes = await qrMenuAPI.getMenu(workspace.id);
@@ -1189,7 +1191,7 @@ export default function MenuDesignPage() {
 
       {/* Stickers Tab */}
       {activeTab === 'stickers' && (
-        <QRStickersTab publicMenuUrl={publicMenuUrl} isRTL={isRTL} />
+        <QRStickersTab publicMenuUrl={publicMenuUrl} isRTL={isRTL} workspaceName={workspaceName} />
       )}
 
       {showSubscribe && workspaceId && (
