@@ -29,6 +29,7 @@ interface MenuCategory {
   id: string;
   name: string;
   nameEn?: string;
+  imageUrl?: string;
   items: MenuItem[];
 }
 
@@ -629,7 +630,7 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
           </button>
 
           {visibleCategories.map((cat: any) => {
-            const thumb = cat.items.find((i: any) => i.imageUrl)?.imageUrl;
+            const thumb = cat.imageUrl || menu.logoUrl || null;
             const isActive = activeCategory === cat.id;
             return (
               <button key={cat.id} onClick={() => setActiveCategory(cat.id)} className="flex flex-col items-center gap-1.5 shrink-0">

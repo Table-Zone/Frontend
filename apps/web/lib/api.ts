@@ -216,6 +216,10 @@ export const qrMenuAPI = {
     api.post(`/workspaces/qr-menu/items/${itemId}/image`, formData, {
       headers: { 'Content-Type': undefined } as any,
     }),
+  uploadCategoryImage: (categoryId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/categories/${categoryId}/image`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
 };
 
 // Public Menu API (no auth)

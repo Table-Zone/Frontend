@@ -48,6 +48,7 @@ interface MenuCategory {
   id: string;
   name: string;
   nameEn?: string;
+  imageUrl?: string;
   sortOrder: number;
   items: MenuItem[];
 }
@@ -873,6 +874,30 @@ export default function MenuDesignPage() {
               <div key={cat.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white border rounded-xl p-4 gap-3">
                 <div className="flex items-center gap-3">
                   <span className="w-6 h-6 rounded-full bg-tz-primary/10 text-tz-primary text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                  {/* Category image thumbnail */}
+                  <label className="relative cursor-pointer shrink-0 group" title={isRTL ? 'تحميل صورة التصنيف' : 'Upload category image'}>
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-dashed border-gray-300 group-hover:border-tz-primary flex items-center justify-center bg-gray-50 transition-colors">
+                      {cat.imageUrl ? (
+                        <img src={getImageUrl(cat.imageUrl)} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="w-4 h-4 text-gray-400 group-hover:text-tz-primary" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !workspaceId) return;
+                        if (!subscriptionActive) { setShowSubscribe(true); return; }
+                        const fd = new FormData();
+                        fd.append('image', file);
+                        await qrMenuAPI.uploadCategoryImage(cat.id, fd);
+                        await refreshMenu();
+                      }}
+                    />
+                  </label>
                   <div>
                     <p className="font-medium">{cat.name}</p>
                     {cat.nameEn && <p className="text-sm text-gray-500">{cat.nameEn}</p>}
