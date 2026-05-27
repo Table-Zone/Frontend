@@ -16,6 +16,7 @@ interface StickerConfig {
   bgColor: string;
   qrFgColor: string;
   qrBgColor: string;
+  ringColor: string;
   restaurantName: string;
   title: string;
   subtitle: string;
@@ -23,10 +24,10 @@ interface StickerConfig {
 }
 
 const makeDefaultConfigs = (name: string): StickerConfig[] => [
-  { bgColor: '#4318a8', qrFgColor: '#ffffff', qrBgColor: 'transparent', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
-  { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
-  { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
-  { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
+  { bgColor: '#4318a8', qrFgColor: '#ffffff', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
+  { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
+  { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
+  { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
 /* ── Sticker 01: Neon Night ──────────────────────────────────── */
@@ -111,30 +112,30 @@ function StickerSeal({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
   return (
     <div style={{ width: 290, height: 290, borderRadius: '50%', overflow: 'hidden', position: 'relative',
       background: `radial-gradient(ellipse at 40% 35%, ${cfg.bgColor}, #fdf4e0)`,
-      boxShadow: '0 0 0 5px #c9a227, 0 0 0 9px rgba(201,162,39,.28), 0 0 0 15px rgba(201,162,39,.1), 0 10px 40px rgba(201,162,39,.3)' }}>
+      boxShadow: `0 0 0 5px ${cfg.ringColor}, 0 0 0 9px ${cfg.ringColor}47, 0 0 0 15px ${cfg.ringColor}1a, 0 10px 40px ${cfg.ringColor}4d` }}>
 
       <svg style={{ position: 'absolute', inset: 0 }} width="290" height="290" viewBox="0 0 290 290">
-        <circle cx="145" cy="145" r="132" fill="none" stroke="#c9a227" strokeWidth="1.5" strokeDasharray="5 4" />
-        <circle cx="145" cy="145" r="124" fill="none" stroke="rgba(201,162,39,.35)" strokeWidth="0.8" />
+        <circle cx="145" cy="145" r="132" fill="none" stroke={cfg.ringColor} strokeWidth="1.5" strokeDasharray="5 4" />
+        <circle cx="145" cy="145" r="124" fill="none" stroke={`${cfg.ringColor}59`} strokeWidth="0.8" />
         {[0, 90, 180, 270].map(a => {
           const rad = a * Math.PI / 180;
-          return <circle key={a} cx={145 + 116 * Math.cos(rad)} cy={145 + 116 * Math.sin(rad)} r="3.5" fill="#c9a227" />;
+          return <circle key={a} cx={145 + 116 * Math.cos(rad)} cy={145 + 116 * Math.sin(rad)} r="3.5" fill={cfg.ringColor} />;
         })}
         <defs>
           <path id="cp-seal" d="M145,145 m-104,0 a104,104 0 1,1 208,0 a104,104 0 1,1-208,0" />
         </defs>
-        <text fontFamily="system-ui, sans-serif" fontSize="10.5" fill="#9a7c2a" letterSpacing="6" fontWeight="600">
+        <text fontFamily="system-ui, sans-serif" fontSize="10.5" fill={cfg.ringColor} letterSpacing="6" fontWeight="600">
           <textPath href="#cp-seal">{`· ${cfg.restaurantName} · امسح الكود · قائمتنا الرقمية · SCAN ME ·`}</textPath>
         </text>
       </svg>
 
       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.28em', color: '#9a7c2a', fontFamily: 'system-ui, sans-serif', textTransform: 'uppercase' }}>{cfg.restaurantName}</div>
-        <div style={{ background: '#fff', padding: 11, borderRadius: 12, border: '1.5px solid rgba(201,162,39,.3)',
-          boxShadow: '0 3px 18px rgba(201,162,39,.22)' }}>
+        <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.28em', color: cfg.ringColor, fontFamily: 'system-ui, sans-serif', textTransform: 'uppercase' }}>{cfg.restaurantName}</div>
+        <div style={{ background: '#fff', padding: 11, borderRadius: 12, border: `1.5px solid ${cfg.ringColor}4d`,
+          boxShadow: `0 3px 18px ${cfg.ringColor}38` }}>
           <QRCodeSVG value={qrUrl} size={96} fgColor={cfg.qrFgColor} bgColor="#fff" level="M" />
         </div>
-        <div style={{ fontSize: 12, color: '#9a7c2a', direction: 'rtl', letterSpacing: '0.05em' }}>{cfg.labelText}</div>
+        <div style={{ fontSize: 12, color: cfg.ringColor, direction: 'rtl', letterSpacing: '0.05em' }}>{cfg.labelText}</div>
       </div>
     </div>
   );
@@ -182,10 +183,10 @@ function StickerFloat({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
 }
 
 const STICKER_META = [
-  { id: 1, name: 'Neon Night',    nameAr: 'ليل نيون',          Comp: StickerNeon },
-  { id: 2, name: 'Purple Vision', nameAr: 'الرؤية البنفسجية',   Comp: StickerPurple },
-  { id: 3, name: 'Circle Seal',   nameAr: 'الختم الذهبي',       Comp: StickerSeal },
-  { id: 4, name: 'Minimal Float', nameAr: 'بطاقة عائمة',        Comp: StickerFloat },
+  { id: 1, name: 'Night',    nameAr: 'ليلي',    Comp: StickerNeon },
+  { id: 2, name: 'Purple',   nameAr: 'بنفسجي',  Comp: StickerPurple },
+  { id: 3, name: 'Circular', nameAr: 'دائري',   Comp: StickerSeal },
+  { id: 4, name: 'Float',    nameAr: 'تقليدي',  Comp: StickerFloat },
 ];
 
 export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: Props) {
@@ -225,7 +226,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: P
           {isRTL ? 'ملصقات الباركود' : 'QR Stickers'}
         </h2>
         <p className="text-sm text-gray-500">
-          {isRTL ? '5 تصاميم إبداعية — خصّص الألوان والنص ثم حمّل بدقة عالية' : '5 creative designs — customize colors & text, then download in high quality'}
+          {isRTL ? '4 تصاميم إبداعية — خصّص الألوان والنص ثم حمّل بدقة عالية' : '4 creative designs — customize colors & text, then download in high quality'}
         </p>
       </div>
 
@@ -247,8 +248,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: P
                 0{s.id}
               </div>
               <div className="hidden xl:block">
-                <p className="text-xs font-semibold text-gray-800">{s.name}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5" dir="rtl">{s.nameAr}</p>
+                <p className="text-xs font-semibold text-gray-800">{isRTL ? s.nameAr : s.name}</p>
               </div>
             </button>
           ))}
@@ -262,7 +262,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: P
               className="p-1.5 rounded-full border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm font-medium text-gray-600">{STICKER_META[selected].name}</span>
+            <span className="text-sm font-medium text-gray-600">{isRTL ? STICKER_META[selected].nameAr : STICKER_META[selected].name}</span>
             <button onClick={() => setSelected(s => Math.min(STICKER_META.length - 1, s + 1))} disabled={selected === STICKER_META.length - 1}
               className="p-1.5 rounded-full border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
               <ChevronRight className="w-4 h-4" />
@@ -340,6 +340,26 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: P
                   maxLength={11} className="w-24 text-xs font-mono text-gray-600 bg-transparent outline-none border-none" spellCheck={false} />
               </div>
             </div>
+
+            {/* Ring color — Circular sticker only */}
+            {selected === 2 && (
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide block">
+                  {isRTL ? 'لون الحلقة' : 'Ring Color'}
+                </label>
+                <div className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl bg-white hover:border-gray-300 transition-colors">
+                  <div className="relative w-6 h-6 shrink-0">
+                    <div className="w-6 h-6 rounded-md border border-black/10" style={{ backgroundColor: cfg.ringColor }} />
+                    <input type="color" value={cfg.ringColor} onChange={e => updateConfig('ringColor', e.target.value)}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
+                  </div>
+                  <input type="text" value={cfg.ringColor.toUpperCase()}
+                    onChange={e => { if (/^#[0-9A-Fa-f]{0,6}$/.test(e.target.value)) updateConfig('ringColor', e.target.value.toLowerCase()); }}
+                    onBlur={e => { if (!/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) updateConfig('ringColor', cfg.ringColor); }}
+                    maxLength={7} className="w-20 text-xs font-mono text-gray-600 bg-transparent outline-none border-none" spellCheck={false} />
+                </div>
+              </div>
+            )}
 
             {/* Label text */}
             <div className="space-y-1.5">
