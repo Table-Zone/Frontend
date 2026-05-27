@@ -205,7 +205,10 @@ export default function MenuDesignPage() {
   const [newItem, setNewItem] = useState({
     name: '', nameEn: '', description: '', descriptionEn: '', price: '', categoryId: '',
   });
+  const [newItemErrors, setNewItemErrors] = useState<{ name?: string; price?: string; categoryId?: string }>({});
   const [newItemDetails, setNewItemDetails] = useState<MenuDetailPair[]>([]);
+  const [newItemImage, setNewItemImage] = useState<File | null>(null);
+  const [newItemImagePreview, setNewItemImagePreview] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [editItemData, setEditItemData] = useState<any>({});
   const [editItemDetails, setEditItemDetails] = useState<MenuDetailPair[]>([]);
@@ -284,19 +287,33 @@ export default function MenuDesignPage() {
   };
 
   const handleAddItem = async () => {
-    if (!workspaceId || !newItem.name || !newItem.price || !newItem.categoryId) return;
+    const errors: { name?: string; price?: string; categoryId?: string } = {};
+    if (!newItem.name && !newItem.nameEn) errors.name = isRTL ? 'يجب إدخال اسم المنتج بالعربي أو الإنجليزي' : 'Enter a product name in Arabic or English';
+    if (!newItem.price) errors.price = isRTL ? 'السعر مطلوب' : 'Price is required';
+    if (!newItem.categoryId) errors.categoryId = isRTL ? 'يجب اختيار التصنيف' : 'Please select a category';
+    if (Object.keys(errors).length > 0) { setNewItemErrors(errors); return; }
+    setNewItemErrors({});
+    if (!workspaceId) return;
     if (!subscriptionActive) { setShowSubscribe(true); return; }
-    await qrMenuAPI.createItem(workspaceId, newItem.categoryId, {
-      name: newItem.name,
+    const createRes = await qrMenuAPI.createItem(workspaceId, newItem.categoryId, {
+      name: newItem.name || newItem.nameEn,
       nameEn: newItem.nameEn || undefined,
       description: newItem.description || undefined,
       descriptionEn: newItem.descriptionEn || undefined,
       price: parseFloat(newItem.price),
       details: buildDetailsPayload(newItemDetails),
     });
+    const createdItemId = createRes.data?.data?.item?.id;
+    if (newItemImage && createdItemId) {
+      const fd = new FormData();
+      fd.append('image', newItemImage);
+      await qrMenuAPI.uploadItemImage(createdItemId, fd);
+    }
     await refreshMenu();
     setNewItem({ name: '', nameEn: '', description: '', descriptionEn: '', price: '', categoryId: '' });
     setNewItemDetails([]);
+    setNewItemImage(null);
+    setNewItemImagePreview(null);
   };
 
   const handleDeleteItem = async (itemId: string) => {
@@ -441,8 +458,15 @@ export default function MenuDesignPage() {
           {isRTL ? 'تصميم القائمة' : 'Menu Design'}
         </h1>
         <div className="flex gap-2">
-          <Button variant={menu.isPublished ? 'default' : 'outline'} onClick={handlePublishToggle}>
-            {menu.isPublished ? (isRTL ? 'منشور' : 'Published') : (isRTL ? 'نشر القائمة' : 'Publish Menu')}
+          <Button
+            variant={menu.isPublished ? 'default' : 'outline'}
+            onClick={handlePublishToggle}
+            className="gap-2"
+          >
+            {menu.isPublished ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+            {menu.isPublished
+              ? (isRTL ? 'القائمة مرئية' : 'Menu Visible')
+              : (isRTL ? 'القائمة مخفية' : 'Menu Hidden')}
           </Button>
         </div>
       </div>
@@ -686,7 +710,20 @@ export default function MenuDesignPage() {
           </div>
 
           {/* Preview Button */}
-          <div className="flex justify-center pt-2">
+          <div className="flex flex-col items-center gap-3 pt-2">
+            {!menu.isPublished && (
+              <div className="relative inline-block rotate-[-1.2deg]">
+                <div className="bg-yellow-200 px-4 py-3 rounded shadow-md border border-yellow-300 max-w-xs text-center"
+                  style={{ fontFamily: 'inherit', boxShadow: '2px 3px 8px rgba(0,0,0,0.15)' }}>
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-red-400 shadow-sm border border-red-500" />
+                  <p className="text-sm font-medium text-yellow-900 mt-1">
+                    {isRTL
+                      ? '📌 القائمة مخفية حالياً — فعّل الرؤية حتى يتمكن العملاء من الوصول إليها'
+                      : '📌 Menu is hidden — enable visibility so customers can access it'}
+                  </p>
+                </div>
+              </div>
+            )}
             <Button variant="outline" asChild size="lg" className="gap-2">
               <a href={publicMenuUrl} target="_blank" rel="noopener noreferrer">
                 <Eye className="w-5 h-5" />
@@ -783,20 +820,27 @@ export default function MenuDesignPage() {
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <h3 className="font-medium">{isRTL ? 'إضافة منتج' : 'Add Product'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="text"
-                placeholder={isRTL ? 'اسم المنتج (عربي)' : 'Product Name (Arabic)'}
-                value={newItem.name}
-                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
-              />
-              <input
-                type="text"
-                placeholder={isRTL ? 'اسم المنتج (إنجليزي)' : 'Product Name (English)'}
-                value={newItem.nameEn}
-                onChange={(e) => setNewItem({ ...newItem, nameEn: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
-              />
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  placeholder={isRTL ? 'اسم المنتج (عربي)' : 'Product Name (Arabic)'}
+                  value={newItem.name}
+                  onChange={(e) => { setNewItem({ ...newItem, name: e.target.value }); setNewItemErrors((p) => ({ ...p, name: undefined })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.name ? 'border-red-500' : ''}`}
+                />
+              </div>
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  placeholder={isRTL ? 'اسم المنتج (إنجليزي)' : 'Product Name (English)'}
+                  value={newItem.nameEn}
+                  onChange={(e) => { setNewItem({ ...newItem, nameEn: e.target.value }); setNewItemErrors((p) => ({ ...p, name: undefined })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.name ? 'border-red-500' : ''}`}
+                />
+              </div>
+              {newItemErrors.name && (
+                <p className="col-span-2 text-red-500 text-xs -mt-1">{newItemErrors.name}</p>
+              )}
               <input
                 type="text"
                 placeholder={isRTL ? 'الوصف (عربي)' : 'Description (Arabic)'}
@@ -811,25 +855,65 @@ export default function MenuDesignPage() {
                 onChange={(e) => setNewItem({ ...newItem, descriptionEn: e.target.value })}
                 className="px-3 py-2 border rounded-lg text-sm"
               />
-              <input
-                type="number"
-                placeholder={isRTL ? 'السعر' : 'Price'}
-                value={newItem.price}
-                onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
-              />
-              <select
-                value={newItem.categoryId}
-                onChange={(e) => setNewItem({ ...newItem, categoryId: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
-              >
-                <option value="">{isRTL ? 'اختر التصنيف' : 'Select Category'}</option>
-                {menu.categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
+              <div className="space-y-1">
+                <input
+                  type="number"
+                  placeholder={isRTL ? 'السعر' : 'Price'}
+                  value={newItem.price}
+                  onChange={(e) => { setNewItem({ ...newItem, price: e.target.value }); setNewItemErrors((p) => ({ ...p, price: undefined })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.price ? 'border-red-500' : ''}`}
+                />
+                {newItemErrors.price && <p className="text-red-500 text-xs">{newItemErrors.price}</p>}
+              </div>
+              <div className="space-y-1">
+                <select
+                  value={newItem.categoryId}
+                  onChange={(e) => { setNewItem({ ...newItem, categoryId: e.target.value }); setNewItemErrors((p) => ({ ...p, categoryId: undefined })); }}
+                  className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.categoryId ? 'border-red-500' : ''}`}
+                >
+                  <option value="">{isRTL ? 'اختر التصنيف' : 'Select Category'}</option>
+                  {menu.categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                {newItemErrors.categoryId && <p className="text-red-500 text-xs">{newItemErrors.categoryId}</p>}
+              </div>
             </div>
             <DetailsEditor pairs={newItemDetails} setPairs={setNewItemDetails} isRTL={isRTL} />
+            <div className="flex items-center gap-3">
+              {newItemImagePreview ? (
+                <div className="relative group shrink-0">
+                  <img src={newItemImagePreview} alt="" className="w-16 h-16 rounded-lg object-cover border" />
+                  <button
+                    type="button"
+                    onClick={() => { setNewItemImage(null); setNewItemImagePreview(null); }}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 border border-dashed border-gray-300">
+                  <ImageIcon className="w-5 h-5 text-gray-400" />
+                </div>
+              )}
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    setNewItemImage(file);
+                    setNewItemImagePreview(file ? URL.createObjectURL(file) : null);
+                  }}
+                />
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50 text-gray-600">
+                  <Upload className="w-4 h-4" />
+                  {isRTL ? 'إضافة صورة (اختياري)' : 'Add Image (optional)'}
+                </div>
+              </label>
+            </div>
             <Button onClick={handleAddItem}>
               <Plus className="w-4 h-4 mr-2" />
               {isRTL ? 'إضافة منتج' : 'Add Product'}
