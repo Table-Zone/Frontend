@@ -565,7 +565,6 @@ export default function MenuDesignPage() {
                 <Palette className="w-4 h-4 text-tz-primary" />
               </div>
               <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'القالب' : 'Template'}</h3>
-              <span className="text-xs text-gray-400" style={{ fontFamily: 'serif' }}>{isRTL ? 'اختر شكل قائمتك' : 'Choose visual style'}</span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {templates.map((template) => (
@@ -607,7 +606,6 @@ export default function MenuDesignPage() {
                 <span className="text-base font-black text-tz-primary leading-none">◈</span>
               </div>
               <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'ألوان العلامة التجارية' : 'Brand Colors'}</h3>
-              <span className="text-xs text-gray-400" style={{ fontFamily: 'serif' }}>{isRTL ? 'الألوان المخصصة' : 'Customize'}</span>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               {[
@@ -638,7 +636,6 @@ export default function MenuDesignPage() {
                 <ImageIcon className="w-4 h-4 text-tz-primary" />
               </div>
               <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'الصور والوسائط' : 'Images & Media'}</h3>
-              <span className="text-xs text-gray-400" style={{ fontFamily: 'serif' }}>{isRTL ? 'الصور والشعار' : 'Visual assets'}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Logo */}
@@ -656,13 +653,13 @@ export default function MenuDesignPage() {
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'الشعار' : 'Logo'} <span className="text-gray-400 font-normal text-xs" style={{ fontFamily: 'serif' }}>{isRTL ? 'Logo' : 'الشعار'}</span></p>
+                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'الشعار' : 'Logo'}</p>
                   <p className="text-xs text-gray-400 mt-0.5">400 × 400 px</p>
                 </div>
                 <label className="cursor-pointer">
                   <input type="file" accept="image/*" className="hidden" onChange={handleUploadLogo} />
                   <div className="px-4 py-1.5 border border-gray-200 bg-white rounded-full text-xs text-gray-600 hover:border-tz-primary/40 font-medium transition-colors">
-                    {isRTL ? 'رفع · Upload' : 'Upload · رفع'}
+                    {isRTL ? 'رفع' : 'Upload'}
                   </div>
                 </label>
               </div>
@@ -681,13 +678,13 @@ export default function MenuDesignPage() {
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'البانر العلوي' : 'Banner'} <span className="text-gray-400 font-normal text-xs" style={{ fontFamily: 'serif' }}>{isRTL ? 'Banner' : 'البانر'}</span></p>
+                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'البانر العلوي' : 'Banner'}</p>
                   <p className="text-xs text-gray-400 mt-0.5">1200 × 600 px</p>
                 </div>
                 <label className="cursor-pointer">
                   <input type="file" accept="image/*" className="hidden" onChange={handleUploadBanner} />
                   <div className="px-4 py-1.5 border border-gray-200 bg-white rounded-full text-xs text-gray-600 hover:border-tz-primary/40 font-medium transition-colors">
-                    {isRTL ? 'رفع · Upload' : 'Upload · رفع'}
+                    {isRTL ? 'رفع' : 'Upload'}
                   </div>
                 </label>
               </div>
@@ -706,13 +703,13 @@ export default function MenuDesignPage() {
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'خلفية الصفحة' : 'Background'} <span className="text-gray-400 font-normal text-xs" style={{ fontFamily: 'serif' }}>{isRTL ? 'Background' : 'الخلفية'}</span></p>
+                  <p className="text-sm font-semibold text-gray-900">{isRTL ? 'خلفية الصفحة' : 'Background'}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{isRTL ? 'اختياري' : 'Optional'}</p>
                 </div>
                 <label className="cursor-pointer">
                   <input type="file" accept="image/*" className="hidden" onChange={handleUploadBackground} />
                   <div className="px-4 py-1.5 border border-gray-200 bg-white rounded-full text-xs text-gray-600 hover:border-tz-primary/40 font-medium transition-colors">
-                    {isRTL ? 'رفع · Upload' : 'Upload · رفع'}
+                    {isRTL ? 'رفع' : 'Upload'}
                   </div>
                 </label>
               </div>
@@ -726,12 +723,11 @@ export default function MenuDesignPage() {
                 <Settings className="w-4 h-4 text-tz-primary" />
               </div>
               <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'إعدادات عامة' : 'General Settings'}</h3>
-              <span className="text-xs text-gray-400" style={{ fontFamily: 'serif' }}>{isRTL ? 'General Settings' : 'إعدادات عامة'}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {isRTL ? 'العنوان (عربي)' : 'Title (Arabic)'} <span className="text-gray-400 font-normal normal-case tracking-normal" style={{ fontFamily: 'serif' }}>{isRTL ? 'Arabic Title' : 'العنوان'}</span>
+                  {isRTL ? 'العنوان (عربي)' : 'Title (Arabic)'}
                 </label>
                 <input
                   type="text"
@@ -747,7 +743,7 @@ export default function MenuDesignPage() {
               </div>
               <div>
                 <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  {isRTL ? 'العنوان (English)' : 'Title (English)'} <span className="text-gray-400 font-normal normal-case tracking-normal" style={{ fontFamily: 'serif' }}>{isRTL ? 'English Title' : 'العنوان'}</span>
+                  {isRTL ? 'العنوان (English)' : 'Title (English)'}
                 </label>
                 <input
                   type="text"
