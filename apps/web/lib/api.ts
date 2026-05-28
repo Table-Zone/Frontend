@@ -140,6 +140,7 @@ export const teamAPI = {
 export const subscriptionAPI = {
   getPlans: () => api.get('/workspaces/plans'),
   getBankDetails: () => api.get('/workspaces/subscription/bank-details'),
+  validateDiscountCode: (code: string) => api.get(`/workspaces/subscription/validate-discount?code=${encodeURIComponent(code)}`),
   getSubscription: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription`),
   requestSubscription: (workspaceId: string, formData: FormData) =>
@@ -243,6 +244,10 @@ export const adminAPI = {
     api.patch(`/admin/subscription-requests/${id}/reject`, data),
   getAuditLog: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/audit-log', { params }),
+  getDiscountCodes: () => api.get('/admin/discount-codes'),
+  createDiscountCode: (data: { code: string; percentOff: number; usageLimit?: number; expiresAt?: string }) =>
+    api.post('/admin/discount-codes', data),
+  deactivateDiscountCode: (id: string) => api.patch(`/admin/discount-codes/${id}/deactivate`, {}),
 };
 
 export default api;
