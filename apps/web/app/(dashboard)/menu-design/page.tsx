@@ -346,7 +346,7 @@ export default function MenuDesignPage() {
 
   const handleAddItem = async () => {
     const errors: { name?: string; price?: string; categoryId?: string } = {};
-    if (!newItem.name && !newItem.nameEn) errors.name = isRTL ? 'يجب إدخال اسم المنتج بالعربي أو الإنجليزي' : 'Enter a product name in Arabic or English';
+    if (!newItem.name) errors.name = isRTL ? 'يجب إدخال اسم المنتج' : 'Enter a product name';
     if (!newItem.price) errors.price = isRTL ? 'السعر مطلوب' : 'Price is required';
     if (!newItem.categoryId) errors.categoryId = isRTL ? 'يجب اختيار التصنيف' : 'Please select a category';
     if (Object.keys(errors).length > 0) { setNewItemErrors(errors); return; }
@@ -354,10 +354,8 @@ export default function MenuDesignPage() {
     if (!workspaceId) return;
     if (!subscriptionActive) { setShowSubscribe(true); return; }
     const createRes = await qrMenuAPI.createItem(workspaceId, newItem.categoryId, {
-      name: newItem.name || newItem.nameEn,
-      nameEn: newItem.nameEn || undefined,
+      name: newItem.name,
       description: newItem.description || undefined,
-      descriptionEn: newItem.descriptionEn || undefined,
       price: parseFloat(newItem.price),
       details: buildDetailsPayload(newItemDetails),
     });
@@ -859,13 +857,6 @@ export default function MenuDesignPage() {
               onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
               className="flex-1 px-3 py-2 border rounded-lg text-sm"
             />
-            <input
-              type="text"
-              placeholder={isRTL ? 'Name (English)' : 'Name (English)'}
-              value={newCategory.nameEn}
-              onChange={(e) => setNewCategory({ ...newCategory, nameEn: e.target.value })}
-              className="flex-1 px-3 py-2 border rounded-lg text-sm"
-            />
             <Button onClick={handleAddCategory} className="self-start sm:self-auto shrink-0"><Plus className="w-4 h-4" /></Button>
           </div>
           <div className="space-y-2">
@@ -899,7 +890,6 @@ export default function MenuDesignPage() {
                   </label>
                   <div>
                     <p className="font-medium">{cat.name}</p>
-                    {cat.nameEn && <p className="text-sm text-gray-500">{cat.nameEn}</p>}
                     <p className="text-xs text-gray-400">{cat.items.length} items</p>
                   </div>
                 </div>
@@ -958,40 +948,24 @@ export default function MenuDesignPage() {
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
             <h3 className="font-medium">{isRTL ? 'إضافة منتج' : 'Add Product'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-1">
+              <div className="space-y-1 sm:col-span-2">
                 <input
                   type="text"
-                  placeholder={isRTL ? 'اسم المنتج (عربي)' : 'Product Name (Arabic)'}
+                  placeholder={isRTL ? 'اسم المنتج' : 'Product Name'}
                   value={newItem.name}
                   onChange={(e) => { setNewItem({ ...newItem, name: e.target.value }); setNewItemErrors((p) => ({ ...p, name: undefined })); }}
                   className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.name ? 'border-red-500' : ''}`}
                 />
+                {newItemErrors.name && (
+                  <p className="text-red-500 text-xs">{newItemErrors.name}</p>
+                )}
               </div>
-              <div className="space-y-1">
-                <input
-                  type="text"
-                  placeholder={isRTL ? 'اسم المنتج (إنجليزي)' : 'Product Name (English)'}
-                  value={newItem.nameEn}
-                  onChange={(e) => { setNewItem({ ...newItem, nameEn: e.target.value }); setNewItemErrors((p) => ({ ...p, name: undefined })); }}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm ${newItemErrors.name ? 'border-red-500' : ''}`}
-                />
-              </div>
-              {newItemErrors.name && (
-                <p className="col-span-2 text-red-500 text-xs -mt-1">{newItemErrors.name}</p>
-              )}
               <input
                 type="text"
-                placeholder={isRTL ? 'الوصف (عربي)' : 'Description (Arabic)'}
+                placeholder={isRTL ? 'الوصف' : 'Description'}
                 value={newItem.description}
                 onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
-              />
-              <input
-                type="text"
-                placeholder={isRTL ? 'الوصف (إنجليزي)' : 'Description (English)'}
-                value={newItem.descriptionEn}
-                onChange={(e) => setNewItem({ ...newItem, descriptionEn: e.target.value })}
-                className="px-3 py-2 border rounded-lg text-sm"
+                className="px-3 py-2 border rounded-lg text-sm sm:col-span-2"
               />
               <div className="space-y-1">
                 <input
@@ -1073,14 +1047,7 @@ export default function MenuDesignPage() {
                               value={editItemData.name}
                               onChange={(e) => setEditItemData({ ...editItemData, name: e.target.value })}
                               className="px-3 py-2 border rounded-lg text-sm"
-                              placeholder={isRTL ? 'الاسم (عربي)' : 'Name (Arabic)'}
-                            />
-                            <input
-                              type="text"
-                              value={editItemData.nameEn}
-                              onChange={(e) => setEditItemData({ ...editItemData, nameEn: e.target.value })}
-                              className="px-3 py-2 border rounded-lg text-sm"
-                              placeholder={isRTL ? 'الاسم (إنجليزي)' : 'Name (English)'}
+                              placeholder={isRTL ? 'الاسم' : 'Name'}
                             />
                             <input
                               type="number"
@@ -1090,22 +1057,13 @@ export default function MenuDesignPage() {
                               placeholder={isRTL ? 'السعر' : 'Price'}
                             />
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <input
-                              type="text"
-                              value={editItemData.description}
-                              onChange={(e) => setEditItemData({ ...editItemData, description: e.target.value })}
-                              className="px-3 py-2 border rounded-lg text-sm"
-                              placeholder={isRTL ? 'الوصف (عربي)' : 'Description (Arabic)'}
-                            />
-                            <input
-                              type="text"
-                              value={editItemData.descriptionEn}
-                              onChange={(e) => setEditItemData({ ...editItemData, descriptionEn: e.target.value })}
-                              className="px-3 py-2 border rounded-lg text-sm"
-                              placeholder={isRTL ? 'الوصف (إنجليزي)' : 'Description (English)'}
-                            />
-                          </div>
+                          <input
+                            type="text"
+                            value={editItemData.description}
+                            onChange={(e) => setEditItemData({ ...editItemData, description: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg text-sm"
+                            placeholder={isRTL ? 'الوصف' : 'Description'}
+                          />
                           <DetailsEditor pairs={editItemDetails} setPairs={setEditItemDetails} isRTL={isRTL} />
                           <div className="flex gap-2">
                             <Button size="sm" onClick={() => handleUpdateItem(item.id)}>
@@ -1128,9 +1086,7 @@ export default function MenuDesignPage() {
                             )}
                             <div>
                               <p className="font-medium">{item.name}</p>
-                              {item.nameEn && <p className="text-sm text-gray-500">{item.nameEn}</p>}
                               {item.description && <p className="text-sm text-gray-500">{item.description}</p>}
-                              {item.descriptionEn && <p className="text-sm text-gray-400">{item.descriptionEn}</p>}
                               {parseDetailsPairs(item.details).length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   {parseDetailsPairs(item.details).map((pair, i) => (
