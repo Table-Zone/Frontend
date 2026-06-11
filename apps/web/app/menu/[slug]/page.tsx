@@ -218,12 +218,6 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
     </div>
   );
 
-  const secondaryName = (item: any) => {
-    const s = isEnglish ? item.name : item.nameEn;
-    const primary = pickItemName(item, isEnglish);
-    return s && s.trim() && s.trim() !== primary ? s.trim() : '';
-  };
-
   return (
     <div className="min-h-screen relative" style={{ background: bodyBg, color: '#e7e7ec' }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Header card (light) ===== */}
@@ -274,37 +268,33 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
           <section key={cat.id}>
             <MetalBar className="mb-4 text-lg md:text-xl text-center">{pickCategoryName(cat, isEnglish)}</MetalBar>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => {
-                const sec = secondaryName(item);
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-xl bg-white/[0.035] border border-white/[0.07] px-4 py-3.5 flex gap-3 hover:bg-white/[0.06] transition-colors"
-                  >
-                    {item.imageUrl && (
-                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border border-white/10" loading="lazy" decoding="async" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h4 className="font-bold text-[15px] text-white break-words min-w-0 leading-snug">{pickItemName(item, isEnglish)}</h4>
-                        <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: accent }}>
-                          {item.price} {isEnglish ? 'SAR' : 'ر.س'}
-                        </span>
-                      </div>
-                      {sec && <p className="text-xs mt-0.5 text-neutral-400">{sec}</p>}
-                      {pickItemDescription(item, isEnglish) && (
-                        <p className="text-xs mt-1.5 leading-relaxed text-neutral-400/90">{pickItemDescription(item, isEnglish)}</p>
-                      )}
-                      <ItemDetailTags
-                        details={item.details}
-                        isEnglish={isEnglish}
-                        className="flex flex-wrap gap-1.5 mt-2"
-                        spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-neutral-300 border border-white/10"
-                      />
+              {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl bg-white/[0.035] border border-white/[0.07] px-4 py-3.5 flex gap-3 hover:bg-white/[0.06] transition-colors"
+                >
+                  {item.imageUrl && (
+                    <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border border-white/10" loading="lazy" decoding="async" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h4 className="font-bold text-[15px] text-white break-words min-w-0 leading-snug">{pickItemName(item, isEnglish)}</h4>
+                      <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: accent }}>
+                        {item.price} {isEnglish ? 'SAR' : 'ر.س'}
+                      </span>
                     </div>
+                    {pickItemDescription(item, isEnglish) && (
+                      <p className="text-xs mt-1.5 leading-relaxed text-neutral-400/90">{pickItemDescription(item, isEnglish)}</p>
+                    )}
+                    <ItemDetailTags
+                      details={item.details}
+                      isEnglish={isEnglish}
+                      className="flex flex-wrap gap-1.5 mt-2"
+                      spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-neutral-300 border border-white/10"
+                    />
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </section>
         ))}
