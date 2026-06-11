@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { publicMenuAPI, getImageUrl } from '@/lib/api';
-import { Loader2, Plus, Languages } from 'lucide-react';
+import { Loader2, Plus, Languages, Menu as MenuIcon, ChevronLeft } from 'lucide-react';
 import {
   pickItemName,
   pickItemDescription,
@@ -194,15 +194,14 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
    TEMPLATE 1: NOIR LUXE
    ======================================================================== */
 function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const accent = menu.accentColor || '#C9A96E';
-
-  // Fixed dark + metallic-silver identity for this template.
-  const SILVER = 'linear-gradient(to bottom, #f6f6f8 0%, #dcdce1 16%, #a9a9b2 50%, #c6c6cd 84%, #eeeef1 100%)';
-  const SILVER_SOFT = 'linear-gradient(to bottom, #d8d8de 0%, #a6a6af 52%, #c2c2c9 100%)';
-  // Subtle vertical wood-grain / brushed texture over a deep charcoal-navy base.
+  // Warm-noir + champagne-gold identity for this template.
+  const GOLD_PRICE = '#E2C786';
+  const SILVER = 'linear-gradient(to bottom, #F1DEB0 0%, #E0C485 16%, #C9A96E 50%, #A98A52 84%, #E6CE97 100%)';
+  const SILVER_SOFT = 'linear-gradient(to bottom, #D8BE85 0%, #A98A52 52%, #C7A969 100%)';
+  // Subtle vertical brushed texture over a deep espresso-black base.
   const bodyBg =
-    'repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 6px), ' +
-    'linear-gradient(180deg, #16161f 0%, #101019 100%)';
+    'repeating-linear-gradient(90deg, rgba(255,236,200,0.015) 0px, rgba(255,236,200,0.015) 1px, transparent 1px, transparent 6px), ' +
+    'linear-gradient(180deg, #17130E 0%, #100D08 100%)';
 
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
   const [activeCat, setActiveCat] = useState<string>('all');
@@ -210,16 +209,16 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
 
   const MetalBar = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
     <div
-      className={`relative rounded-2xl px-5 py-3 text-[#26262e] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.45)] ${className}`}
+      className={`relative rounded-2xl px-5 py-3 text-[#2A2014] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.5)] ${className}`}
       style={{ background: SILVER }}
     >
-      <span className="absolute inset-x-3 top-1 h-px rounded-full bg-white/70" />
+      <span className="absolute inset-x-3 top-1 h-px rounded-full bg-white/50" />
       {children}
     </div>
   );
 
   return (
-    <div className="min-h-screen relative" style={{ background: bodyBg, color: '#e7e7ec' }} dir={isEnglish ? 'ltr' : 'rtl'}>
+    <div className="min-h-screen relative" style={{ background: bodyBg, color: '#EDE7DB' }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Header card (light) ===== */}
       <header className="relative overflow-hidden">
         {menu.bannerUrl && (
@@ -279,7 +278,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
                       <h4 className="font-bold text-[15px] text-white break-words min-w-0 leading-snug">{pickItemName(item, isEnglish)}</h4>
-                      <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: accent }}>
+                      <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: GOLD_PRICE }}>
                         {item.price} {isEnglish ? 'SAR' : 'ر.س'}
                       </span>
                     </div>
@@ -324,7 +323,7 @@ function FilterPill({
     <button
       onClick={onClick}
       className={`relative shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-all ${
-        active ? 'text-[#26262e] shadow-[0_4px_12px_rgba(0,0,0,0.4)]' : 'text-neutral-300 hover:text-white'
+        active ? 'text-[#2A2014] shadow-[0_4px_12px_rgba(0,0,0,0.45)]' : 'text-[#C9A96E] hover:text-[#EDE7DB]'
       }`}
       style={{ background: active ? silver : silverSoft, opacity: active ? 1 : 0.35 }}
     >
@@ -334,111 +333,142 @@ function FilterPill({
 }
 
 /* ========================================================================
-   TEMPLATE 2: EDITORIAL FEAST
+   TEMPLATE 2: ORDER GRID — clean light menu with sticky category nav
    ======================================================================== */
 function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const featuredItem = menu.categories[0]?.items[0];
-  const bg = menu.primaryColor || '#F5F0EB';
-  const accent = menu.accentColor || '#C75B3F';
-  const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
-  const mutedColor = isLightColor(bg) ? '#737373' : '#a3a3a3';
-  const dividerColor = isLightColor(bg) ? '#d4d4d4' : '#404040';
-  const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+  const TEAL = menu.accentColor || '#3C97A6';
+  const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
+  const [activeCat, setActiveCat] = useState<string>(cats[0]?.id || '');
+
+  const scrollToCat = (id: string) => {
+    setActiveCat(id);
+    const el = document.getElementById(`sec-${id}`);
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  };
+
+  // Scrollspy: highlight the category currently in view.
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length) setActiveCat((visible[0].target as HTMLElement).dataset.cat || '');
+      },
+      { rootMargin: '-80px 0px -65% 0px', threshold: 0 },
+    );
+    cats.forEach((c: any) => {
+      const el = document.getElementById(`sec-${c.id}`);
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menu.slug, cats.length]);
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
-      <div className="relative z-10">
-        <header className="relative">
-          {menu.bannerUrl ? (
-            <div className="relative w-full h-72 md:h-[28rem]">
-              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${bgOverlay}, transparent, ${hexToRgba(isLightColor(bg) ? '#000' : '#fff', 0.2)})` }} />
-            </div>
-          ) : (
-            <div className="w-full h-56" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0.2)}, ${hexToRgba(accent, 0.05)})` }} />
-          )}
-          <div className="relative -mt-20 px-6 pb-2">
-            <div className="flex items-end gap-5">
-              {menu.logoUrl ? (
-                <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-2xl object-cover shadow-xl border-4" fetchPriority="high" decoding="async" style={{ borderColor: bgOverlay }} />
-              ) : (
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-xl border-4" style={{ backgroundColor: accent, borderColor: bgOverlay }}>
-                  {menu.workspaceName?.charAt(0)}
-                </div>
-              )}
-              <div className="pb-3 min-w-0">
-                <h1 className="text-3xl font-bold break-words">{menu.workspaceName}</h1>
-                <p className="text-sm mt-0.5 font-medium break-words" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
-              </div>
-            </div>
-          </div>
-        </header>
+    <div className="min-h-screen bg-[#fafafa] text-neutral-800" dir={isEnglish ? 'ltr' : 'rtl'}>
+      {/* ===== Top bar ===== */}
+      <div className="sticky top-0 z-40 shadow-sm" style={{ backgroundColor: TEAL }}>
+        <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between text-white">
+          <MenuIcon className="w-6 h-6 opacity-90" />
+          <span className="font-bold tracking-wide truncate">{menu.workspaceName}</span>
+        </div>
+      </div>
 
-        {featuredItem && (
-          <div className="px-4 mt-6">
-            <div className="max-w-xl mx-auto rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: isLightColor(bg) ? '#ffffff' : '#262626' }}>
-              <div className="flex">
-                {featuredItem.imageUrl && (
-                  <div className="w-2/5 shrink-0">
-                    <img src={getImageUrl(featuredItem.imageUrl)} alt="" className="w-full h-full object-cover min-h-[140px]" loading="lazy" decoding="async" />
-                  </div>
-                )}
-                <div className="p-5 flex flex-col justify-center">
-                  <span className="text-[10px] font-bold tracking-widest uppercase mb-1" style={{ color: accent }}>Chef&apos;s Pick</span>
-                  <h4 className="font-bold text-lg">{pickItemName(featuredItem, isEnglish)}</h4>
-                  <p className="text-sm mt-1 line-clamp-2" style={{ color: mutedColor }}>{pickItemDescription(featuredItem, isEnglish)}</p>
-                  <span className="font-bold mt-2" style={{ color: accent }}>{featuredItem.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                </div>
-              </div>
-            </div>
+      {/* ===== Logo ===== */}
+      <div className="flex flex-col items-center pt-8 pb-6 px-4 text-center">
+        {menu.logoUrl ? (
+          <img src={getImageUrl(menu.logoUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-md" fetchPriority="high" decoding="async" />
+        ) : (
+          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-bold text-white shadow-md" style={{ backgroundColor: TEAL }}>
+            {menu.workspaceName?.charAt(0)}
           </div>
         )}
+        <p className="text-sm mt-3 font-medium text-neutral-500">{pickMenuTitle(menu, isEnglish)}</p>
+      </div>
 
-        <main className="max-w-xl mx-auto px-4 py-8 pb-16 space-y-8">
-          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
-            <div key={cat.id}>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
-                <h3 className="font-bold text-lg tracking-wide max-w-full">{pickCategoryName(cat, isEnglish)}</h3>
-                <div className="h-px flex-1" style={{ backgroundColor: dividerColor }} />
-              </div>
-              <div className="space-y-6">
-                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any, idx: number) => (
-                  <div key={item.id} className={`flex flex-col sm:flex-row gap-5 ${idx % 2 === 1 ? 'sm:flex-row-reverse' : ''}`}>
-                    {item.imageUrl ? (
-                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-sm shrink-0" loading="lazy" decoding="async" />
-                    ) : (
-                      <div className="w-28 h-28 rounded-2xl shrink-0 flex items-center justify-center text-3xl font-bold" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: isLightColor(bg) ? '#d4d4d4' : '#404040' }}>
-                        {pickItemName(item, isEnglish).charAt(0)}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0 flex flex-col justify-center">
-                      <div className="flex items-baseline justify-between gap-3 min-w-0">
-                        <h4 className="font-bold text-base break-words min-w-0">{pickItemName(item, isEnglish)}</h4>
-                        <span className="font-bold shrink-0" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                      </div>
+      {/* ===== Mobile category chips ===== */}
+      <div className="lg:hidden sticky top-14 z-30 bg-[#fafafa]/95 backdrop-blur border-b border-neutral-200">
+        <div className="flex gap-2 overflow-x-auto px-4 py-2.5">
+          {cats.map((cat: any) => (
+            <button
+              key={cat.id}
+              onClick={() => scrollToCat(cat.id)}
+              className="shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold border transition-colors"
+              style={
+                activeCat === cat.id
+                  ? { backgroundColor: TEAL, color: '#fff', borderColor: TEAL }
+                  : { backgroundColor: '#fff', color: '#525252', borderColor: '#e5e5e5' }
+              }
+            >
+              {pickCategoryName(cat, isEnglish)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ===== Body ===== */}
+      <div className="max-w-6xl mx-auto px-4 pb-20 lg:grid lg:grid-cols-[260px_1fr] lg:gap-8 lg:items-start">
+        {/* Sidebar nav (desktop) */}
+        <aside className="hidden lg:block sticky top-20 self-start">
+          <nav className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
+            {cats.map((cat: any) => {
+              const active = activeCat === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => scrollToCat(cat.id)}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm border-b border-neutral-100 last:border-b-0 transition-colors"
+                  style={active ? { color: TEAL, backgroundColor: `${TEAL}0F`, fontWeight: 700 } : { color: '#404040' }}
+                >
+                  <ChevronLeft className="w-4 h-4 shrink-0" style={{ transform: isEnglish ? 'rotate(180deg)' : 'none', opacity: active ? 1 : 0.4 }} />
+                  <span className="flex-1 text-start break-words">{pickCategoryName(cat, isEnglish)}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Menu sections */}
+        <main className="space-y-10 pt-2">
+          {cats.map((cat: any) => (
+            <section key={cat.id} id={`sec-${cat.id}`} data-cat={cat.id} className="scroll-mt-24">
+              <h2 className="text-xl font-bold mb-4 text-neutral-900 text-start">{pickCategoryName(cat, isEnglish)}</h2>
+              <div className="space-y-3">
+                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
+                  <div key={item.id} className="flex gap-4 bg-white rounded-2xl border border-neutral-200 p-3 hover:shadow-md transition-shadow">
+                    <div className="flex-1 min-w-0 flex flex-col">
+                      <h4 className="font-bold text-[15px] text-neutral-900 break-words leading-snug">{pickItemName(item, isEnglish)}</h4>
                       {pickItemDescription(item, isEnglish) && (
-                        <p className="text-sm mt-1.5 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
+                        <p className="text-xs mt-1 leading-relaxed text-neutral-500 line-clamp-2">{pickItemDescription(item, isEnglish)}</p>
                       )}
                       <ItemDetailTags
                         details={item.details}
                         isEnglish={isEnglish}
-                        className="flex flex-wrap gap-2 mt-2"
-                        spanClassName="text-xs font-bold px-3 py-1.5 rounded-full opacity-90"
+                        className="flex flex-wrap gap-1.5 mt-2"
+                        spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"
                       />
+                      <div className="mt-auto pt-3">
+                        <span className="inline-block rounded-lg px-3 py-1 text-sm font-bold" style={{ backgroundColor: `${TEAL}14`, color: TEAL }}>
+                          {item.price} {isEnglish ? 'SAR' : 'ر.س'}
+                        </span>
+                      </div>
                     </div>
+                    {item.imageUrl && (
+                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-28 h-28 rounded-xl object-cover shrink-0" loading="lazy" decoding="async" />
+                    )}
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </main>
-
-        <footer className="text-center py-8 text-xs" style={{ color: mutedColor }}>
-          <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
-        </footer>
       </div>
+
+      <footer className="text-center py-8 text-xs text-neutral-400 border-t border-neutral-200">
+        <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
+      </footer>
     </div>
   );
 }
