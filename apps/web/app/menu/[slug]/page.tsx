@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { publicMenuAPI, getImageUrl } from '@/lib/api';
-import { Loader2, Star, Plus, Languages } from 'lucide-react';
+import { Loader2, Plus, Languages } from 'lucide-react';
 import {
   pickItemName,
   pickItemDescription,
@@ -194,94 +194,152 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
    TEMPLATE 1: NOIR LUXE
    ======================================================================== */
 function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  const [openCategory, setOpenCategory] = useState<string | null>(null);
-  const bg = menu.primaryColor || '#0C0C0C';
   const accent = menu.accentColor || '#C9A96E';
-  const textColor = isLightColor(bg) ? '#171717' : '#e5e5e5';
-  const mutedColor = isLightColor(bg) ? '#737373' : '#737373';
-  const dividerColor = isLightColor(bg) ? '#e5e5e5' : '#262626';
-  const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+
+  // Fixed dark + metallic-silver identity for this template.
+  const SILVER = 'linear-gradient(to bottom, #f6f6f8 0%, #dcdce1 16%, #a9a9b2 50%, #c6c6cd 84%, #eeeef1 100%)';
+  const SILVER_SOFT = 'linear-gradient(to bottom, #d8d8de 0%, #a6a6af 52%, #c2c2c9 100%)';
+  // Subtle vertical wood-grain / brushed texture over a deep charcoal-navy base.
+  const bodyBg =
+    'repeating-linear-gradient(90deg, rgba(255,255,255,0.018) 0px, rgba(255,255,255,0.018) 1px, transparent 1px, transparent 6px), ' +
+    'linear-gradient(180deg, #16161f 0%, #101019 100%)';
+
+  const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
+  const [activeCat, setActiveCat] = useState<string>('all');
+  const shown = activeCat === 'all' ? cats : cats.filter((c: any) => c.id === activeCat);
+
+  const MetalBar = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
+    <div
+      className={`relative rounded-2xl px-5 py-3 text-[#26262e] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.45)] ${className}`}
+      style={{ background: SILVER }}
+    >
+      <span className="absolute inset-x-3 top-1 h-px rounded-full bg-white/70" />
+      {children}
+    </div>
+  );
+
+  const secondaryName = (item: any) => {
+    const s = isEnglish ? item.name : item.nameEn;
+    const primary = pickItemName(item, isEnglish);
+    return s && s.trim() && s.trim() !== primary ? s.trim() : '';
+  };
 
   return (
-    <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      <FullBg url={menu.backgroundUrl} overlayColor={bgOverlay} />
-      <div className="relative z-10">
-        <header className="relative">
-          {menu.bannerUrl ? (
-            <div className="relative w-full h-64 md:h-80">
-              <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${bgOverlay}, ${hexToRgba(bg, 0.6)}, transparent)` }} />
-            </div>
-          ) : (
-            <div className="w-full h-48 md:h-56" style={{ background: `linear-gradient(135deg, ${hexToRgba(accent, 0.15)}, ${hexToRgba(accent, 0.05)})` }} />
-          )}
-          <div className="relative -mt-16 px-6 pb-4 text-center">
+    <div className="min-h-screen relative" style={{ background: bodyBg, color: '#e7e7ec' }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      {/* ===== Header card (light) ===== */}
+      <header className="relative overflow-hidden">
+        {menu.bannerUrl && (
+          <div className="absolute inset-0">
+            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
+            <div className="absolute inset-0 bg-white/82 backdrop-blur-[2px]" />
+          </div>
+        )}
+        <div className={`relative ${menu.bannerUrl ? '' : 'bg-[#f3f1ee]'}`}>
+          <div className="max-w-3xl mx-auto px-6 py-7 flex items-center gap-5">
             {menu.logoUrl ? (
-              <img src={getImageUrl(menu.logoUrl)} alt="" className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-2 shadow-2xl" fetchPriority="high" decoding="async" style={{ borderColor: `${accent}60` }} />
+              <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-xl shrink-0" fetchPriority="high" decoding="async" />
             ) : (
-              <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold border" style={{ backgroundColor: `${accent}15`, color: accent, borderColor: `${accent}40` }}>
+              <div className="w-24 h-24 rounded-full shrink-0 flex items-center justify-center text-3xl font-bold bg-white shadow-xl text-neutral-800">
                 {menu.workspaceName?.charAt(0)}
               </div>
             )}
-            <h1 className="text-3xl md:text-4xl font-bold tracking-wide">{menu.workspaceName}</h1>
-            <p className="text-sm mt-1 tracking-widest uppercase" style={{ color: accent }}>{pickMenuTitle(menu, isEnglish)}</p>
-          </div>
-        </header>
-
-        <div className="flex items-center gap-4 px-6 py-6">
-          <div className="h-px flex-1" style={{ background: `linear-gradient(to left, transparent, ${hexToRgba(accent, 0.3)})` }} />
-          <Star className="w-4 h-4" style={{ color: `${accent}80` }} />
-          <div className="h-px flex-1" style={{ background: `linear-gradient(to right, transparent, ${hexToRgba(accent, 0.3)})` }} />
-        </div>
-
-        <main className="max-w-2xl mx-auto px-4 pb-16 space-y-2">
-          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
-            <div key={cat.id} className="border-b last:border-b-0" style={{ borderColor: dividerColor }}>
-              <button onClick={() => setOpenCategory(openCategory === cat.id ? null : cat.id)} className="w-full flex items-center justify-between py-5 px-2 group">
-                <h3 className="text-lg font-medium">{pickCategoryName(cat, isEnglish)}</h3>
-                <svg className={`w-5 h-5 transition-all ${openCategory === cat.id ? 'rotate-180' : ''}`} style={{ color: openCategory === cat.id ? accent : mutedColor }} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </button>
-              {openCategory === cat.id && (
-                <div className="pb-5 px-2 space-y-5">
-                  {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
-                    <div key={item.id} className="flex gap-4">
-                      {item.imageUrl ? (
-                        <img src={getImageUrl(item.imageUrl)} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 border" loading="lazy" decoding="async" style={{ borderColor: dividerColor }} />
-                      ) : (
-                        <div className="w-20 h-20 rounded-lg shrink-0 flex items-center justify-center text-xl font-bold border" style={{ backgroundColor: isLightColor(bg) ? '#f5f5f5' : '#171717', color: `${accent}60`, borderColor: dividerColor }}>
-                          {pickItemName(item, isEnglish).charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                        <div>
-                          <div className="flex items-start justify-between gap-3 min-w-0">
-                            <h4 className="font-semibold break-words min-w-0">{pickItemName(item, isEnglish)}</h4>
-                            <span className="font-bold shrink-0 whitespace-nowrap" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                          </div>
-                          {pickItemDescription(item, isEnglish) && (
-                            <p className="text-sm mt-1 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
-                          )}
-                        </div>
-                        <ItemDetailTags
-                          details={item.details}
-                          isEnglish={isEnglish}
-                          className="flex flex-wrap gap-2 mt-2"
-                          spanClassName="text-xs font-semibold px-2.5 py-1 rounded border border-current/20 opacity-80"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="min-w-0 flex-1 text-neutral-900">
+              <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide truncate">{menu.workspaceName}</h1>
+              <p className="text-sm md:text-base mt-1.5 text-neutral-500">{pickMenuTitle(menu, isEnglish)}</p>
             </div>
-          ))}
-        </main>
+          </div>
+        </div>
+        <div className="h-px w-full" style={{ background: SILVER_SOFT }} />
+      </header>
 
-        <footer className="text-center py-8 text-xs border-t" style={{ color: mutedColor, borderColor: isLightColor(bg) ? '#e5e5e5' : '#171717' }}>
-          <p className="tracking-widest uppercase">{menu.workspaceName}</p>
-        </footer>
+      {/* ===== Filter pills ===== */}
+      <div className="max-w-3xl mx-auto px-4 pt-6">
+        <div className="rounded-2xl p-2 bg-white/[0.04] border border-white/10 shadow-inner overflow-x-auto">
+          <div className="flex gap-2 min-w-max">
+            <FilterPill active={activeCat === 'all'} onClick={() => setActiveCat('all')} silver={SILVER} silverSoft={SILVER_SOFT}>
+              {isEnglish ? 'All' : 'جميع الفئات'}
+            </FilterPill>
+            {cats.map((cat: any) => (
+              <FilterPill key={cat.id} active={activeCat === cat.id} onClick={() => setActiveCat(cat.id)} silver={SILVER} silverSoft={SILVER_SOFT}>
+                {pickCategoryName(cat, isEnglish)}
+              </FilterPill>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* ===== Category sections ===== */}
+      <main className="max-w-3xl mx-auto px-4 pt-6 pb-16 space-y-8">
+        {shown.map((cat: any) => (
+          <section key={cat.id}>
+            <MetalBar className="mb-4 text-lg md:text-xl text-center">{pickCategoryName(cat, isEnglish)}</MetalBar>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => {
+                const sec = secondaryName(item);
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-xl bg-white/[0.035] border border-white/[0.07] px-4 py-3.5 flex gap-3 hover:bg-white/[0.06] transition-colors"
+                  >
+                    {item.imageUrl && (
+                      <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border border-white/10" loading="lazy" decoding="async" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <h4 className="font-bold text-[15px] text-white break-words min-w-0 leading-snug">{pickItemName(item, isEnglish)}</h4>
+                        <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: accent }}>
+                          {item.price} {isEnglish ? 'SAR' : 'ر.س'}
+                        </span>
+                      </div>
+                      {sec && <p className="text-xs mt-0.5 text-neutral-400">{sec}</p>}
+                      {pickItemDescription(item, isEnglish) && (
+                        <p className="text-xs mt-1.5 leading-relaxed text-neutral-400/90">{pickItemDescription(item, isEnglish)}</p>
+                      )}
+                      <ItemDetailTags
+                        details={item.details}
+                        isEnglish={isEnglish}
+                        className="flex flex-wrap gap-1.5 mt-2"
+                        spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-neutral-300 border border-white/10"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ))}
+      </main>
+
+      <footer className="text-center py-8 text-xs border-t border-white/[0.06]">
+        <p className="tracking-[0.3em] uppercase text-neutral-500">{menu.workspaceName}</p>
+      </footer>
     </div>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  children,
+  silver,
+  silverSoft,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  silver: string;
+  silverSoft: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-all ${
+        active ? 'text-[#26262e] shadow-[0_4px_12px_rgba(0,0,0,0.4)]' : 'text-neutral-300 hover:text-white'
+      }`}
+      style={{ background: active ? silver : silverSoft, opacity: active ? 1 : 0.35 }}
+    >
+      {children}
+    </button>
   );
 }
 

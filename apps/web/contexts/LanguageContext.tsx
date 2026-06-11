@@ -90,7 +90,7 @@ const translations = {
     slug: 'الرابط المختصر',
     workspaceName: 'اسم المساحة',
     createWorkspace: 'إنشاء مساحة عمل',
-    createWorkspaceDesc: 'أنشئ مساحة عمل مقهاك لبدء إدارة طاولاتك',
+    createWorkspaceDesc: 'انشئ مساحة العمل',
     createWorkspaceButton: 'إنشاء المساحة',
     workspaceCreated: 'تم إنشاء مساحة العمل بنجاح',
     noWorkspace: 'ليس لديك مساحة عمل',

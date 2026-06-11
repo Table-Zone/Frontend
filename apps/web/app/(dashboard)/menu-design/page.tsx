@@ -606,7 +606,7 @@ export default function MenuDesignPage() {
               <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'القالب' : 'Template'}</h3>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {templates.map((template) => (
+              {templates.map((template, index) => (
                 <button
                   key={template.id}
                   onClick={async () => {
@@ -623,8 +623,7 @@ export default function MenuDesignPage() {
                 >
                   <TemplateMiniPreview template={template} />
                   <div className="p-2.5">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{isRTL ? template.nameAr : template.nameEn}</p>
-                    <p className="text-[10px] text-gray-400 mt-0.5 truncate">{isRTL ? template.nameEn : template.nameAr}</p>
+                    <p className="text-xs font-semibold text-gray-900 truncate">{isRTL ? `قالب ${index + 1}` : `Theme ${index + 1}`}</p>
                   </div>
                   {menu.templateId === template.id && (
                     <div className="absolute top-2 left-2 w-5 h-5 bg-tz-primary rounded-full flex items-center justify-center shadow-sm">
