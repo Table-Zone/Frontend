@@ -180,6 +180,23 @@ function isLightColor(hex: string) {
   return brightness > 128;
 }
 
+// Mix a hex color toward white (amt > 0 lightens) or black (amt < 0 darkens). amt in [-1, 1].
+function shade(hex: string, amt: number) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substr(0, 2), 16);
+  const g = parseInt(h.substr(2, 2), 16);
+  const b = parseInt(h.substr(4, 2), 16);
+  const t = amt < 0 ? 0 : 255;
+  const p = Math.abs(amt);
+  const mix = (c: number) => Math.round(c + (t - c) * p);
+  return `#${[mix(r), mix(g), mix(b)].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}
+
+// Readable text color to place on top of a solid color fill.
+function textOn(hex: string) {
+  return isLightColor(hex) ? '#2A2014' : '#ffffff';
+}
+
 function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
   if (!url) return <div className="fixed inset-0 z-0" style={{ backgroundColor: overlayColor }} />;
   return (
@@ -194,14 +211,26 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
    TEMPLATE 1: NOIR LUXE
    ======================================================================== */
 function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  // Warm-noir + champagne-gold identity for this template.
-  const GOLD_PRICE = '#E2C786';
-  const SILVER = 'linear-gradient(to bottom, #F1DEB0 0%, #E0C485 16%, #C9A96E 50%, #A98A52 84%, #E6CE97 100%)';
-  const SILVER_SOFT = 'linear-gradient(to bottom, #D8BE85 0%, #A98A52 52%, #C7A969 100%)';
-  // Subtle vertical brushed texture over a deep espresso-black base.
+  // Warm-noir layout, palette driven by the store's brand colors.
+  const P = menu.primaryColor || '#17130E';
+  const A = menu.accentColor || '#C9A96E';
+  const light = isLightColor(P);
+
+  const GOLD_PRICE = A;
+  const onAccent = textOn(A);
+  const SILVER = `linear-gradient(to bottom, ${shade(A, 0.32)} 0%, ${shade(A, 0.12)} 16%, ${A} 50%, ${shade(A, -0.22)} 84%, ${shade(A, 0.22)} 100%)`;
+  const SILVER_SOFT = `linear-gradient(to bottom, ${shade(A, 0.12)} 0%, ${shade(A, -0.22)} 52%, ${A} 100%)`;
+  // Subtle vertical brushed texture over the brand base color.
   const bodyBg =
-    'repeating-linear-gradient(90deg, rgba(255,236,200,0.015) 0px, rgba(255,236,200,0.015) 1px, transparent 1px, transparent 6px), ' +
-    'linear-gradient(180deg, #17130E 0%, #100D08 100%)';
+    `repeating-linear-gradient(90deg, ${hexToRgba(A, 0.02)} 0px, ${hexToRgba(A, 0.02)} 1px, transparent 1px, transparent 6px), ` +
+    `linear-gradient(180deg, ${shade(P, light ? -0.03 : 0.04)} 0%, ${shade(P, -0.12)} 100%)`;
+
+  const textColor = light ? '#1f1b16' : '#EDE7DB';
+  const mutedColor = light ? '#6b6256' : '#b8b0a2';
+  const cardBg = light ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.035)';
+  const cardBorder = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)';
+  const trackBg = light ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)';
+  const trackBorder = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
 
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
   const [activeCat, setActiveCat] = useState<string>('all');
@@ -209,8 +238,8 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
 
   const MetalBar = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
     <div
-      className={`relative rounded-2xl px-5 py-3 text-[#2A2014] font-bold shadow-[0_6px_18px_rgba(0,0,0,0.5)] ${className}`}
-      style={{ background: SILVER }}
+      className={`relative rounded-2xl px-5 py-3 font-bold shadow-[0_6px_18px_rgba(0,0,0,0.5)] ${className}`}
+      style={{ background: SILVER, color: onAccent }}
     >
       <span className="absolute inset-x-3 top-1 h-px rounded-full bg-white/50" />
       {children}
@@ -218,7 +247,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
   );
 
   return (
-    <div className="min-h-screen relative" style={{ background: bodyBg, color: '#EDE7DB' }} dir={isEnglish ? 'ltr' : 'rtl'}>
+    <div className="min-h-screen relative" style={{ background: bodyBg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Header card (light) ===== */}
       <header className="relative overflow-hidden">
         {menu.bannerUrl && (
@@ -247,13 +276,13 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
 
       {/* ===== Filter pills ===== */}
       <div className="max-w-3xl mx-auto px-4 pt-6">
-        <div className="rounded-2xl p-2 bg-white/[0.04] border border-white/10 shadow-inner overflow-x-auto">
+        <div className="rounded-2xl p-2 border shadow-inner overflow-x-auto" style={{ backgroundColor: trackBg, borderColor: trackBorder }}>
           <div className="flex gap-2 min-w-max">
-            <FilterPill active={activeCat === 'all'} onClick={() => setActiveCat('all')} silver={SILVER} silverSoft={SILVER_SOFT}>
+            <FilterPill active={activeCat === 'all'} onClick={() => setActiveCat('all')} silver={SILVER} silverSoft={SILVER_SOFT} textActive={onAccent} textIdle={A}>
               {isEnglish ? 'All' : 'جميع الفئات'}
             </FilterPill>
             {cats.map((cat: any) => (
-              <FilterPill key={cat.id} active={activeCat === cat.id} onClick={() => setActiveCat(cat.id)} silver={SILVER} silverSoft={SILVER_SOFT}>
+              <FilterPill key={cat.id} active={activeCat === cat.id} onClick={() => setActiveCat(cat.id)} silver={SILVER} silverSoft={SILVER_SOFT} textActive={onAccent} textIdle={A}>
                 {pickCategoryName(cat, isEnglish)}
               </FilterPill>
             ))}
@@ -270,26 +299,27 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
               {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                 <div
                   key={item.id}
-                  className="rounded-xl bg-white/[0.035] border border-white/[0.07] px-4 py-3.5 flex gap-3 hover:bg-white/[0.06] transition-colors"
+                  className="rounded-xl border px-4 py-3.5 flex gap-3 transition-colors"
+                  style={{ backgroundColor: cardBg, borderColor: cardBorder }}
                 >
                   {item.imageUrl && (
-                    <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border border-white/10" loading="lazy" decoding="async" />
+                    <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border" loading="lazy" decoding="async" style={{ borderColor: cardBorder }} />
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-3">
-                      <h4 className="font-bold text-[15px] text-white break-words min-w-0 leading-snug">{pickItemName(item, isEnglish)}</h4>
+                      <h4 className="font-bold text-[15px] break-words min-w-0 leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
                       <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: GOLD_PRICE }}>
                         {item.price} {isEnglish ? 'SAR' : 'ر.س'}
                       </span>
                     </div>
                     {pickItemDescription(item, isEnglish) && (
-                      <p className="text-xs mt-1.5 leading-relaxed text-neutral-400/90">{pickItemDescription(item, isEnglish)}</p>
+                      <p className="text-xs mt-1.5 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
                     )}
                     <ItemDetailTags
                       details={item.details}
                       isEnglish={isEnglish}
                       className="flex flex-wrap gap-1.5 mt-2"
-                      spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-neutral-300 border border-white/10"
+                      spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-current/20 opacity-70"
                     />
                   </div>
                 </div>
@@ -299,8 +329,8 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
         ))}
       </main>
 
-      <footer className="text-center py-8 text-xs border-t border-white/[0.06]">
-        <p className="tracking-[0.3em] uppercase text-neutral-500">{menu.workspaceName}</p>
+      <footer className="text-center py-8 text-xs border-t" style={{ borderColor: cardBorder }}>
+        <p className="tracking-[0.3em] uppercase" style={{ color: mutedColor }}>{menu.workspaceName}</p>
       </footer>
     </div>
   );
@@ -312,20 +342,27 @@ function FilterPill({
   children,
   silver,
   silverSoft,
+  textActive,
+  textIdle,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
   silver: string;
   silverSoft: string;
+  textActive: string;
+  textIdle: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`relative shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-all ${
-        active ? 'text-[#2A2014] shadow-[0_4px_12px_rgba(0,0,0,0.45)]' : 'text-[#C9A96E] hover:text-[#EDE7DB]'
-      }`}
-      style={{ background: active ? silver : silverSoft, opacity: active ? 1 : 0.35 }}
+      className="relative shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-all"
+      style={{
+        background: active ? silver : silverSoft,
+        color: active ? textActive : textIdle,
+        opacity: active ? 1 : 0.4,
+        boxShadow: active ? '0 4px 12px rgba(0,0,0,0.45)' : 'none',
+      }}
     >
       {children}
     </button>
@@ -336,7 +373,15 @@ function FilterPill({
    TEMPLATE 2: ORDER GRID — clean light menu with sticky category nav
    ======================================================================== */
 function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
+  const PAGE = menu.primaryColor || '#FAFAFA';
   const TEAL = menu.accentColor || '#3C97A6';
+  const light = isLightColor(PAGE);
+  const onTeal = textOn(TEAL);
+  const textColor = light ? '#262626' : '#f1f1f1';
+  const muted = light ? '#737373' : '#a3a3a3';
+  const surface = light ? '#ffffff' : shade(PAGE, 0.07);
+  const border = light ? '#e5e5e5' : 'rgba(255,255,255,0.12)';
+  const borderSoft = light ? '#f1f1f1' : 'rgba(255,255,255,0.07)';
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
   const [activeCat, setActiveCat] = useState<string>(cats[0]?.id || '');
 
@@ -367,10 +412,10 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
   }, [menu.slug, cats.length]);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-neutral-800" dir={isEnglish ? 'ltr' : 'rtl'}>
+    <div className="min-h-screen" style={{ backgroundColor: PAGE, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Top bar ===== */}
       <div className="sticky top-0 z-40 shadow-sm" style={{ backgroundColor: TEAL }}>
-        <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between text-white">
+        <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between" style={{ color: onTeal }}>
           <MenuIcon className="w-6 h-6 opacity-90" />
           <span className="font-bold tracking-wide truncate">{menu.workspaceName}</span>
         </div>
@@ -381,15 +426,15 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         {menu.logoUrl ? (
           <img src={getImageUrl(menu.logoUrl)} alt="" className="w-28 h-28 rounded-2xl object-cover shadow-md" fetchPriority="high" decoding="async" />
         ) : (
-          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-bold text-white shadow-md" style={{ backgroundColor: TEAL }}>
+          <div className="w-28 h-28 rounded-2xl flex items-center justify-center text-4xl font-bold shadow-md" style={{ backgroundColor: TEAL, color: onTeal }}>
             {menu.workspaceName?.charAt(0)}
           </div>
         )}
-        <p className="text-sm mt-3 font-medium text-neutral-500">{pickMenuTitle(menu, isEnglish)}</p>
+        <p className="text-sm mt-3 font-medium" style={{ color: muted }}>{pickMenuTitle(menu, isEnglish)}</p>
       </div>
 
       {/* ===== Mobile category chips ===== */}
-      <div className="lg:hidden sticky top-14 z-30 bg-[#fafafa]/95 backdrop-blur border-b border-neutral-200">
+      <div className="lg:hidden sticky top-14 z-30 backdrop-blur border-b" style={{ backgroundColor: PAGE, borderColor: border }}>
         <div className="flex gap-2 overflow-x-auto px-4 py-2.5">
           {cats.map((cat: any) => (
             <button
@@ -398,8 +443,8 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
               className="shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold border transition-colors"
               style={
                 activeCat === cat.id
-                  ? { backgroundColor: TEAL, color: '#fff', borderColor: TEAL }
-                  : { backgroundColor: '#fff', color: '#525252', borderColor: '#e5e5e5' }
+                  ? { backgroundColor: TEAL, color: onTeal, borderColor: TEAL }
+                  : { backgroundColor: surface, color: muted, borderColor: border }
               }
             >
               {pickCategoryName(cat, isEnglish)}
@@ -412,15 +457,15 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
       <div className="max-w-6xl mx-auto px-4 pb-20 lg:grid lg:grid-cols-[260px_1fr] lg:gap-8 lg:items-start">
         {/* Sidebar nav (desktop) */}
         <aside className="hidden lg:block sticky top-20 self-start">
-          <nav className="rounded-2xl border border-neutral-200 bg-white overflow-hidden">
+          <nav className="rounded-2xl border overflow-hidden" style={{ backgroundColor: surface, borderColor: border }}>
             {cats.map((cat: any) => {
               const active = activeCat === cat.id;
               return (
                 <button
                   key={cat.id}
                   onClick={() => scrollToCat(cat.id)}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm border-b border-neutral-100 last:border-b-0 transition-colors"
-                  style={active ? { color: TEAL, backgroundColor: `${TEAL}0F`, fontWeight: 700 } : { color: '#404040' }}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm border-b last:border-b-0 transition-colors"
+                  style={active ? { color: TEAL, backgroundColor: `${TEAL}14`, fontWeight: 700, borderColor: borderSoft } : { color: textColor, borderColor: borderSoft }}
                 >
                   <ChevronLeft className="w-4 h-4 shrink-0" style={{ transform: isEnglish ? 'rotate(180deg)' : 'none', opacity: active ? 1 : 0.4 }} />
                   <span className="flex-1 text-start break-words">{pickCategoryName(cat, isEnglish)}</span>
@@ -434,23 +479,23 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         <main className="space-y-10 pt-2">
           {cats.map((cat: any) => (
             <section key={cat.id} id={`sec-${cat.id}`} data-cat={cat.id} className="scroll-mt-24">
-              <h2 className="text-xl font-bold mb-4 text-neutral-900 text-start">{pickCategoryName(cat, isEnglish)}</h2>
+              <h2 className="text-xl font-bold mb-4 text-start" style={{ color: textColor }}>{pickCategoryName(cat, isEnglish)}</h2>
               <div className="space-y-3">
                 {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
-                  <div key={item.id} className="flex gap-4 bg-white rounded-2xl border border-neutral-200 p-3 hover:shadow-md transition-shadow">
+                  <div key={item.id} className="flex gap-4 rounded-2xl border p-3 hover:shadow-md transition-shadow" style={{ backgroundColor: surface, borderColor: border }}>
                     <div className="flex-1 min-w-0 flex flex-col">
-                      <h4 className="font-bold text-[15px] text-neutral-900 break-words leading-snug">{pickItemName(item, isEnglish)}</h4>
+                      <h4 className="font-bold text-[15px] break-words leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
                       {pickItemDescription(item, isEnglish) && (
-                        <p className="text-xs mt-1 leading-relaxed text-neutral-500 line-clamp-2">{pickItemDescription(item, isEnglish)}</p>
+                        <p className="text-xs mt-1 leading-relaxed line-clamp-2" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
                       )}
                       <ItemDetailTags
                         details={item.details}
                         isEnglish={isEnglish}
                         className="flex flex-wrap gap-1.5 mt-2"
-                        spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-500"
+                        spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-current/20 opacity-70"
                       />
                       <div className="mt-auto pt-3">
-                        <span className="inline-block rounded-lg px-3 py-1 text-sm font-bold" style={{ backgroundColor: `${TEAL}14`, color: TEAL }}>
+                        <span className="inline-block rounded-lg px-3 py-1 text-sm font-bold" style={{ backgroundColor: `${TEAL}1F`, color: TEAL }}>
                           {item.price} {isEnglish ? 'SAR' : 'ر.س'}
                         </span>
                       </div>
@@ -466,7 +511,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
         </main>
       </div>
 
-      <footer className="text-center py-8 text-xs text-neutral-400 border-t border-neutral-200">
+      <footer className="text-center py-8 text-xs border-t" style={{ color: muted, borderColor: border }}>
         <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
       </footer>
     </div>
