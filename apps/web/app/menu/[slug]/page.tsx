@@ -208,164 +208,136 @@ function FullBg({ url, overlayColor }: { url?: string; overlayColor: string }) {
 }
 
 /* ========================================================================
-   TEMPLATE 1: NOIR LUXE
+   TEMPLATE 1: WALEEF CAFE — cream/champagne menu.
+   Sticky category pill nav + per-category layout: categories whose items
+   carry their own photos render as a champagne card grid (pastries); the
+   rest render as a dotted-leader list with circular thumbnails (drinks).
+   Palette is driven by the store's brand colors, defaulting to Waleef.
    ======================================================================== */
 function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean }) {
-  // Warm-noir layout, palette driven by the store's brand colors.
-  const P = menu.primaryColor || '#17130E';
-  const A = menu.accentColor || '#C9A96E';
-  const light = isLightColor(P);
+  const PAGE = menu.primaryColor || '#ECE6D2';
+  const ACCENT = menu.accentColor || '#8C7A39';
+  const light = isLightColor(PAGE);
 
-  const GOLD_PRICE = A;
-  const onAccent = textOn(A);
-  const SILVER = `linear-gradient(to bottom, ${shade(A, 0.32)} 0%, ${shade(A, 0.12)} 16%, ${A} 50%, ${shade(A, -0.22)} 84%, ${shade(A, 0.22)} 100%)`;
-  const SILVER_SOFT = `linear-gradient(to bottom, ${shade(A, 0.12)} 0%, ${shade(A, -0.22)} 52%, ${A} 100%)`;
-  // Subtle vertical brushed texture over the brand base color.
-  const bodyBg =
-    `repeating-linear-gradient(90deg, ${hexToRgba(A, 0.02)} 0px, ${hexToRgba(A, 0.02)} 1px, transparent 1px, transparent 6px), ` +
-    `linear-gradient(180deg, ${shade(P, light ? -0.03 : 0.04)} 0%, ${shade(P, -0.12)} 100%)`;
-
-  const textColor = light ? '#1f1b16' : '#EDE7DB';
-  const mutedColor = light ? '#6b6256' : '#b8b0a2';
-  const cardBg = light ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.035)';
-  const cardBorder = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.07)';
-  const trackBg = light ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)';
-  const trackBorder = light ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.1)';
+  const textColor = light ? '#2b271c' : '#ece5d4';
+  const muted = light ? '#8a8166' : '#b6ad96';
+  const headline = light ? shade(ACCENT, -0.35) : shade(ACCENT, 0.4); // dark olive titles & prices
+  const tint = light ? shade(ACCENT, 0.74) : shade(ACCENT, -0.5); // champagne card top
+  const cardSurface = light ? '#ffffff' : shade(PAGE, 0.14);
+  const border = light ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.1)';
+  const dotted = light ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.28)';
+  const ink = light ? '#211f18' : shade(PAGE, 0.92); // top strip
+  const pillActiveBg = light ? '#3a3726' : shade(ACCENT, -0.15);
+  const pillActiveText = '#f4eedd';
+  const pageBg = `linear-gradient(180deg, ${shade(PAGE, 0.16)} 0%, ${PAGE} 32%, ${shade(PAGE, -0.05)} 100%)`;
+  const riyal = isEnglish ? 'SAR' : 'ر.س';
 
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
-  const [activeCat, setActiveCat] = useState<string>('all');
-  const shown = activeCat === 'all' ? cats : cats.filter((c: any) => c.id === activeCat);
+  const [activeCat, setActiveCat] = useState<string>(cats[0]?.id || '');
+  const active = cats.find((c: any) => c.id === activeCat) || cats[0];
+  const altName = (c: any) => (isEnglish ? c?.name : c?.nameEn); // letterspaced caption
 
-  const MetalBar = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-    <div
-      className={`relative rounded-2xl px-5 py-3 font-bold shadow-[0_6px_18px_rgba(0,0,0,0.5)] ${className}`}
-      style={{ background: SILVER, color: onAccent }}
-    >
-      <span className="absolute inset-x-3 top-1 h-px rounded-full bg-white/50" />
-      {children}
-    </div>
-  );
+  // Whether a category should render as the photo card grid (vs the dotted list).
+  const isGrid = (cat: any) => {
+    const items = cat.items.filter((i: any) => i.isAvailable !== false);
+    const withImg = items.filter((i: any) => i.imageUrl).length;
+    return items.length > 0 && withImg >= Math.ceil(items.length / 2);
+  };
+
+  const fallbackThumb = menu.logoUrl ? getImageUrl(menu.logoUrl) : undefined;
 
   return (
-    <div className="min-h-screen relative" style={{ background: bodyBg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      {/* ===== Header card (light) ===== */}
-      <header className="relative overflow-hidden">
-        {menu.bannerUrl && (
-          <div className="absolute inset-0">
-            <img src={getImageUrl(menu.bannerUrl)} alt="" className="w-full h-full object-cover" fetchPriority="high" decoding="async" />
-            <div className="absolute inset-0 bg-white/82 backdrop-blur-[2px]" />
+    <div className="min-h-screen" style={{ background: pageBg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
+      {/* ===== Sticky nav ===== */}
+      <div className="sticky top-0 z-40">
+        <div className="w-full" style={{ height: 36, background: ink }} />
+        <nav className="border-b backdrop-blur" style={{ backgroundColor: hexToRgba(PAGE, 0.92), borderColor: border }}>
+          <div className="max-w-5xl mx-auto flex gap-2 overflow-x-auto px-4 py-3 justify-center">
+            {cats.map((cat: any) => {
+              const on = cat.id === activeCat;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCat(cat.id)}
+                  className="shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-colors"
+                  style={on
+                    ? { backgroundColor: pillActiveBg, color: pillActiveText }
+                    : { color: muted }}
+                >
+                  {pickCategoryName(cat, isEnglish)}
+                </button>
+              );
+            })}
           </div>
-        )}
-        <div className={`relative ${menu.bannerUrl ? '' : 'bg-[#f3f1ee]'}`}>
-          <div className="max-w-3xl mx-auto px-6 py-7 flex items-center gap-5">
-            {menu.logoUrl ? (
-              <img src={getImageUrl(menu.logoUrl)} alt="" className="w-24 h-24 rounded-full object-cover border-2 border-white shadow-xl shrink-0" fetchPriority="high" decoding="async" />
-            ) : (
-              <div className="w-24 h-24 rounded-full shrink-0 flex items-center justify-center text-3xl font-bold bg-white shadow-xl text-neutral-800">
-                {menu.workspaceName?.charAt(0)}
-              </div>
-            )}
-            <div className="min-w-0 flex-1 text-neutral-900">
-              <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide truncate">{menu.workspaceName}</h1>
-              <p className="text-sm md:text-base mt-1.5 text-neutral-500">{pickMenuTitle(menu, isEnglish)}</p>
-            </div>
-          </div>
-        </div>
-        <div className="h-px w-full" style={{ background: SILVER_SOFT }} />
-      </header>
-
-      {/* ===== Filter pills ===== */}
-      <div className="max-w-3xl mx-auto px-4 pt-6">
-        <div className="rounded-2xl p-2 border shadow-inner overflow-x-auto" style={{ backgroundColor: trackBg, borderColor: trackBorder }}>
-          <div className="flex gap-2 min-w-max">
-            <FilterPill active={activeCat === 'all'} onClick={() => setActiveCat('all')} silver={SILVER} silverSoft={SILVER_SOFT} textActive={onAccent} textIdle={A}>
-              {isEnglish ? 'All' : 'جميع الفئات'}
-            </FilterPill>
-            {cats.map((cat: any) => (
-              <FilterPill key={cat.id} active={activeCat === cat.id} onClick={() => setActiveCat(cat.id)} silver={SILVER} silverSoft={SILVER_SOFT} textActive={onAccent} textIdle={A}>
-                {pickCategoryName(cat, isEnglish)}
-              </FilterPill>
-            ))}
-          </div>
-        </div>
+        </nav>
       </div>
 
-      {/* ===== Category sections ===== */}
-      <main className="max-w-3xl mx-auto px-4 pt-6 pb-16 space-y-8">
-        {shown.map((cat: any) => (
-          <section key={cat.id}>
-            <MetalBar className="mb-4 text-lg md:text-xl text-center">{pickCategoryName(cat, isEnglish)}</MetalBar>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl border px-4 py-3.5 flex gap-3 transition-colors"
-                  style={{ backgroundColor: cardBg, borderColor: cardBorder }}
-                >
-                  {item.imageUrl && (
-                    <img src={getImageUrl(item.imageUrl)} alt="" className="w-14 h-14 rounded-lg object-cover shrink-0 border" loading="lazy" decoding="async" style={{ borderColor: cardBorder }} />
+      {/* ===== Section header ===== */}
+      {active && (
+        <header className="text-center pt-10 pb-2 px-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold" style={{ color: headline }}>{pickCategoryName(active, isEnglish)}</h1>
+          {altName(active) && (
+            <p className="mt-2 text-sm tracking-[0.4em] uppercase" style={{ color: muted }}>{altName(active)}</p>
+          )}
+          <span className="block mx-auto mt-4 h-px w-12" style={{ backgroundColor: muted }} />
+        </header>
+      )}
+
+      {/* ===== Active category body ===== */}
+      <main className="max-w-5xl mx-auto px-4 pt-6 pb-20">
+        {active && (isGrid(active) ? (
+          /* ---- Champagne photo card grid (pastries) ---- */
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {active.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
+              <div key={item.id} className="rounded-3xl overflow-hidden shadow-sm" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
+                <div className="flex items-center justify-center p-5" style={{ backgroundColor: tint, height: 168 }}>
+                  {item.imageUrl ? (
+                    <img src={getImageUrl(item.imageUrl)} alt="" className="max-h-full max-w-full object-contain drop-shadow-md" loading="lazy" decoding="async" />
+                  ) : (
+                    <span className="text-4xl font-black opacity-30" style={{ color: headline }}>{pickItemName(item, isEnglish).charAt(0)}</span>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h4 className="font-bold text-[15px] break-words min-w-0 leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
-                      <span className="shrink-0 whitespace-nowrap text-sm font-bold tracking-wide" style={{ color: GOLD_PRICE }}>
-                        {item.price} {isEnglish ? 'SAR' : 'ر.س'}
-                      </span>
-                    </div>
-                    {pickItemDescription(item, isEnglish) && (
-                      <p className="text-xs mt-1.5 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
-                    )}
-                    <ItemDetailTags
-                      details={item.details}
-                      isEnglish={isEnglish}
-                      className="flex flex-wrap gap-1.5 mt-2"
-                      spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-current/20 opacity-70"
-                    />
-                  </div>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div className="px-4 py-3.5 flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1 text-start">
+                    <h4 className="font-bold text-[15px] leading-snug break-words" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
+                    {pickItemDescription(item, isEnglish) && (
+                      <p className="text-xs italic mt-0.5 leading-relaxed line-clamp-1" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
+                    )}
+                  </div>
+                  <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* ---- Dotted-leader list (drinks) ---- */
+          <div className="rounded-3xl shadow-sm px-3 sm:px-6 py-2" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
+            {active.items.filter((item: any) => item.isAvailable !== false).map((item: any, i: number, arr: any[]) => {
+              const thumb = item.imageUrl ? getImageUrl(item.imageUrl) : fallbackThumb;
+              return (
+                <div key={item.id} className="flex items-center gap-3 sm:gap-4 py-4" style={i < arr.length - 1 ? { borderBottom: `1px dashed ${border}` } : undefined}>
+                  {thumb ? (
+                    <img src={thumb} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" style={{ backgroundColor: tint }} />
+                  ) : (
+                    <span className="w-12 h-12 rounded-full shrink-0" style={{ backgroundColor: tint }} />
+                  )}
+                  <h4 className="font-bold text-[15px] shrink-0 max-w-[45%] break-words leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
+                  <span className="flex-1 self-end mb-1.5 border-b border-dotted" style={{ borderColor: dotted }} />
+                  {pickItemDescription(item, isEnglish) && (
+                    <span className="hidden sm:inline text-sm italic shrink-0" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</span>
+                  )}
+                  <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
+                </div>
+              );
+            })}
+          </div>
         ))}
       </main>
 
-      <footer className="text-center py-8 text-xs border-t" style={{ borderColor: cardBorder }}>
-        <p className="tracking-[0.3em] uppercase" style={{ color: mutedColor }}>{menu.workspaceName}</p>
+      <footer className="text-center py-8 text-xs border-t" style={{ borderColor: border }}>
+        <p className="tracking-[0.3em] uppercase" style={{ color: muted }}>{menu.workspaceName}</p>
       </footer>
     </div>
-  );
-}
-
-function FilterPill({
-  active,
-  onClick,
-  children,
-  silver,
-  silverSoft,
-  textActive,
-  textIdle,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-  silver: string;
-  silverSoft: string;
-  textActive: string;
-  textIdle: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-all"
-      style={{
-        background: active ? silver : silverSoft,
-        color: active ? textActive : textIdle,
-        opacity: active ? 1 : 0.4,
-        boxShadow: active ? '0 4px 12px rgba(0,0,0,0.45)' : 'none',
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

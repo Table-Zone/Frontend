@@ -91,12 +91,25 @@ function TemplateMiniPreview({ template, small }: { template: any; small?: boole
   const noir = (
     <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
       <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
-        <div className="w-full px-3 pt-2">
-          <div className="w-6 h-6 rounded-full mx-auto mb-1 border" style={{ borderColor: template.accentColor + '60' }} />
-          <div className="h-px w-10 mx-auto mb-1" style={{ backgroundColor: template.accentColor + '40' }} />
-          <div className="space-y-1">
-            <div className="flex justify-between text-[8px]" style={{ color: template.accentColor }}><span>Item</span><span>10$</span></div>
-            <div className="flex justify-between text-[8px]" style={{ color: template.accentColor + '80' }}><span>Item</span><span>15$</span></div>
+        <div className="w-full">
+          {/* top strip + nav pills */}
+          <div className="h-1.5 w-full" style={{ backgroundColor: '#211f18' }} />
+          <div className="flex gap-1 justify-center py-1">
+            <div className="px-2 py-0.5 rounded-full text-[6px] font-bold" style={{ backgroundColor: '#3a3726', color: '#f4eedd' }}>A</div>
+            <div className="px-2 py-0.5 rounded-full text-[6px]" style={{ color: template.accentColor }}>B</div>
+            <div className="px-2 py-0.5 rounded-full text-[6px]" style={{ color: template.accentColor }}>C</div>
+          </div>
+          {/* champagne card grid */}
+          <div className="grid grid-cols-2 gap-1 px-3 pt-1">
+            {[0, 1].map((i) => (
+              <div key={i} className="rounded-md overflow-hidden bg-white border" style={{ borderColor: template.accentColor + '30' }}>
+                <div className="h-5" style={{ backgroundColor: template.accentColor + '33' }} />
+                <div className="flex justify-between items-center px-1 py-0.5">
+                  <div className="h-1 w-5 rounded" style={{ backgroundColor: template.accentColor + '99' }} />
+                  <div className="text-[6px] font-bold" style={{ color: template.accentColor }}>10</div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
