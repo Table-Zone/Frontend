@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { publicMenuAPI, getImageUrl } from '@/lib/api';
-import { Loader2, Plus, Languages, Menu as MenuIcon, ChevronLeft } from 'lucide-react';
+import { Loader2, Plus, Menu as MenuIcon, ChevronLeft } from 'lucide-react';
 import {
   pickItemName,
   pickItemDescription,
@@ -104,34 +104,23 @@ export default function PublicMenuPage() {
   }
 
   const template = menu.templateId || 'noir';
-  const langToggle = (
-    <button
-      type="button"
-      onClick={() => setIsEnglish((v) => !v)}
-      className="fixed top-6 z-[100] flex items-center gap-1.5 px-3 py-2 rounded-full bg-black/60 text-white text-xs backdrop-blur-sm border border-white/20"
-      style={{ [isEnglish ? 'left' : 'right']: '1rem' }}
-    >
-      <Languages className="w-3.5 h-3.5" />
-      {isEnglish ? 'العربية' : 'English'}
-    </button>
-  );
 
   switch (template) {
     case 'noir':
     case 'default':
-      return <>{langToggle}<NoirTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <NoirTemplate menu={menu} isEnglish={isEnglish} />;
     case 'editorial':
-      return <>{langToggle}<EditorialTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <EditorialTemplate menu={menu} isEnglish={isEnglish} />;
     case 'poster':
-      return <>{langToggle}<PosterTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <PosterTemplate menu={menu} isEnglish={isEnglish} />;
     case 'taker':
-      return <>{langToggle}<TakerTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <TakerTemplate menu={menu} isEnglish={isEnglish} />;
     case 'bistro':
-      return <>{langToggle}<BistroTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <BistroTemplate menu={menu} isEnglish={isEnglish} />;
     case 'bakery':
-      return <>{langToggle}<BakeryTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <BakeryTemplate menu={menu} isEnglish={isEnglish} />;
     default:
-      return <>{langToggle}<NoirTemplate menu={menu} isEnglish={isEnglish} /></>;
+      return <NoirTemplate menu={menu} isEnglish={isEnglish} />;
   }
 }
 
@@ -226,7 +215,6 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
   const pillActiveBg = ACCENT;   // active pill = exact accent
   const pillActiveText = textOn(ACCENT);
   const pageBg = PAGE;           // background = exact primary
-  const ink = shade(PAGE, light ? -0.85 : -0.5); // dark top strip
 
   const textColor = light ? '#2b271c' : '#ece5d4';
   const muted = light ? '#8a8166' : '#b6ad96';
@@ -276,7 +264,6 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
     <div className="min-h-screen" style={{ background: pageBg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Sticky nav ===== */}
       <div className="sticky top-0 z-40">
-        <div className="w-full" style={{ height: 36, background: ink }} />
         <nav className="border-b backdrop-blur" style={{ backgroundColor: hexToRgba(PAGE, 0.92), borderColor: border }}>
           <div className="max-w-5xl mx-auto flex gap-2 overflow-x-auto px-4 py-3 justify-center">
             {cats.map((cat: any) => {
