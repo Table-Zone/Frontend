@@ -105,24 +105,40 @@ export default function PublicMenuPage() {
 
   const template = menu.templateId || 'noir';
 
+  let templateNode: React.ReactNode;
   switch (template) {
+    case 'editorial':
+      templateNode = <EditorialTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
+    case 'poster':
+      templateNode = <PosterTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
+    case 'taker':
+      templateNode = <TakerTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
+    case 'bistro':
+      templateNode = <BistroTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
+    case 'bakery':
+      templateNode = <BakeryTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
     case 'noir':
     case 'default':
-      return <NoirTemplate menu={menu} isEnglish={isEnglish} />;
-    case 'editorial':
-      return <EditorialTemplate menu={menu} isEnglish={isEnglish} />;
-    case 'poster':
-      return <PosterTemplate menu={menu} isEnglish={isEnglish} />;
-    case 'taker':
-      return <TakerTemplate menu={menu} isEnglish={isEnglish} />;
-    case 'bistro':
-      return <BistroTemplate menu={menu} isEnglish={isEnglish} />;
-    case 'bakery':
-      return <BakeryTemplate menu={menu} isEnglish={isEnglish} />;
     default:
-      return <NoirTemplate menu={menu} isEnglish={isEnglish} />;
+      templateNode = <NoirTemplate menu={menu} isEnglish={isEnglish} />;
+      break;
   }
+
+  // All menu themes share one typeface: IBM Plex Sans Arabic (matches waleef.cafe).
+  return (
+    <div style={{ fontFamily: MENU_FONT }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap');`}</style>
+      {templateNode}
+    </div>
+  );
 }
+
+const MENU_FONT = "'IBM Plex Sans Arabic', system-ui, sans-serif";
 
 function ItemDetailTags({
   details,
@@ -682,9 +698,7 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
       : allItems.filter((i: any) => i._catId === activeCategory);
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bg, color: textColor, fontFamily: 'Tajawal, sans-serif' }} dir={isEnglish ? 'ltr' : 'rtl'}>
-      {/* Google Font */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');`}</style>
+    <div className="min-h-screen" style={{ backgroundColor: bg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
 
       {/* Hero — overflow visible so logo circle can bleed out */}
       <div className="relative w-full" style={{ height: '260px' }}>
