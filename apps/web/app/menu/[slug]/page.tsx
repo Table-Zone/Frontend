@@ -219,22 +219,25 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
   const ACCENT = menu.accentColor || '#8C7A39';
   const light = isLightColor(PAGE);
 
+  // Use the store's exact picked colors. PAGE is the background, ACCENT drives
+  // titles, prices and the active pill. Only neutrals (text/borders) and the
+  // champagne card tint are derived for contrast.
+  const headline = ACCENT;       // section titles + prices = exact accent
+  const pillActiveBg = ACCENT;   // active pill = exact accent
+  const pillActiveText = textOn(ACCENT);
+  const pageBg = PAGE;           // background = exact primary
+  const ink = shade(PAGE, light ? -0.85 : -0.5); // dark top strip
+
   const textColor = light ? '#2b271c' : '#ece5d4';
   const muted = light ? '#8a8166' : '#b6ad96';
-  const headline = light ? shade(ACCENT, -0.35) : shade(ACCENT, 0.4); // dark olive titles & prices
-  const tint = light ? shade(ACCENT, 0.74) : shade(ACCENT, -0.5); // champagne card top
+  const tint = light ? shade(ACCENT, 0.74) : shade(ACCENT, -0.5); // champagne card image bg
   const cardSurface = light ? '#ffffff' : shade(PAGE, 0.14);
   const border = light ? 'rgba(0,0,0,0.07)' : 'rgba(255,255,255,0.1)';
   const dotted = light ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.28)';
-  const ink = light ? '#211f18' : shade(PAGE, 0.92); // top strip
-  const pillActiveBg = light ? '#3a3726' : shade(ACCENT, -0.15);
-  const pillActiveText = '#f4eedd';
-  const pageBg = `linear-gradient(180deg, ${shade(PAGE, 0.16)} 0%, ${PAGE} 32%, ${shade(PAGE, -0.05)} 100%)`;
   const riyal = isEnglish ? 'SAR' : 'ر.س';
 
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
   const [activeCat, setActiveCat] = useState<string>(cats[0]?.id || '');
-  const active = cats.find((c: any) => c.id === activeCat) || cats[0];
   const altName = (c: any) => (isEnglish ? c?.name : c?.nameEn); // letterspaced caption
 
   // Whether a category should render as the photo card grid (vs the dotted list).
@@ -245,6 +248,29 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
   };
 
   const fallbackThumb = menu.logoUrl ? getImageUrl(menu.logoUrl) : undefined;
+
+  // Pills scroll to their section; the section in view highlights its pill.
+  const scrollToCat = (id: string) => {
+    setActiveCat(id);
+    const el = document.getElementById(`sec-${id}`);
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 110, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length) setActiveCat((visible[0].target as HTMLElement).dataset.cat || '');
+      },
+      { rootMargin: '-120px 0px -65% 0px', threshold: 0 },
+    );
+    cats.forEach((c: any) => {
+      const el = document.getElementById(`sec-${c.id}`);
+      if (el) obs.observe(el);
+    });
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [menu.slug, cats.length]);
 
   return (
     <div className="min-h-screen" style={{ background: pageBg, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
@@ -258,7 +284,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
               return (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveCat(cat.id)}
+                  onClick={() => scrollToCat(cat.id)}
                   className="shrink-0 rounded-full px-5 py-2 text-sm font-bold transition-colors"
                   style={on
                     ? { backgroundColor: pillActiveBg, color: pillActiveText }
@@ -272,65 +298,68 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
         </nav>
       </div>
 
-      {/* ===== Section header ===== */}
-      {active && (
-        <header className="text-center pt-10 pb-2 px-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold" style={{ color: headline }}>{pickCategoryName(active, isEnglish)}</h1>
-          {altName(active) && (
-            <p className="mt-2 text-sm tracking-[0.4em] uppercase" style={{ color: muted }}>{altName(active)}</p>
-          )}
-          <span className="block mx-auto mt-4 h-px w-12" style={{ backgroundColor: muted }} />
-        </header>
-      )}
+      {/* ===== All categories, stacked on one scrollable page ===== */}
+      <main className="max-w-5xl mx-auto px-4 pb-20">
+        {cats.map((cat: any) => (
+          <section key={cat.id} id={`sec-${cat.id}`} data-cat={cat.id} className="scroll-mt-28 pt-10">
+            <header className="text-center pb-2 px-4">
+              <h2 className="text-3xl md:text-4xl font-extrabold" style={{ color: headline }}>{pickCategoryName(cat, isEnglish)}</h2>
+              {altName(cat) && (
+                <p className="mt-2 text-sm tracking-[0.4em] uppercase" style={{ color: muted }}>{altName(cat)}</p>
+              )}
+              <span className="block mx-auto mt-4 h-px w-12" style={{ backgroundColor: muted }} />
+            </header>
 
-      {/* ===== Active category body ===== */}
-      <main className="max-w-5xl mx-auto px-4 pt-6 pb-20">
-        {active && (isGrid(active) ? (
-          /* ---- Champagne photo card grid (pastries) ---- */
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {active.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
-              <div key={item.id} className="rounded-3xl overflow-hidden shadow-sm" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
-                <div className="flex items-center justify-center p-5" style={{ backgroundColor: tint, height: 168 }}>
-                  {item.imageUrl ? (
-                    <img src={getImageUrl(item.imageUrl)} alt="" className="max-h-full max-w-full object-contain drop-shadow-md" loading="lazy" decoding="async" />
-                  ) : (
-                    <span className="text-4xl font-black opacity-30" style={{ color: headline }}>{pickItemName(item, isEnglish).charAt(0)}</span>
-                  )}
+            <div className="pt-6">
+              {isGrid(cat) ? (
+                /* ---- Champagne photo card grid (pastries) ---- */
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                  {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
+                    <div key={item.id} className="rounded-3xl overflow-hidden shadow-sm" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
+                      <div className="flex items-center justify-center p-5" style={{ backgroundColor: tint, height: 168 }}>
+                        {item.imageUrl ? (
+                          <img src={getImageUrl(item.imageUrl)} alt="" className="max-h-full max-w-full object-contain drop-shadow-md" loading="lazy" decoding="async" />
+                        ) : (
+                          <span className="text-4xl font-black opacity-30" style={{ color: headline }}>{pickItemName(item, isEnglish).charAt(0)}</span>
+                        )}
+                      </div>
+                      <div className="px-4 py-3.5 flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1 text-start">
+                          <h4 className="font-bold text-[15px] leading-snug break-words" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
+                          {pickItemDescription(item, isEnglish) && (
+                            <p className="text-xs italic mt-0.5 leading-relaxed line-clamp-1" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
+                          )}
+                        </div>
+                        <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="px-4 py-3.5 flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1 text-start">
-                    <h4 className="font-bold text-[15px] leading-snug break-words" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
-                    {pickItemDescription(item, isEnglish) && (
-                      <p className="text-xs italic mt-0.5 leading-relaxed line-clamp-1" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
-                    )}
-                  </div>
-                  <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
+              ) : (
+                /* ---- Dotted-leader list (drinks) ---- */
+                <div className="rounded-3xl shadow-sm px-3 sm:px-6 py-2" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
+                  {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any, i: number, arr: any[]) => {
+                    const thumb = item.imageUrl ? getImageUrl(item.imageUrl) : fallbackThumb;
+                    return (
+                      <div key={item.id} className="flex items-center gap-3 sm:gap-4 py-4" style={i < arr.length - 1 ? { borderBottom: `1px dashed ${border}` } : undefined}>
+                        {thumb ? (
+                          <img src={thumb} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" style={{ backgroundColor: tint }} />
+                        ) : (
+                          <span className="w-12 h-12 rounded-full shrink-0" style={{ backgroundColor: tint }} />
+                        )}
+                        <h4 className="font-bold text-[15px] shrink-0 max-w-[45%] break-words leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
+                        <span className="flex-1 self-end mb-1.5 border-b border-dotted" style={{ borderColor: dotted }} />
+                        {pickItemDescription(item, isEnglish) && (
+                          <span className="hidden sm:inline text-sm italic shrink-0" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</span>
+                        )}
+                        <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          /* ---- Dotted-leader list (drinks) ---- */
-          <div className="rounded-3xl shadow-sm px-3 sm:px-6 py-2" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
-            {active.items.filter((item: any) => item.isAvailable !== false).map((item: any, i: number, arr: any[]) => {
-              const thumb = item.imageUrl ? getImageUrl(item.imageUrl) : fallbackThumb;
-              return (
-                <div key={item.id} className="flex items-center gap-3 sm:gap-4 py-4" style={i < arr.length - 1 ? { borderBottom: `1px dashed ${border}` } : undefined}>
-                  {thumb ? (
-                    <img src={thumb} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" loading="lazy" decoding="async" style={{ backgroundColor: tint }} />
-                  ) : (
-                    <span className="w-12 h-12 rounded-full shrink-0" style={{ backgroundColor: tint }} />
-                  )}
-                  <h4 className="font-bold text-[15px] shrink-0 max-w-[45%] break-words leading-snug" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
-                  <span className="flex-1 self-end mb-1.5 border-b border-dotted" style={{ borderColor: dotted }} />
-                  {pickItemDescription(item, isEnglish) && (
-                    <span className="hidden sm:inline text-sm italic shrink-0" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</span>
-                  )}
-                  <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
-                </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          </section>
         ))}
       </main>
 
