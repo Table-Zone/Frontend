@@ -49,6 +49,7 @@ interface MenuCategory {
   name: string;
   nameEn?: string;
   imageUrl?: string;
+  displayStyle?: string; // auto | grid | list (Theme 1 layout)
   sortOrder: number;
   items: MenuItem[];
 }
@@ -907,6 +908,23 @@ export default function MenuDesignPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 self-end sm:self-auto shrink-0">
+                  {(menu.templateId === 'noir' || menu.templateId === 'default') && (
+                    <select
+                      value={cat.displayStyle || 'auto'}
+                      title={isRTL ? 'طريقة عرض التصنيف في القائمة' : 'How this category is shown in the menu'}
+                      className="h-9 sm:h-8 rounded-lg border border-gray-300 bg-white text-xs px-2 mr-1 focus:border-tz-primary focus:outline-none"
+                      onChange={async (e) => {
+                        if (!workspaceId) return;
+                        if (!subscriptionActive) { setShowSubscribe(true); return; }
+                        await qrMenuAPI.updateCategory(workspaceId, cat.id, { displayStyle: e.target.value });
+                        await refreshMenu();
+                      }}
+                    >
+                      <option value="auto">{isRTL ? 'تلقائي' : 'Auto'}</option>
+                      <option value="grid">{isRTL ? 'صور بارزة' : 'Highlight (cards)'}</option>
+                      <option value="list">{isRTL ? 'قائمة' : 'List'}</option>
+                    </select>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"

@@ -30,6 +30,7 @@ interface MenuCategory {
   name: string;
   nameEn?: string;
   imageUrl?: string;
+  displayStyle?: string; // auto | grid | list
   items: MenuItem[];
 }
 
@@ -245,7 +246,11 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
   const altName = (c: any) => (isEnglish ? c?.name : c?.nameEn); // letterspaced caption
 
   // Whether a category should render as the photo card grid (vs the dotted list).
+  // The owner can force this per category via displayStyle ('grid' | 'list');
+  // 'auto' (default) falls back to the heuristic: grid if >= half the items have photos.
   const isGrid = (cat: any) => {
+    if (cat.displayStyle === 'grid') return true;
+    if (cat.displayStyle === 'list') return false;
     const items = cat.items.filter((i: any) => i.isAvailable !== false);
     const withImg = items.filter((i: any) => i.imageUrl).length;
     return items.length > 0 && withImg >= Math.ceil(items.length / 2);
