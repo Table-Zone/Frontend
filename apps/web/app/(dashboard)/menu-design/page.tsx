@@ -93,10 +93,9 @@ function TemplateMiniPreview({ template, small }: { template: any; small?: boole
     <div className={`${h} w-full relative overflow-hidden`} style={{ backgroundColor: template.primaryColor }}>
       <div className={`absolute top-0 left-0 w-[180px] ${origin} ${scale}`}>
         <div className="w-full">
-          {/* top strip + nav pills */}
-          <div className="h-1.5 w-full" style={{ backgroundColor: '#211f18' }} />
-          <div className="flex gap-1 justify-center py-1">
-            <div className="px-2 py-0.5 rounded-full text-[6px] font-bold" style={{ backgroundColor: '#3a3726', color: '#f4eedd' }}>A</div>
+          {/* nav pills */}
+          <div className="flex gap-1 justify-center py-1.5">
+            <div className="px-2 py-0.5 rounded-full text-[6px] font-bold" style={{ backgroundColor: template.accentColor, color: '#2A2014' }}>A</div>
             <div className="px-2 py-0.5 rounded-full text-[6px]" style={{ color: template.accentColor }}>B</div>
             <div className="px-2 py-0.5 rounded-full text-[6px]" style={{ color: template.accentColor }}>C</div>
           </div>

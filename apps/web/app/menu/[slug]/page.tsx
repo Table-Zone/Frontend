@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { publicMenuAPI, getImageUrl } from '@/lib/api';
-import { Loader2, Plus, Menu as MenuIcon, ChevronLeft } from 'lucide-react';
+import { Loader2, Plus, ChevronLeft } from 'lucide-react';
 import {
   pickItemName,
   pickItemDescription,
@@ -424,8 +424,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
     <div className="min-h-screen" style={{ backgroundColor: PAGE, color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
       {/* ===== Top bar ===== */}
       <div className="sticky top-0 z-40 shadow-sm" style={{ backgroundColor: TEAL }}>
-        <div className="max-w-6xl mx-auto h-14 px-4 flex items-center justify-between" style={{ color: onTeal }}>
-          <MenuIcon className="w-6 h-6 opacity-90" />
+        <div className="max-w-6xl mx-auto h-14 px-4 flex items-center" style={{ color: onTeal }}>
           <span className="font-bold tracking-wide truncate">{menu.workspaceName}</span>
         </div>
       </div>
