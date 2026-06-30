@@ -615,10 +615,10 @@ export default function MenuDesignPage() {
                   </svg>
                 </div>
                 <p className="text-xs font-semibold text-gray-900 leading-snug">
-                  {isRTL ? 'اطلب قائمتك الخاصة' : 'Request your own menu'}
+                  {isRTL ? 'ما اعجبك ولا قالب هنا؟' : 'Request your own menu'}
                 </p>
                 <p className="text-[10px] text-gray-500 mt-1 leading-snug">
-                  {isRTL ? 'تواصل معنا عبر واتساب' : 'Chat with us on WhatsApp'}
+                  {isRTL ? 'لا تشيل هم ! تواصل معنا وبنوفر لك تصميم على رغبتك' : 'Chat with us on WhatsApp'}
                 </p>
               </a>
             </div>
