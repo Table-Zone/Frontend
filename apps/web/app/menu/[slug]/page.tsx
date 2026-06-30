@@ -535,7 +535,10 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
   const accent = menu.accentColor || '#2E5AAC';
   const textColor = isLightColor(bg) ? '#171717' : '#f5f5f5';
   const mutedColor = isLightColor(bg) ? '#525252' : '#a3a3a3';
+  const dividerColor = isLightColor(bg) ? '#00000014' : '#ffffff1f';
   const bgOverlay = menu.backgroundUrl ? `${bg}D9` : bg;
+
+  const visibleCats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
 
   return (
     <div className="min-h-screen relative" style={{ color: textColor }} dir={isEnglish ? 'ltr' : 'rtl'}>
@@ -549,21 +552,31 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
           <p className="text-sm mt-2 font-medium" style={{ color: accent }}>{menu.workspaceName}</p>
         </header>
 
-        <main className="space-y-10 pb-16">
-          {menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false)).map((cat: any) => (
-            <div key={cat.id}>
-              <h3 className="text-center font-bold text-lg mb-4 tracking-widest uppercase" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
-                  <div key={item.id} className="text-center">
-                    <h4 className="font-bold text-sm">{pickItemName(item, isEnglish)}</h4>
-                    <p className="text-xs mt-0.5" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
-                    <span className="text-xs font-bold mt-1 inline-block" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <main className="pb-16">
+          {visibleCats.map((cat: any, ci: number) => {
+            const items = cat.items.filter((item: any) => item.isAvailable !== false);
+            return (
+              <section key={cat.id} className={ci > 0 ? 'mt-8 pt-8' : ''} style={ci > 0 ? { borderTop: `1px solid ${dividerColor}` } : undefined}>
+                {/* Category title with centered accent rule */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                  <span className="h-px w-8" style={{ backgroundColor: accent, opacity: 0.4 }} />
+                  <h3 className="text-center font-bold text-lg tracking-widest uppercase" style={{ color: accent }}>{pickCategoryName(cat, isEnglish)}</h3>
+                  <span className="h-px w-8" style={{ backgroundColor: accent, opacity: 0.4 }} />
+                </div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                  {items.map((item: any) => (
+                    <div key={item.id} className="text-center">
+                      <h4 className="font-bold text-sm">{pickItemName(item, isEnglish)}</h4>
+                      {pickItemDescription(item, isEnglish) && (
+                        <p className="text-xs mt-1 leading-relaxed" style={{ color: mutedColor }}>{pickItemDescription(item, isEnglish)}</p>
+                      )}
+                      <span className="text-xs font-bold mt-2 inline-block" style={{ color: accent }}>{item.price} {isEnglish ? 'SAR' : 'ر.س'}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
         </main>
       </div>
     </div>
