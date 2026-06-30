@@ -691,6 +691,60 @@ export default function MenuDesignPage() {
             </div>
           </div>
 
+          {/* Featured Categories Section (Template 1 only) */}
+          {(menu.templateId === 'noir' || menu.templateId === 'default') && menu.categories.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                  <span className="text-base font-black text-tz-primary leading-none">★</span>
+                </div>
+                <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'التصنيفات المميزة' : 'Featured Categories'}</h3>
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                {isRTL
+                  ? 'اختر التصنيفات التي تريد إبرازها كبطاقات صور كبيرة في القائمة. التصنيفات غير المحددة تظهر كقائمة بسيطة بأسطر منقّطة.'
+                  : 'Pick the categories you want to highlight as large photo cards on the menu. Unchecked categories appear as a simple dotted list.'}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {menu.categories.map((cat) => {
+                  // Reflect what the menu actually shows: explicit grid/list wins,
+                  // otherwise the auto heuristic (grid if >= half the items have photos).
+                  const featured =
+                    cat.displayStyle === 'grid'
+                      ? true
+                      : cat.displayStyle === 'list'
+                      ? false
+                      : (() => {
+                          const items = cat.items.filter((i) => i.isAvailable !== false);
+                          const withImg = items.filter((i) => i.imageUrl).length;
+                          return items.length > 0 && withImg >= Math.ceil(items.length / 2);
+                        })();
+                  return (
+                    <label
+                      key={cat.id}
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-xl cursor-pointer transition-colors ${
+                        featured ? 'border-tz-primary bg-orange-50' : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={featured}
+                        className="w-4 h-4 accent-tz-primary cursor-pointer"
+                        onChange={async (e) => {
+                          if (!workspaceId) return;
+                          if (!subscriptionActive) { setShowSubscribe(true); return; }
+                          await qrMenuAPI.updateCategory(workspaceId, cat.id, { displayStyle: e.target.checked ? 'grid' : 'list' });
+                          await refreshMenu();
+                        }}
+                      />
+                      <span className="text-sm text-gray-700">{cat.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Images & Media Section */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
             <div className="flex items-center gap-2.5 mb-4">
@@ -908,23 +962,6 @@ export default function MenuDesignPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1 self-end sm:self-auto shrink-0">
-                  {(menu.templateId === 'noir' || menu.templateId === 'default') && (
-                    <select
-                      value={cat.displayStyle || 'auto'}
-                      title={isRTL ? 'طريقة عرض التصنيف في القائمة' : 'How this category is shown in the menu'}
-                      className="h-9 sm:h-8 rounded-lg border border-gray-300 bg-white text-xs px-2 mr-1 focus:border-tz-primary focus:outline-none"
-                      onChange={async (e) => {
-                        if (!workspaceId) return;
-                        if (!subscriptionActive) { setShowSubscribe(true); return; }
-                        await qrMenuAPI.updateCategory(workspaceId, cat.id, { displayStyle: e.target.value });
-                        await refreshMenu();
-                      }}
-                    >
-                      <option value="auto">{isRTL ? 'تلقائي' : 'Auto'}</option>
-                      <option value="grid">{isRTL ? 'صور بارزة' : 'Highlight (cards)'}</option>
-                      <option value="list">{isRTL ? 'قائمة' : 'List'}</option>
-                    </select>
-                  )}
                   <Button
                     variant="ghost"
                     size="icon"
