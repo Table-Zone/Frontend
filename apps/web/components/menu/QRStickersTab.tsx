@@ -10,6 +10,69 @@ interface Props {
   publicMenuUrl: string;
   isRTL: boolean;
   workspaceName: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  googleMapsUrl?: string;
+}
+
+type SocialKind = 'instagram' | 'tiktok' | 'maps';
+interface SocialItem { kind: SocialKind; handle: string }
+
+/* Derive a short display handle from a full URL */
+function deriveHandle(kind: SocialKind, url: string): string {
+  if (kind === 'maps') return url; // handled specially (icon only)
+  try {
+    const path = new URL(url).pathname.replace(/\/+$/, '');
+    const seg = path.split('/').filter(Boolean).pop() || '';
+    const clean = seg.replace(/^@/, '');
+    return clean ? `@${clean}` : '';
+  } catch {
+    const seg = url.replace(/\/+$/, '').split('/').filter(Boolean).pop() || '';
+    const clean = seg.replace(/^@/, '');
+    return clean ? `@${clean}` : '';
+  }
+}
+
+function buildSocials(p: { instagramUrl?: string; tiktokUrl?: string; googleMapsUrl?: string }): SocialItem[] {
+  const out: SocialItem[] = [];
+  if (p.instagramUrl?.trim()) out.push({ kind: 'instagram', handle: deriveHandle('instagram', p.instagramUrl.trim()) });
+  if (p.tiktokUrl?.trim()) out.push({ kind: 'tiktok', handle: deriveHandle('tiktok', p.tiktokUrl.trim()) });
+  if (p.googleMapsUrl?.trim()) out.push({ kind: 'maps', handle: '' });
+  return out;
+}
+
+/* Compact brand glyphs (inherit currentColor) */
+const SocialGlyph = ({ kind, size = 12 }: { kind: SocialKind; size?: number }) => {
+  if (kind === 'instagram') return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  );
+  if (kind === 'tiktok') return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-2.59-2.59c.27 0 .52.04.77.11V9.79a5.67 5.67 0 0 0-.77-.05A5.68 5.68 0 1 0 15.54 15.4V9.01a7.34 7.34 0 0 0 4.3 1.38V7.3a4.28 4.28 0 0 1-3.24-1.48Z" />
+    </svg>
+  );
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+};
+
+/* Small social strip shown at the bottom of a sticker */
+function StickerSocial({ socials, color, size = 12 }: { socials: SocialItem[]; color: string; size?: number }) {
+  if (!socials.length) return null;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 10, color, direction: 'ltr' }}>
+      {socials.map((s) => (
+        <span key={s.kind} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <SocialGlyph kind={s.kind} size={size} />
+          {s.handle && <span style={{ fontSize: size - 2, fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.01em' }}>{s.handle}</span>}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 interface StickerConfig {
@@ -31,7 +94,7 @@ const makeDefaultConfigs = (name: string): StickerConfig[] => [
 ];
 
 /* ── Sticker 01: Neon Night ──────────────────────────────────── */
-function StickerNeon({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
+function StickerNeon({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
   return (
     <div style={{
       width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
@@ -63,19 +126,20 @@ function StickerNeon({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
         </div>
       </div>
 
-      <div style={{ zIndex: 1 }}>
+      <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: 20,
           border: '1px solid rgba(192,160,255,.45)', background: 'rgba(167,139,250,.18)' }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#c4b5fd', boxShadow: '0 0 8px #a78bfa', flexShrink: 0 }} />
           <span style={{ fontSize: 10, color: '#e9d5ff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.14em' }}>{cfg.labelText}</span>
         </div>
+        <StickerSocial socials={socials} color="#e9d5ff" />
       </div>
     </div>
   );
 }
 
 /* ── Sticker 02: Purple Vision ───────────────────────────────── */
-function StickerPurple({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
+function StickerPurple({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
   return (
     <div style={{ width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
       background: cfg.bgColor, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -97,18 +161,19 @@ function StickerPurple({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
         {cfg.subtitle && <div style={{ fontSize: 11, color: '#9087aa', fontFamily: 'system-ui, sans-serif', marginTop: 4, letterSpacing: '0.04em' }}>{cfg.subtitle}</div>}
       </div>
 
-      <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1 }}>
+      <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, background: '#7c3aed' }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,.55)', flexShrink: 0 }} />
           <span style={{ fontSize: 10, color: '#fff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.1em' }}>{cfg.labelText}</span>
         </div>
+        <StickerSocial socials={socials} color="#7c3aed" />
       </div>
     </div>
   );
 }
 
 /* ── Sticker 03: Circle Seal ─────────────────────────────────── */
-function StickerSeal({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
+function StickerSeal({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
   return (
     <div style={{ width: 290, height: 290, borderRadius: '50%', overflow: 'hidden', position: 'relative',
       background: `radial-gradient(ellipse at 40% 35%, ${cfg.bgColor}, #fdf4e0)`,
@@ -136,13 +201,14 @@ function StickerSeal({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
           <QRCodeSVG value={qrUrl} size={96} fgColor={cfg.qrFgColor} bgColor="#fff" level="M" />
         </div>
         <div style={{ fontSize: 12, color: cfg.ringColor, direction: 'rtl', letterSpacing: '0.05em' }}>{cfg.labelText}</div>
+        <StickerSocial socials={socials} color={cfg.ringColor} size={11} />
       </div>
     </div>
   );
 }
 
 /* ── Sticker 04: Minimal Float ───────────────────────────────── */
-function StickerFloat({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
+function StickerFloat({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
   return (
     <div style={{ width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
       background: cfg.bgColor, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -171,7 +237,8 @@ function StickerFloat({ cfg, qrUrl }: { cfg: StickerConfig; qrUrl: string }) {
         </div>
       </div>
 
-      <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1 }}>
+      <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+        <StickerSocial socials={socials} color="#4a3f6a" />
         <div style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ width: 28, height: 3, borderRadius: 2, background: '#D97757' }} />
           <div style={{ width: 8, height: 3, borderRadius: 2, background: '#ede9fb' }} />
@@ -189,7 +256,8 @@ const STICKER_META = [
   { id: 4, name: 'Float',    nameAr: 'تقليدي',  Comp: StickerFloat },
 ];
 
-export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: Props) {
+export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName, instagramUrl, tiktokUrl, googleMapsUrl }: Props) {
+  const socials = buildSocials({ instagramUrl, tiktokUrl, googleMapsUrl });
   const [configs, setConfigs] = useState<StickerConfig[]>(() => makeDefaultConfigs(workspaceName));
   const [selected, setSelected] = useState(0);
   const [downloading, setDownloading] = useState(false);
@@ -270,7 +338,7 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName }: P
           </div>
 
           <div ref={stickerRef} className="inline-block">
-            <Comp cfg={cfg} qrUrl={publicMenuUrl || 'https://tablezone.app/menu/demo'} />
+            <Comp cfg={cfg} qrUrl={publicMenuUrl || 'https://tablezone.app/menu/demo'} socials={socials} />
           </div>
 
           <Button onClick={handleDownload} disabled={downloading} className="gap-2 min-w-[160px]">

@@ -5,6 +5,7 @@ import {
   QrCode, Plus, Loader2, Trash2, Edit2, Save, X, Palette,
   UtensilsCrossed, QrCodeIcon, Eye, EyeOff, Upload, ImageIcon,
   ArrowUp, ArrowDown, FileImage, Tag, Settings,
+  Instagram, MapPin, Music2, Share2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -65,6 +66,9 @@ interface MenuData {
   backgroundUrl?: string;
   titleAr: string;
   titleEn: string;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  googleMapsUrl?: string | null;
   isPublished: boolean;
   categories: MenuCategory[];
 }
@@ -237,6 +241,12 @@ export default function MenuDesignPage() {
   const [customPrimary, setCustomPrimary] = useState('');
   const [customAccent, setCustomAccent] = useState('');
 
+  // Social links
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [tiktokUrl, setTiktokUrl] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [savingSocial, setSavingSocial] = useState(false);
+
   // Typography
   const [selFont, setSelFont] = useState('sans');
 
@@ -284,6 +294,9 @@ export default function MenuDesignPage() {
             setCustomPrimary(realMenu.primaryColor);
             setCustomAccent(realMenu.accentColor);
             if (realMenu.fontFamily) setSelFont(realMenu.fontFamily);
+            setInstagramUrl(realMenu.instagramUrl || '');
+            setTiktokUrl(realMenu.tiktokUrl || '');
+            setGoogleMapsUrl(realMenu.googleMapsUrl || '');
           }
         }
         setTemplates(templatesRes.data?.data?.templates || []);
@@ -394,6 +407,22 @@ export default function MenuDesignPage() {
       accentColor: customAccent,
     });
     await refreshMenu();
+  };
+
+  const handleSocialUpdate = async () => {
+    if (!workspaceId) return;
+    if (!subscriptionActive) { setShowSubscribe(true); return; }
+    setSavingSocial(true);
+    try {
+      await qrMenuAPI.updateMenu(workspaceId, {
+        instagramUrl: instagramUrl.trim() || null,
+        tiktokUrl: tiktokUrl.trim() || null,
+        googleMapsUrl: googleMapsUrl.trim() || null,
+      });
+      await refreshMenu();
+    } finally {
+      setSavingSocial(false);
+    }
   };
 
   const handlePaletteSelect = async (palette: typeof QUICK_PALETTES[0]) => {
@@ -719,6 +748,46 @@ export default function MenuDesignPage() {
               </div>
             </div>
           )}
+
+          {/* Social Links Section (all templates) */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
+                <Share2 className="w-4 h-4 text-tz-primary" />
+              </div>
+              <h3 className="text-sm font-bold text-gray-900">{isRTL ? 'روابط التواصل والموقع' : 'Social & Location Links'}</h3>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed mb-4">
+              {isRTL
+                ? 'روابط اختيارية تظهر كأيقونات في تذييل القائمة وعلى الملصقات. اترك الحقل فارغاً لإخفاء الأيقونة.'
+                : 'Optional links shown as icons in the menu footer and on the stickers. Leave a field empty to hide its icon.'}
+            </p>
+            <div className="space-y-3">
+              {[
+                { icon: <Instagram className="w-4 h-4 text-gray-500" />, label: 'Instagram', val: instagramUrl, set: setInstagramUrl, ph: 'https://instagram.com/...' },
+                { icon: <Music2 className="w-4 h-4 text-gray-500" />, label: 'TikTok', val: tiktokUrl, set: setTiktokUrl, ph: 'https://tiktok.com/@...' },
+                { icon: <MapPin className="w-4 h-4 text-gray-500" />, label: isRTL ? 'خرائط جوجل' : 'Google Maps', val: googleMapsUrl, set: setGoogleMapsUrl, ph: 'https://maps.google.com/...' },
+              ].map((f, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 w-32 shrink-0">
+                    {f.icon}
+                    <span className="text-sm text-gray-700">{f.label}</span>
+                  </div>
+                  <input
+                    type="url"
+                    dir="ltr"
+                    value={f.val}
+                    onChange={(e) => f.set(e.target.value)}
+                    placeholder={f.ph}
+                    className="flex-1 min-w-0 text-sm px-3 py-2 border border-gray-200 rounded-xl bg-white outline-none focus:border-tz-primary/50 transition-colors"
+                  />
+                </div>
+              ))}
+              <Button size="sm" onClick={handleSocialUpdate} disabled={savingSocial}>
+                {savingSocial ? (isRTL ? 'جارٍ الحفظ...' : 'Saving...') : (isRTL ? 'حفظ الروابط' : 'Save Links')}
+              </Button>
+            </div>
+          </div>
 
           {/* Images & Media Section */}
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
@@ -1249,7 +1318,14 @@ export default function MenuDesignPage() {
 
       {/* Stickers Tab */}
       {activeTab === 'stickers' && (
-        <QRStickersTab publicMenuUrl={publicMenuUrl} isRTL={isRTL} workspaceName={workspaceName} />
+        <QRStickersTab
+          publicMenuUrl={publicMenuUrl}
+          isRTL={isRTL}
+          workspaceName={workspaceName}
+          instagramUrl={menu?.instagramUrl || undefined}
+          tiktokUrl={menu?.tiktokUrl || undefined}
+          googleMapsUrl={menu?.googleMapsUrl || undefined}
+        />
       )}
 
       {showSubscribe && workspaceId && (

@@ -46,7 +46,69 @@ interface MenuData {
   backgroundUrl?: string;
   titleAr: string;
   titleEn: string;
+  instagramUrl?: string | null;
+  tiktokUrl?: string | null;
+  googleMapsUrl?: string | null;
   categories: MenuCategory[];
+}
+
+/* ── Brand icons (inherit currentColor) ──────────────────────── */
+const IgIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="20" height="20" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="currentColor" strokeWidth={1.2} />
+  </svg>
+);
+const TikTokIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 1 1-2.59-2.59c.27 0 .52.04.77.11V9.79a5.67 5.67 0 0 0-.77-.05A5.68 5.68 0 1 0 15.54 15.4V9.01a7.34 7.34 0 0 0 4.3 1.38V7.3a4.28 4.28 0 0 1-3.24-1.48Z" />
+  </svg>
+);
+const MapPinIcon = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+/* ── Social links row (shared across all templates) ──────────── */
+function SocialLinks({
+  menu,
+  color,
+  className = '',
+  size = 20,
+}: {
+  menu: MenuData;
+  color: string;
+  className?: string;
+  size?: number;
+}) {
+  const links = [
+    { url: menu.instagramUrl, label: 'Instagram', Icon: IgIcon },
+    { url: menu.tiktokUrl, label: 'TikTok', Icon: TikTokIcon },
+    { url: menu.googleMapsUrl, label: 'Google Maps', Icon: MapPinIcon },
+  ].filter((l) => l.url && l.url.trim());
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className={`flex items-center justify-center gap-4 ${className}`}>
+      {links.map(({ url, label, Icon }) => (
+        <a
+          key={label}
+          href={url as string}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          aria-label={label}
+          className="inline-flex items-center justify-center transition-opacity hover:opacity-60"
+          style={{ color }}
+        >
+          <Icon size={size} />
+        </a>
+      ))}
+    </div>
+  );
 }
 
 export default function PublicMenuPage() {
@@ -366,6 +428,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
       </main>
 
       <footer className="text-center py-8 text-xs border-t" style={{ borderColor: border }}>
+        <SocialLinks menu={menu} color={ACCENT} className="mb-4" />
         <p className="tracking-[0.3em] uppercase" style={{ color: muted }}>{menu.workspaceName}</p>
       </footer>
     </div>
@@ -514,6 +577,7 @@ function EditorialTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boo
       </div>
 
       <footer className="text-center py-8 text-xs border-t" style={{ color: muted, borderColor: border }}>
+        <SocialLinks menu={menu} color={TEAL} className="mb-4" />
         <p>{menu.workspaceName} &mdash; {pickMenuTitle(menu, isEnglish)}</p>
       </footer>
     </div>
@@ -572,6 +636,11 @@ function PosterTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
             );
           })}
         </main>
+
+        <footer className="text-center pb-10 pt-2 text-xs" style={{ borderTop: `1px solid ${dividerColor}`, paddingTop: 24, color: mutedColor }}>
+          <SocialLinks menu={menu} color={accent} className="mb-4" />
+          <p>{menu.workspaceName}</p>
+        </footer>
       </div>
     </div>
   );
@@ -733,6 +802,7 @@ function BakeryTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolea
       </main>
 
       <footer className="text-center py-6 text-xs" style={{ color: hexToRgba(titleColor, 0.4) }}>
+        <SocialLinks menu={menu} color={accent} className="mb-4" />
         <p>{menu.workspaceName}</p>
       </footer>
     </div>
