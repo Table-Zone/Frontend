@@ -87,15 +87,15 @@ interface StickerConfig {
 }
 
 const makeDefaultConfigs = (name: string): StickerConfig[] => [
-  { bgColor: '#ffffff', qrFgColor: '#c2410c', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
-  { bgColor: '#ffffff', qrFgColor: '#0d9488', qrBgColor: '#f0fdfa', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
-  { bgColor: '#ffffff', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
-  { bgColor: '#ffffff', qrFgColor: '#1f2937', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
+  { bgColor: '#ffffff', qrFgColor: '#000000', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
+  { bgColor: '#ffffff', qrFgColor: '#000000', qrBgColor: '#f0fdfa', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
+  { bgColor: '#ffffff', qrFgColor: '#000000', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
+  { bgColor: '#ffffff', qrFgColor: '#000000', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
 /* ── Sticker 01: Aurora — clean light card with violet accents ── */
 function StickerNeon({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
-  const accent = cfg.qrFgColor; // violet by default
+  const accent = '#c2410c'; // burnt-orange accent (independent of QR color)
   return (
     <div style={{
       width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
