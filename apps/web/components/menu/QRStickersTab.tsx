@@ -87,52 +87,50 @@ interface StickerConfig {
 }
 
 const makeDefaultConfigs = (name: string): StickerConfig[] => [
-  { bgColor: '#4318a8', qrFgColor: '#ffffff', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
+  { bgColor: '#ffffff', qrFgColor: '#4318a8', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
   { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
   { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
   { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
-/* ── Sticker 01: Neon Night ──────────────────────────────────── */
+/* ── Sticker 01: Aurora — clean light card with violet accents ── */
 function StickerNeon({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
+  const accent = cfg.qrFgColor; // violet by default
   return (
     <div style={{
       width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
-      background: `linear-gradient(160deg, ${cfg.bgColor} 0%, ${cfg.bgColor}cc 45%, ${cfg.bgColor}99 100%)`,
+      background: `linear-gradient(165deg, ${cfg.bgColor} 0%, ${cfg.bgColor} 55%, ${accent}0d 100%)`,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between', padding: '26px 22px 22px',
+      border: `1px solid ${accent}1f`,
     }}>
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'linear-gradient(rgba(192,160,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(192,160,255,0.1) 1px,transparent 1px)',
+        backgroundImage: `linear-gradient(${accent}0f 1px,transparent 1px),linear-gradient(90deg,${accent}0f 1px,transparent 1px)`,
         backgroundSize: '22px 22px' }} />
-      <div style={{ position: 'absolute', top: -60, left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, borderRadius: '50%',
-        background: 'radial-gradient(circle,rgba(167,139,250,0.55) 0%,rgba(124,58,237,0.2) 50%,transparent 75%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'absolute', bottom: -40, left: '50%', transform: 'translateX(-50%)', width: 200, height: 200, borderRadius: '50%',
-        background: 'radial-gradient(circle,rgba(217,119,87,0.3) 0%,transparent 70%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: -70, left: '50%', transform: 'translateX(-50%)', width: 300, height: 300, borderRadius: '50%',
+        background: `radial-gradient(circle,${accent}26 0%,transparent 70%)`, pointerEvents: 'none' }} />
 
       <div style={{ zIndex: 1, textAlign: 'center' }}>
-        <div style={{ fontSize: 9.5, letterSpacing: '0.38em', color: '#c4b5fd', fontFamily: 'system-ui, sans-serif', fontWeight: 700, textTransform: 'uppercase', marginBottom: 9, opacity: 0.8 }}>{cfg.restaurantName}</div>
-        <div style={{ fontSize: 48, fontWeight: 900, fontFamily: 'system-ui, sans-serif', lineHeight: 0.9, color: cfg.qrFgColor,
-          textShadow: `0 0 12px rgba(255,255,255,.6),0 0 30px rgba(192,160,255,.9),0 0 80px ${cfg.bgColor}` }}>{cfg.title}</div>
-        {cfg.subtitle && <div style={{ fontSize: 14, color: '#e9d5ff', marginTop: 8, direction: 'rtl' }}>{cfg.subtitle}</div>}
+        <div style={{ fontSize: 9.5, letterSpacing: '0.38em', color: accent, fontFamily: 'system-ui, sans-serif', fontWeight: 700, textTransform: 'uppercase', marginBottom: 9, opacity: 0.75 }}>{cfg.restaurantName}</div>
+        <div style={{ fontSize: 48, fontWeight: 900, fontFamily: 'system-ui, sans-serif', lineHeight: 0.9, color: accent,
+          textShadow: `0 2px 18px ${accent}33` }}>{cfg.title}</div>
+        {cfg.subtitle && <div style={{ fontSize: 14, color: '#6b7280', marginTop: 8, direction: 'rtl' }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ zIndex: 1, position: 'relative' }}>
-        <div style={{ position: 'absolute', inset: -20, borderRadius: 28,
-          background: 'radial-gradient(circle,rgba(167,139,250,.5) 0%,transparent 70%)', pointerEvents: 'none' }} />
-        <div style={{ padding: 14, background: 'rgba(255,255,255,0.12)', borderRadius: 18,
-          border: '1.5px solid rgba(192,160,255,.45)',
-          boxShadow: '0 0 28px rgba(167,139,250,.6),0 0 70px rgba(124,58,237,.3)' }}>
+        <div style={{ padding: 14, background: '#fff', borderRadius: 18,
+          border: `1.5px solid ${accent}26`,
+          boxShadow: `0 14px 40px ${accent}1f, 0 4px 14px rgba(0,0,0,.05)` }}>
           <QRCodeSVG value={qrUrl} size={116} fgColor={cfg.qrFgColor} bgColor="transparent" level="M" />
         </div>
       </div>
 
       <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 14px', borderRadius: 20,
-          border: '1px solid rgba(192,160,255,.45)', background: 'rgba(167,139,250,.18)' }}>
-          <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#c4b5fd', boxShadow: '0 0 8px #a78bfa', flexShrink: 0 }} />
-          <span style={{ fontSize: 10, color: '#e9d5ff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.14em' }}>{cfg.labelText}</span>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 16px', borderRadius: 20,
+          background: accent }}>
+          <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,.7)', flexShrink: 0 }} />
+          <span style={{ fontSize: 10, color: '#fff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.14em' }}>{cfg.labelText}</span>
         </div>
-        <StickerSocial socials={socials} color="#e9d5ff" />
+        <StickerSocial socials={socials} color={accent} />
       </div>
     </div>
   );
@@ -250,7 +248,7 @@ function StickerFloat({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: stri
 }
 
 const STICKER_META = [
-  { id: 1, name: 'Night',    nameAr: 'ليلي',    Comp: StickerNeon },
+  { id: 1, name: 'Aurora',   nameAr: 'أنيق',    Comp: StickerNeon },
   { id: 2, name: 'Purple',   nameAr: 'بنفسجي',  Comp: StickerPurple },
   { id: 3, name: 'Circular', nameAr: 'دائري',   Comp: StickerSeal },
   { id: 4, name: 'Float',    nameAr: 'تقليدي',  Comp: StickerFloat },
