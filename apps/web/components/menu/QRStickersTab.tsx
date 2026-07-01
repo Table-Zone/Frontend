@@ -311,8 +311,9 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName, ins
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0"
-                style={{ background: configs[i].bgColor === '#ffffff' || configs[i].bgColor === '#f7f5ff' || configs[i].bgColor === '#fffdf5' || configs[i].bgColor === '#f5e8ca' ? '#f3f0ff' : configs[i].bgColor, color: '#fff' }}>
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 transition-colors ${
+                selected === i ? 'bg-tz-primary text-white' : 'bg-gray-100 text-gray-500'
+              }`}>
                 0{s.id}
               </div>
               <div className="hidden xl:block">
