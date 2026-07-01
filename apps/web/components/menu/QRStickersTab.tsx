@@ -89,7 +89,7 @@ interface StickerConfig {
 const makeDefaultConfigs = (name: string): StickerConfig[] => [
   { bgColor: '#ffffff', qrFgColor: '#c2410c', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
   { bgColor: '#ffffff', qrFgColor: '#0d9488', qrBgColor: '#f0fdfa', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
-  { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
+  { bgColor: '#ffffff', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
   { bgColor: '#ffffff', qrFgColor: '#1f2937', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
@@ -174,7 +174,7 @@ function StickerPurple({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: str
 function StickerSeal({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: string; socials: SocialItem[] }) {
   return (
     <div style={{ width: 290, height: 290, borderRadius: '50%', overflow: 'hidden', position: 'relative',
-      background: `radial-gradient(ellipse at 40% 35%, ${cfg.bgColor}, #fdf4e0)`,
+      background: `radial-gradient(ellipse at 40% 35%, ${cfg.bgColor}, ${cfg.bgColor})`,
       boxShadow: `0 0 0 5px ${cfg.ringColor}, 0 0 0 9px ${cfg.ringColor}47, 0 0 0 15px ${cfg.ringColor}1a, 0 10px 40px ${cfg.ringColor}4d` }}>
 
       <svg style={{ position: 'absolute', inset: 0 }} width="290" height="290" viewBox="0 0 290 290">
@@ -319,6 +319,30 @@ export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName, ins
               </div>
             </button>
           ))}
+
+          {/* Request a custom sticker — opens WhatsApp */}
+          <a
+            href={`https://wa.me/966501549458?text=${encodeURIComponent(
+              isRTL ? 'مرحباً، أرغب في طلب تصميم ملصق QR خاص بي' : "Hi, I'd like to request my own custom QR sticker",
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 flex items-center gap-3 px-3 py-2.5 rounded-xl border-2 border-dashed border-gray-300 transition-all text-left xl:w-48 hover:border-tz-primary hover:shadow-sm bg-gray-50/50"
+          >
+            <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.247-.694.247-1.289.173-1.413z" />
+              </svg>
+            </div>
+            <div className="hidden xl:block">
+              <p className="text-xs font-semibold text-gray-900 leading-snug">
+                {isRTL ? 'ما اعجبك ولا ملصق هنا؟' : 'Request your own sticker'}
+              </p>
+              <p className="text-[10px] text-gray-500 mt-0.5 leading-snug">
+                {isRTL ? 'تواصل معنا وبنصمم لك ملصق خاص' : 'Chat with us on WhatsApp'}
+              </p>
+            </div>
+          </a>
         </div>
 
         {/* Live preview */}
