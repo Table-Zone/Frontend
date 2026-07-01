@@ -87,10 +87,10 @@ interface StickerConfig {
 }
 
 const makeDefaultConfigs = (name: string): StickerConfig[] => [
-  { bgColor: '#ffffff', qrFgColor: '#4318a8', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
-  { bgColor: '#ffffff', qrFgColor: '#7c3aed', qrBgColor: '#faf8ff', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
+  { bgColor: '#ffffff', qrFgColor: '#c2410c', qrBgColor: 'transparent', ringColor: '#c9a227', restaurantName: name, title: 'MENU', subtitle: 'المنيو', labelText: 'امسح لاستكشاف القائمة' },
+  { bgColor: '#ffffff', qrFgColor: '#0d9488', qrBgColor: '#f0fdfa', ringColor: '#c9a227', restaurantName: name, title: 'امسح القائمة', subtitle: 'Scan to view our menu', labelText: 'QR MENU' },
   { bgColor: '#fffdf5', qrFgColor: '#2c1a00', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: '', subtitle: '', labelText: 'المنيو' },
-  { bgColor: '#f7f5ff', qrFgColor: '#1a0d3d', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
+  { bgColor: '#ffffff', qrFgColor: '#1f2937', qrBgColor: '#ffffff', ringColor: '#c9a227', restaurantName: name, title: 'المنيو', subtitle: 'Digital Food Menu', labelText: 'Scan to explore · امسح للاستكشاف' },
 ];
 
 /* ── Sticker 01: Aurora — clean light card with violet accents ── */
@@ -141,30 +141,30 @@ function StickerPurple({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: str
   return (
     <div style={{ width: 260, height: 370, borderRadius: 22, overflow: 'hidden', position: 'relative',
       background: cfg.bgColor, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div style={{ width: '100%', height: 7, background: 'linear-gradient(90deg,#7c3aed,#a855f7)', flexShrink: 0 }} />
+      <div style={{ width: '100%', height: 7, background: 'linear-gradient(90deg,#0d9488,#2dd4bf)', flexShrink: 0 }} />
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle,rgba(124,58,237,.05) 1px,transparent 1px)', backgroundSize: '18px 18px' }} />
+        backgroundImage: 'radial-gradient(circle,rgba(13,148,136,.06) 1px,transparent 1px)', backgroundSize: '18px 18px' }} />
 
       <div style={{ position: 'absolute', top: 18, left: 18, zIndex: 2 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#1a0d3d', fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
       </div>
 
       <div style={{ marginTop: 68, padding: 18, background: cfg.qrBgColor, borderRadius: 20,
-        border: '1.5px solid #ede9fb', boxShadow: '0 8px 40px rgba(124,58,237,.14)', zIndex: 1 }}>
+        border: '1.5px solid #ccfbf1', boxShadow: '0 8px 40px rgba(13,148,136,.14)', zIndex: 1 }}>
         <QRCodeSVG value={qrUrl} size={128} fgColor={cfg.qrFgColor} bgColor={cfg.qrBgColor} level="M" />
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 18, padding: '0 24px', zIndex: 1 }}>
-        {cfg.title && <div style={{ fontSize: 19, fontWeight: 800, color: '#1a0d3d', fontFamily: 'system-ui, sans-serif', direction: 'rtl' }}>{cfg.title}</div>}
-        {cfg.subtitle && <div style={{ fontSize: 11, color: '#9087aa', fontFamily: 'system-ui, sans-serif', marginTop: 4, letterSpacing: '0.04em' }}>{cfg.subtitle}</div>}
+        {cfg.title && <div style={{ fontSize: 19, fontWeight: 800, color: '#0f172a', fontFamily: 'system-ui, sans-serif', direction: 'rtl' }}>{cfg.title}</div>}
+        {cfg.subtitle && <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'system-ui, sans-serif', marginTop: 4, letterSpacing: '0.04em' }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, background: '#7c3aed' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 16px', borderRadius: 20, background: '#0d9488' }}>
           <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'rgba(255,255,255,.55)', flexShrink: 0 }} />
           <span style={{ fontSize: 10, color: '#fff', fontFamily: 'system-ui, sans-serif', fontWeight: 600, letterSpacing: '0.1em' }}>{cfg.labelText}</span>
         </div>
-        <StickerSocial socials={socials} color="#7c3aed" />
+        <StickerSocial socials={socials} color="#0d9488" />
       </div>
     </div>
   );
@@ -212,35 +212,35 @@ function StickerFloat({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: stri
       background: cfg.bgColor, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div style={{ width: '100%', height: 5, background: 'linear-gradient(90deg,#D97757,#e8a07a)', flexShrink: 0 }} />
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle,rgba(124,58,237,.07) 1px,transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: '10px 10px' }} />
+        backgroundImage: 'radial-gradient(circle,rgba(217,119,87,.07) 1px,transparent 1px)', backgroundSize: '20px 20px', backgroundPosition: '10px 10px' }} />
 
       <div style={{ marginTop: 24, zIndex: 1 }}>
-        <span style={{ color: '#1a0d3d', fontSize: 13, fontWeight: 700, fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
+        <span style={{ color: '#0f172a', fontSize: 13, fontWeight: 700, fontFamily: 'system-ui, sans-serif' }}>{cfg.restaurantName}</span>
       </div>
 
       <div style={{ textAlign: 'center', marginTop: 16, padding: '0 20px', zIndex: 1 }}>
         {cfg.title && <div style={{ fontSize: 26, fontWeight: 700, color: cfg.qrFgColor, fontFamily: 'system-ui, sans-serif', lineHeight: 1.2, direction: 'rtl' }}>{cfg.title}</div>}
-        {cfg.subtitle && <div style={{ fontSize: 11, color: '#9087aa', marginTop: 4 }}>{cfg.subtitle}</div>}
+        {cfg.subtitle && <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{cfg.subtitle}</div>}
       </div>
 
       <div style={{ marginTop: 22, zIndex: 1, padding: 16, background: cfg.qrBgColor, borderRadius: 20,
-        boxShadow: '0 28px 70px rgba(100,70,200,.18),0 6px 22px rgba(100,70,200,.1)' }}>
+        boxShadow: '0 28px 70px rgba(217,119,87,.16),0 6px 22px rgba(0,0,0,.06)' }}>
         <QRCodeSVG value={qrUrl} size={118} fgColor={cfg.qrFgColor} bgColor={cfg.qrBgColor} level="M" />
       </div>
 
       <div style={{ marginTop: 20, zIndex: 1 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 16px', borderRadius: 20, border: '1.5px solid #ede9fb', background: '#fff' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 16px', borderRadius: 20, border: '1.5px solid #f5ddd0', background: '#fff' }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#D97757', boxShadow: '0 0 6px rgba(217,119,87,.5)', flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: '#4a3f6a', fontFamily: 'system-ui, sans-serif', fontWeight: 500 }}>{cfg.labelText}</span>
+          <span style={{ fontSize: 11, color: '#6b5544', fontFamily: 'system-ui, sans-serif', fontWeight: 500 }}>{cfg.labelText}</span>
         </div>
       </div>
 
       <div style={{ marginTop: 'auto', paddingBottom: 22, zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
-        <StickerSocial socials={socials} color="#4a3f6a" />
+        <StickerSocial socials={socials} color="#6b5544" />
         <div style={{ display: 'flex', gap: 4, justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ width: 28, height: 3, borderRadius: 2, background: '#D97757' }} />
-          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#ede9fb' }} />
-          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#ede9fb' }} />
+          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#f5ddd0' }} />
+          <div style={{ width: 8, height: 3, borderRadius: 2, background: '#f5ddd0' }} />
         </div>
       </div>
     </div>
@@ -248,10 +248,10 @@ function StickerFloat({ cfg, qrUrl, socials }: { cfg: StickerConfig; qrUrl: stri
 }
 
 const STICKER_META = [
-  { id: 1, name: 'Aurora',   nameAr: 'أنيق',    Comp: StickerNeon },
-  { id: 2, name: 'Purple',   nameAr: 'بنفسجي',  Comp: StickerPurple },
-  { id: 3, name: 'Circular', nameAr: 'دائري',   Comp: StickerSeal },
-  { id: 4, name: 'Float',    nameAr: 'تقليدي',  Comp: StickerFloat },
+  { id: 1, name: 'Sticker 1', nameAr: 'ملصق 1', Comp: StickerNeon },
+  { id: 2, name: 'Sticker 2', nameAr: 'ملصق 2', Comp: StickerPurple },
+  { id: 3, name: 'Sticker 3', nameAr: 'ملصق 3', Comp: StickerSeal },
+  { id: 4, name: 'Sticker 4', nameAr: 'ملصق 4', Comp: StickerFloat },
 ];
 
 export default function QRStickersTab({ publicMenuUrl, isRTL, workspaceName, instagramUrl, tiktokUrl, googleMapsUrl }: Props) {
