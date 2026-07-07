@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield, CreditCard, Check, X, Search, Clock, AlertTriangle,
-  Building2, Users, TrendingUp, Ban, Receipt,
+  Building2, Ban, Receipt, Tag, Plus, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/shared/Toast';
 import { useConfirm } from '@/components/shared/ConfirmDialog';
-import { adminAPI } from '@/lib/api';
+import { adminAPI, getImageUrl } from '@/lib/api';
 
 interface Request {
   id: string;
@@ -26,16 +26,31 @@ interface Request {
   extraSeatsCount: number;
   bankReference: string | null;
   receiptImageUrl: string | null;
+  discountCode: string | null;
+  discountPercent: number | null;
   createdAt: string;
   userName: string;
   userEmail: string;
 }
 
+interface DiscountCode {
+  id: string;
+  code: string;
+  percentOff: number;
+  usageLimit: number | null;
+  usedCount: number;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
 function getReceiptUrl(relativePath: string | null): string | null {
   if (!relativePath) return null;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const cleanPath = relativePath.replace(/^\.\//, '');
-  return `${baseUrl}/${cleanPath}`;
+  return getImageUrl(relativePath);
+}
+
+function isPdfReceipt(url: string): boolean {
+  return url.toLowerCase().includes('.pdf');
 }
 
 interface Stats {
@@ -60,9 +75,57 @@ export default function AdminPage() {
     approvedRequests: 0,
     rejectedRequests: 0,
   });
-  const [viewingReceipt, setViewingReceipt] = useState<string | null>(null);
+  const [viewingReceipt, setViewingReceipt] = useState<{ url: string; isPdf: boolean } | null>(null);
+  const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
+  const [newCode, setNewCode] = useState({ code: '', percentOff: '', usageLimit: '', expiresAt: '' });
+  const [isCreatingCode, setIsCreatingCode] = useState(false);
   const { showToast } = useToast();
   const confirm = useConfirm();
+
+  const fetchDiscountCodes = async () => {
+    try {
+      const res = await adminAPI.getDiscountCodes();
+      setDiscountCodes(res.data.data.codes || []);
+    } catch {}
+  };
+
+  const handleCreateCode = async () => {
+    if (!newCode.code.trim() || !newCode.percentOff) return;
+    setIsCreatingCode(true);
+    try {
+      await adminAPI.createDiscountCode({
+        code: newCode.code.trim(),
+        percentOff: parseInt(newCode.percentOff),
+        usageLimit: newCode.usageLimit ? parseInt(newCode.usageLimit) : undefined,
+        expiresAt: newCode.expiresAt || undefined,
+      });
+      setNewCode({ code: '', percentOff: '', usageLimit: '', expiresAt: '' });
+      showToast(isRTL ? 'تم إنشاء الكود' : 'Discount code created', 'success');
+      fetchDiscountCodes();
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || t.error, 'error');
+    } finally {
+      setIsCreatingCode(false);
+    }
+  };
+
+  const handleDeactivateCode = async (id: string, code: string) => {
+    const ok = await confirm({
+      title: isRTL ? 'تعطيل الكود' : 'Deactivate Code',
+      message: isRTL ? `هل تريد تعطيل الكود "${code}"؟` : `Deactivate code "${code}"?`,
+      confirmLabel: isRTL ? 'تعطيل' : 'Deactivate',
+      cancelLabel: isRTL ? 'إلغاء' : 'Cancel',
+      variant: 'danger',
+    });
+    if (!ok) return;
+    try {
+      await adminAPI.deactivateDiscountCode(id);
+      showToast(isRTL ? 'تم تعطيل الكود' : 'Code deactivated', 'success');
+      fetchDiscountCodes();
+    } catch (err: any) {
+      showToast(err.response?.data?.error?.message || t.error, 'error');
+    }
+  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -104,6 +167,7 @@ export default function AdminPage() {
       return;
     }
     fetchData();
+    fetchDiscountCodes();
   }, [filter, user]);
 
   const handleApprove = async (id: string) => {
@@ -302,24 +366,147 @@ export default function AdminPage() {
               )}
             </div>
 
-            {req.receiptImageUrl && (
-              <div className="mt-3 pt-3 border-t border-tz-cream-dark">
-                <button
-                  onClick={() => setViewingReceipt(getReceiptUrl(req.receiptImageUrl))}
-                  className="text-sm text-tz-primary hover:underline"
-                >
-                  {isRTL ? 'عرض الإيصال' : 'View Receipt'}
-                </button>
-                {req.bankReference && (
-                  <span className="text-sm text-muted-foreground ml-3">
-                    Ref: {req.bankReference}
-                  </span>
-                )}
-              </div>
-            )}
+            {req.receiptImageUrl && (() => {
+              const receiptUrl = getReceiptUrl(req.receiptImageUrl);
+              if (!receiptUrl) return null;
+              const isPdf = isPdfReceipt(receiptUrl);
+              return (
+                <div className="mt-3 pt-3 border-t border-tz-cream-dark flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setViewingReceipt({ url: receiptUrl, isPdf })}
+                    className="flex items-center gap-2 text-sm text-tz-primary hover:underline"
+                  >
+                    <Receipt className="w-4 h-4 shrink-0" />
+                    {isRTL ? 'عرض الإيصال' : 'View Receipt'}
+                  </button>
+                  {!isPdf && (
+                    <button
+                      type="button"
+                      onClick={() => setViewingReceipt({ url: receiptUrl, isPdf: false })}
+                      className="rounded-lg border border-tz-cream-dark overflow-hidden hover:opacity-90 transition-opacity"
+                    >
+                      <img
+                        src={receiptUrl}
+                        alt={isRTL ? 'معاينة الإيصال' : 'Receipt preview'}
+                        className="h-16 w-auto max-w-[120px] object-cover"
+                      />
+                    </button>
+                  )}
+                  {isPdf && (
+                    <span className="text-xs text-muted-foreground px-2 py-1 rounded-full bg-tz-cream-dark">
+                      PDF
+                    </span>
+                  )}
+                  {req.bankReference && (
+                    <span className="text-sm text-muted-foreground">
+                      Ref: {req.bankReference}
+                    </span>
+                  )}
+                  {req.discountCode && (
+                    <span className="flex items-center gap-1 text-sm text-tz-green font-medium">
+                      <Tag className="w-3.5 h-3.5" />
+                      {req.discountCode} ({req.discountPercent}% off)
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ))}
       </div>
+      {/* Discount Codes Section */}
+      <div className="mt-10">
+        <div className="flex items-center gap-3 mb-4">
+          <Tag className="w-5 h-5 text-tz-primary" />
+          <h2 className="text-lg font-bold text-tz-espresso">
+            {isRTL ? 'أكواد الخصم' : 'Discount Codes'}
+          </h2>
+        </div>
+
+        {/* Create Code Form */}
+        <div className="bg-white rounded-2xl p-5 border border-tz-cream-dark mb-4">
+          <p className="text-sm font-medium mb-3">{isRTL ? 'إنشاء كود جديد' : 'Create New Code'}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <input
+              type="text"
+              placeholder={isRTL ? 'الكود' : 'Code'}
+              value={newCode.code}
+              onChange={(e) => setNewCode((p) => ({ ...p, code: e.target.value.toUpperCase() }))}
+              className="h-10 px-3 rounded-xl border-2 border-input bg-background text-sm uppercase col-span-1"
+            />
+            <input
+              type="number"
+              placeholder={isRTL ? 'نسبة الخصم %' : '% off'}
+              value={newCode.percentOff}
+              min={1} max={100}
+              onChange={(e) => setNewCode((p) => ({ ...p, percentOff: e.target.value }))}
+              className="h-10 px-3 rounded-xl border-2 border-input bg-background text-sm"
+            />
+            <input
+              type="number"
+              placeholder={isRTL ? 'حد الاستخدام (اختياري)' : 'Usage limit (opt)'}
+              value={newCode.usageLimit}
+              min={1}
+              onChange={(e) => setNewCode((p) => ({ ...p, usageLimit: e.target.value }))}
+              className="h-10 px-3 rounded-xl border-2 border-input bg-background text-sm"
+            />
+            <input
+              type="date"
+              placeholder={isRTL ? 'تاريخ انتهاء' : 'Expires at'}
+              value={newCode.expiresAt}
+              onChange={(e) => setNewCode((p) => ({ ...p, expiresAt: e.target.value }))}
+              className="h-10 px-3 rounded-xl border-2 border-input bg-background text-sm"
+            />
+          </div>
+          <Button
+            className="mt-3 bg-tz-primary hover:bg-tz-primary-dark text-white h-9"
+            onClick={handleCreateCode}
+            disabled={!newCode.code.trim() || !newCode.percentOff || isCreatingCode}
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            {isRTL ? 'إنشاء' : 'Create'}
+          </Button>
+        </div>
+
+        {/* Codes List */}
+        <div className="space-y-2">
+          {discountCodes.length === 0 && (
+            <div className="text-center py-8 text-muted-foreground bg-white rounded-2xl border border-tz-cream-dark">
+              {isRTL ? 'لا توجد أكواد' : 'No discount codes yet'}
+            </div>
+          )}
+          {discountCodes.map((dc) => (
+            <div key={dc.id} className={`bg-white rounded-xl px-4 py-3 border flex items-center gap-4 ${dc.isActive ? 'border-tz-cream-dark' : 'border-tz-cream-dark opacity-50'}`}>
+              <Tag className="w-4 h-4 text-tz-primary shrink-0" />
+              <span className="font-mono font-bold text-sm">{dc.code}</span>
+              <span className="text-sm text-tz-green font-medium">{dc.percentOff}% off</span>
+              <span className="text-xs text-muted-foreground">
+                {dc.usedCount}{dc.usageLimit !== null ? `/${dc.usageLimit}` : ''} {isRTL ? 'استخدام' : 'uses'}
+              </span>
+              {dc.expiresAt && (
+                <span className="text-xs text-muted-foreground">
+                  {isRTL ? 'ينتهي' : 'Expires'} {new Date(dc.expiresAt).toLocaleDateString()}
+                </span>
+              )}
+              {!dc.isActive && (
+                <span className="text-xs text-tz-red font-medium">{isRTL ? 'معطل' : 'Inactive'}</span>
+              )}
+              {dc.isActive && (
+                <button
+                  type="button"
+                  onClick={() => handleDeactivateCode(dc.id, dc.code)}
+                  className="ml-auto text-muted-foreground hover:text-tz-red transition-colors"
+                  title={isRTL ? 'تعطيل' : 'Deactivate'}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Receipt Image Modal */}
       {viewingReceipt && (
         <motion.div
@@ -342,11 +529,30 @@ export default function AdminPage() {
             >
               <X className="w-4 h-4" />
             </button>
-            <img
-              src={viewingReceipt}
-              alt="Receipt"
-              className="w-full h-auto rounded-xl"
-            />
+            {viewingReceipt.isPdf ? (
+              <iframe
+                src={viewingReceipt.url}
+                title="Receipt PDF"
+                className="w-full min-h-[70vh] rounded-xl border-0"
+              />
+            ) : (
+              <img
+                src={viewingReceipt.url}
+                alt="Receipt"
+                className="w-full h-auto rounded-xl"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <a
+              href={viewingReceipt.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-sm text-tz-primary mt-3 hover:underline"
+            >
+              {isRTL ? 'فتح في تبويب جديد' : 'Open in new tab'}
+            </a>
           </motion.div>
         </motion.div>
       )}

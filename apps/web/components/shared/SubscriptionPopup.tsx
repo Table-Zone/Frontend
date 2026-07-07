@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, Check, Building2, Hash, CreditCard, UserCircle } from 'lucide-react';
+import { X, Upload, Check, Building2, Hash, CreditCard, UserCircle, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { subscriptionAPI } from '@/lib/api';
@@ -16,6 +16,35 @@ interface Plan {
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
+  features: string[];
+}
+
+const PERIOD_LABELS: Record<string, { en: string; ar: string }> = {
+  monthly:   { en: 'Monthly',   ar: 'شهري' },
+  quarterly: { en: 'Quarterly', ar: '3 أشهر' },
+  yearly:    { en: 'Yearly',    ar: 'سنوي' },
+};
+
+const FEATURE_BULLETS: Record<string, { en: string[]; ar: string[] }> = {
+  tables: {
+    en: ['Smart table timers', 'Track table status', 'Usage time alerts', 'Technical support'],
+    ar: ['مؤقتات ذكية للطاولات', 'تتبع حالة الطاولات', 'تنبيهات وقت الاستخدام', 'دعم فني'],
+  },
+  qrcode: {
+    en: ['Digital QR menu', '4 ready-made templates', 'Customize colors & logo', 'Manage products & categories'],
+    ar: ['قائمة رقمية بتصميم QR', '4 قوالب تصميم جاهزة', 'تخصيص الألوان والشعار', 'إدارة المنتجات والتصنيفات'],
+  },
+};
+
+function getPlanBullets(features: string[], isRTL: boolean): string[] {
+  return features.flatMap((f) => {
+    const bullets = FEATURE_BULLETS[f];
+    return bullets ? (isRTL ? bullets.ar : bullets.en) : [];
+  });
+}
+
+function extractPeriod(planName: string): string {
+  return planName.split('-')[0] ?? planName;
 }
 
 interface SubscriptionPopupProps {
@@ -33,10 +62,19 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
   const [bankReference, setBankReference] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [billingPeriod, setBillingPeriod] = useState<string>('monthly');
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; percentOff: number } | null>(null);
+  const [discountError, setDiscountError] = useState('');
+  const [isValidatingDiscount, setIsValidatingDiscount] = useState(false);
 
   useEffect(() => {
     subscriptionAPI.getPlans().then((res) => {
-      setPlans(res.data.data.plans);
+      const fetched: Plan[] = res.data.data.plans;
+      setPlans(fetched);
+      if (fetched.length > 0) {
+        setBillingPeriod(extractPeriod(fetched[0].name));
+      }
     });
     subscriptionAPI.getBankDetails().then((res) => {
       setBankDetails(res.data.data);
@@ -47,8 +85,27 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     setSelectedPlan(plan);
     setReceiptFile(null);
     setBankReference('');
+    setDiscountCode('');
+    setAppliedDiscount(null);
+    setDiscountError('');
     setError('');
     setStep('payment');
+  };
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    setDiscountError('');
+    setIsValidatingDiscount(true);
+    try {
+      const res = await subscriptionAPI.validateDiscountCode(discountCode.trim());
+      setAppliedDiscount({ code: discountCode.trim().toUpperCase(), percentOff: res.data.data.percentOff });
+    } catch (err: any) {
+      const msg = err.response?.data?.error?.message || (isRTL ? 'كود غير صالح' : 'Invalid discount code');
+      setDiscountError(msg);
+      setAppliedDiscount(null);
+    } finally {
+      setIsValidatingDiscount(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -60,6 +117,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
       formData.append('planId', selectedPlan.id);
       formData.append('receipt', receiptFile);
       if (bankReference) formData.append('bankReference', bankReference);
+      if (appliedDiscount) formData.append('discountCode', appliedDiscount.code);
       await subscriptionAPI.requestSubscription(workspaceId, formData);
       setStep('success');
     } catch (err: any) {
@@ -75,6 +133,15 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     navigator.clipboard.writeText(text);
   };
 
+  const billingPeriods = Array.from(new Set(plans.map((p) => extractPeriod(p.name))));
+  const plansForPeriod = plans.filter((p) => extractPeriod(p.name) === billingPeriod);
+  const mostPopularId = plansForPeriod.reduce<Plan | null>((best, p) => {
+    if (!best) return p;
+    if (p.features.length > best.features.length) return p;
+    if (p.features.length === best.features.length && p.priceSar > best.priceSar) return p;
+    return best;
+  }, null)?.id;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -88,7 +155,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-tz-cream-dark">
@@ -116,33 +183,82 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
               <p className="text-muted-foreground text-sm mb-4">
                 {t.subscriptionRequiredDesc}
               </p>
-              {plans.map((plan) => (
-                <motion.div
-                  key={plan.id}
-                  whileHover={{ scale: 1.02 }}
-                  className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-colors ${
-                    selectedPlan?.id === plan.id
-                      ? 'border-tz-primary bg-tz-primary/5'
-                      : 'border-tz-cream-dark hover:border-tz-primary/50'
-                  }`}
-                  onClick={() => handleSelectPlan(plan)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg">
-                        {isRTL ? plan.labelAr : plan.labelEn}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {plan.durationDays} {isRTL ? 'يوم' : 'days'} · {plan.baseStaffSeats} {t.staffSeats}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-tz-primary">{plan.priceSar}</p>
-                      <p className="text-xs text-muted-foreground">{isRTL ? 'ر.س' : 'SAR'}</p>
-                    </div>
+
+              {/* Billing Period Toggle */}
+              {billingPeriods.length > 1 && (
+                <div className="flex items-center justify-center mb-4">
+                  <div className="inline-flex items-center bg-tz-cream rounded-2xl p-1.5 border border-tz-cream-dark">
+                    {billingPeriods.map((period) => {
+                      const label = PERIOD_LABELS[period];
+                      return (
+                        <button
+                          key={period}
+                          onClick={() => setBillingPeriod(period)}
+                          className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                            billingPeriod === period
+                              ? 'bg-tz-primary text-white shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {label ? (isRTL ? label.ar : label.en) : period}
+                        </button>
+                      );
+                    })}
                   </div>
-                </motion.div>
-              ))}
+                </div>
+              )}
+
+              {/* Plan Cards */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                {plansForPeriod.map((plan) => {
+                  const isPopular = plan.id === mostPopularId;
+                  const bullets = getPlanBullets(plan.features, isRTL);
+                  return (
+                    <motion.div
+                      key={plan.id}
+                      whileHover={{ scale: 1.02 }}
+                      className={`relative rounded-2xl border-2 p-5 cursor-pointer transition-colors flex flex-col ${
+                        isPopular
+                          ? 'border-tz-primary bg-tz-primary/5'
+                          : 'border-tz-cream-dark hover:border-tz-primary/50'
+                      }`}
+                      onClick={() => handleSelectPlan(plan)}
+                    >
+                      {isPopular && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-tz-primary text-white text-xs font-bold">
+                          {isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}
+                        </div>
+                      )}
+                      <div className="mb-4">
+                        <h3 className="font-bold text-lg">{isRTL ? plan.labelAr : plan.labelEn}</h3>
+                      </div>
+                      <div className="mb-4">
+                        <span className={`text-3xl font-extrabold ${isPopular ? 'text-tz-primary' : 'text-tz-espresso'}`}>
+                          {plan.priceSar}
+                        </span>
+                        <span className="text-sm text-muted-foreground"> {isRTL ? 'ر.س' : 'SAR'}</span>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {isRTL ? `لمدة ${plan.durationDays} يوم` : `For ${plan.durationDays} days`}
+                        </p>
+                      </div>
+                      <ul className="space-y-2 flex-1">
+                        {bullets.map((item) => (
+                          <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso">
+                            <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {plans.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {isRTL ? 'لا توجد خطط متاحة' : 'No plans available'}
+                </div>
+              )}
             </div>
           )}
 
@@ -189,12 +305,74 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
                 </div>
               </div>
 
+              {/* Discount Code */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium block">
+                  {isRTL ? 'كود الخصم (اختياري)' : 'Discount Code (optional)'}
+                </label>
+                {appliedDiscount ? (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-tz-green/10 border border-tz-green/30">
+                    <Tag className="w-4 h-4 text-tz-green shrink-0" />
+                    <span className="text-sm font-medium text-tz-green flex-1">
+                      {appliedDiscount.code} — {appliedDiscount.percentOff}% {isRTL ? 'خصم' : 'off'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => { setAppliedDiscount(null); setDiscountCode(''); }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={discountCode}
+                      onChange={(e) => { setDiscountCode(e.target.value.toUpperCase()); setDiscountError(''); }}
+                      onKeyDown={(e) => e.key === 'Enter' && handleApplyDiscount()}
+                      className="flex-1 h-10 px-3 rounded-xl border-2 border-input bg-background text-sm uppercase"
+                      placeholder={isRTL ? 'أدخل الكود' : 'Enter code'}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 px-4 text-sm"
+                      onClick={handleApplyDiscount}
+                      disabled={!discountCode.trim() || isValidatingDiscount}
+                    >
+                      {isValidatingDiscount ? '...' : (isRTL ? 'تطبيق' : 'Apply')}
+                    </Button>
+                  </div>
+                )}
+                {discountError && (
+                  <p className="text-xs text-red-500">{discountError}</p>
+                )}
+              </div>
+
               <div className="bg-tz-primary/5 rounded-2xl p-4 border border-tz-primary/20">
-                <p className="text-sm font-medium text-tz-primary">
-                  {isRTL
-                    ? `يرجى تحويل ${selectedPlan.priceSar} ر.س إلى الحساب أعلاه، ثم رفع الإيصال`
-                    : `Please transfer ${selectedPlan.priceSar} SAR to the account above, then upload the receipt`}
-                </p>
+                {appliedDiscount ? (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <span>{isRTL ? 'السعر الأصلي' : 'Original price'}</span>
+                      <span className="line-through">{Number(selectedPlan.priceSar)} {isRTL ? 'ر.س' : 'SAR'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-tz-green font-medium">
+                      <span>{isRTL ? `خصم ${appliedDiscount.percentOff}%` : `${appliedDiscount.percentOff}% discount`}</span>
+                      <span>- {(Number(selectedPlan.priceSar) * appliedDiscount.percentOff / 100).toFixed(2)} {isRTL ? 'ر.س' : 'SAR'}</span>
+                    </div>
+                    <div className="border-t border-tz-primary/20 pt-1 flex items-center justify-between font-bold text-tz-primary">
+                      <span>{isRTL ? 'المبلغ المطلوب تحويله' : 'Amount to transfer'}</span>
+                      <span>{(Number(selectedPlan.priceSar) * (1 - appliedDiscount.percentOff / 100)).toFixed(2)} {isRTL ? 'ر.س' : 'SAR'}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm font-medium text-tz-primary">
+                    {isRTL
+                      ? `يرجى تحويل ${selectedPlan.priceSar} ر.س إلى الحساب أعلاه، ثم رفع الإيصال`
+                      : `Please transfer ${selectedPlan.priceSar} SAR to the account above, then upload the receipt`}
+                  </p>
+                )}
               </div>
 
               {/* Receipt Upload */}

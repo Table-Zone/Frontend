@@ -106,7 +106,7 @@ export default function CreateWorkspacePage() {
                 <Building2 className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
                 <Input
                   type="text"
-                  placeholder={isRTL ? 'مثال: مقهى الأحلام' : 'e.g. Dream Coffee'}
+                  placeholder={isRTL ? 'اسم المكان' : 'e.g. Dream Coffee'}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="ps-10 h-12"

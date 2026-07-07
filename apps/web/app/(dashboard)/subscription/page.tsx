@@ -21,6 +21,7 @@ interface Plan {
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
+  features: string;
 }
 
 interface Subscription {
@@ -51,6 +52,7 @@ export default function SubscriptionPage() {
   const [workspaceId, setWorkspaceId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'quarterly'>('monthly');
 
   // Subscribe flow state
   const [step, setStep] = useState<'view' | 'payment' | 'success'>('view');
@@ -383,39 +385,125 @@ export default function SubscriptionPage() {
         <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
           <h2 className="text-lg font-bold mb-4">{isRTL ? 'الخطط المتاحة' : 'Available Plans'}</h2>
 
-          <div className="space-y-3">
-            {plans.map((plan) => (
-              <motion.div
-                key={plan.id}
-                whileHover={{ scale: 1.01 }}
-                className={`relative rounded-2xl border-2 p-5 transition-colors ${
-                  selectedPlan?.id === plan.id
-                    ? 'border-tz-primary bg-tz-primary/5'
-                    : 'border-tz-cream-dark hover:border-tz-primary/50'
+          {/* Billing Period Toggle */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="inline-flex items-center bg-tz-cream dark:bg-gray-800 rounded-2xl p-1.5 border border-tz-cream-dark dark:border-gray-700">
+              <button
+                onClick={() => setBillingPeriod('monthly')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                  billingPeriod === 'monthly'
+                    ? 'bg-tz-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-lg">{isRTL ? plan.labelAr : plan.labelEn}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {plan.durationDays} {isRTL ? 'يوم' : 'days'} · {plan.baseStaffSeats} {t.staffSeats}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-tz-primary">{plan.priceSar}</p>
-                    <p className="text-xs text-muted-foreground">{isRTL ? 'ر.س' : 'SAR'}</p>
-                  </div>
-                </div>
-                <Button
-                  onClick={() => handleSelectPlan(plan)}
-                  disabled={isSubmitting}
-                  className="w-full mt-4 bg-tz-primary hover:bg-tz-primary-dark text-white"
-                >
-                  {isSubmitting ? t.loading : isRTL ? 'اشترك الآن' : 'Subscribe'}
-                </Button>
-              </motion.div>
-            ))}
+                {isRTL ? 'شهري' : 'Monthly'}
+              </button>
+              <button
+                onClick={() => setBillingPeriod('quarterly')}
+                className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                  billingPeriod === 'quarterly'
+                    ? 'bg-tz-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {isRTL ? '3 أشهر' : 'Quarterly'}
+              </button>
+            </div>
           </div>
+
+          {/* Filtered Plans */}
+          {(() => {
+            const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
+            const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
+            const tablesFeatures = isRTL
+              ? ['مؤقتات ذكية للطاولات', 'تتبع حالة الطاولات', 'تنبيهات وقت الاستخدام', 'مقعد موظف واحد', 'دعم فني']
+              : ['Smart table timers', 'Track table status', 'Usage time alerts', '1 staff seat', 'Technical support'];
+            const qrcodeFeatures = isRTL
+              ? ['كل مميزات خطة الطاولات', 'قائمة رقمية بتصميم QR', '4 قوالب تصميم جاهزة', 'تخصيص الألوان والشعار', 'إدارة المنتجات والتصنيفات', 'مقعد موظف واحد', 'دعم فني']
+              : ['All Table Management features', 'Digital QR menu', '4 ready-made templates', 'Customize colors & logo', 'Manage products & categories', '1 staff seat', 'Technical support'];
+
+            return (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {/* Tables Only */}
+                {tablesPlan && (
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    className="relative rounded-2xl border-2 border-tz-cream-dark dark:border-gray-700 bg-white dark:bg-gray-800 p-5 flex flex-col"
+                  >
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg">{isRTL ? 'إدارة الطاولات' : 'Table Management'}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isRTL ? 'مؤقتات ذكية وتنظيم الطاولات' : 'Smart timers & table organization'}
+                      </p>
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-3xl font-extrabold text-tz-espresso dark:text-white">{tablesPlan.priceSar}</span>
+                      <span className="text-sm text-muted-foreground"> {isRTL ? 'ر.س' : 'SAR'}</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isRTL ? `لمدة ${tablesPlan.durationDays} يوم` : `For ${tablesPlan.durationDays} days`}
+                      </p>
+                    </div>
+                    <ul className="space-y-2 mb-5 flex-1">
+                      {tablesFeatures.map((item) => (
+                        <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
+                          <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      onClick={() => handleSelectPlan(tablesPlan)}
+                      disabled={isSubmitting}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isSubmitting ? t.loading : isRTL ? 'اشترك الآن' : 'Subscribe'}
+                    </Button>
+                  </motion.div>
+                )}
+
+                {/* Tables + QR */}
+                {qrcodePlan && (
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    className="relative rounded-2xl border-2 border-tz-primary bg-tz-primary/5 dark:bg-tz-primary/10 p-5 flex flex-col"
+                  >
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-tz-primary text-white text-xs font-bold">
+                      {isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="font-bold text-lg">{isRTL ? 'الطاولات + قائمة QR' : 'Tables + QR Menu'}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {isRTL ? 'كل شيء في خطة الطاولات + قائمة رقمية' : 'Everything in Tables + digital menu'}
+                      </p>
+                    </div>
+                    <div className="mb-4">
+                      <span className="text-3xl font-extrabold text-tz-primary">{qrcodePlan.priceSar}</span>
+                      <span className="text-sm text-muted-foreground"> {isRTL ? 'ر.س' : 'SAR'}</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {isRTL ? `لمدة ${qrcodePlan.durationDays} يوم` : `For ${qrcodePlan.durationDays} days`}
+                      </p>
+                    </div>
+                    <ul className="space-y-2 mb-5 flex-1">
+                      {qrcodeFeatures.map((item) => (
+                        <li key={item} className="flex items-center gap-2 text-sm text-tz-espresso dark:text-gray-300">
+                          <div className="w-1.5 h-1.5 rounded-full bg-tz-green shrink-0" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                    <Button
+                      onClick={() => handleSelectPlan(qrcodePlan)}
+                      disabled={isSubmitting}
+                      className="w-full bg-tz-primary hover:bg-tz-primary-dark text-white"
+                    >
+                      {isSubmitting ? t.loading : isRTL ? 'اشترك الآن' : 'Subscribe'}
+                    </Button>
+                  </motion.div>
+                )}
+              </div>
+            );
+          })()}
 
           {plans.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">

@@ -2,6 +2,12 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+export function getImageUrl(path?: string | null): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${API_BASE_URL}${path}`;
+}
+
 export const api = axios.create({
   baseURL: `${API_BASE_URL}/v1`,
   headers: { 'Content-Type': 'application/json' },
@@ -134,6 +140,7 @@ export const teamAPI = {
 export const subscriptionAPI = {
   getPlans: () => api.get('/workspaces/plans'),
   getBankDetails: () => api.get('/workspaces/subscription/bank-details'),
+  validateDiscountCode: (code: string) => api.get(`/workspaces/subscription/validate-discount?code=${encodeURIComponent(code)}`),
   getSubscription: (workspaceId: string) =>
     api.get(`/workspaces/${workspaceId}/subscription`),
   requestSubscription: (workspaceId: string, formData: FormData) =>
@@ -172,6 +179,55 @@ export const tableSessionAPI = {
   getSessions: (workspaceId: string) => api.get(`/workspaces/${workspaceId}/table-sessions`),
 };
 
+// QR Menu API
+export const qrMenuAPI = {
+  getTemplates: () => api.get(`/workspaces/qr-menu/templates`),
+  getMenu: (workspaceId: string) => api.get(`/workspaces/qr-menu/${workspaceId}/menu`),
+  createMenu: (workspaceId: string, data?: { templateId?: string }) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/menu`, data),
+  updateMenu: (workspaceId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/menu`, data),
+  deleteMenu: (workspaceId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/menu`),
+  createCategory: (workspaceId: string, data: any) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/categories`, data),
+  updateCategory: (workspaceId: string, categoryId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}`, data),
+  deleteCategory: (workspaceId: string, categoryId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}`),
+  createItem: (workspaceId: string, categoryId: string, data: any) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/categories/${categoryId}/items`, data),
+  updateItem: (workspaceId: string, itemId: string, data: any) =>
+    api.patch(`/workspaces/qr-menu/${workspaceId}/items/${itemId}`, data),
+  deleteItem: (workspaceId: string, itemId: string) =>
+    api.delete(`/workspaces/qr-menu/${workspaceId}/items/${itemId}`),
+  uploadLogo: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/logo`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadBanner: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/banner`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadBackground: (workspaceId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/${workspaceId}/background`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadItemImage: (itemId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/items/${itemId}/image`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+  uploadCategoryImage: (categoryId: string, formData: FormData) =>
+    api.post(`/workspaces/qr-menu/categories/${categoryId}/image`, formData, {
+      headers: { 'Content-Type': undefined } as any,
+    }),
+};
+
+// Public Menu API (no auth)
+export const publicMenuAPI = {
+  getMenu: (workspaceSlug: string) => api.get(`/workspaces/public/menus/${workspaceSlug}`),
+};
+
 // Admin API
 export const adminAPI = {
   login: (data: any) => api.post('/admin/auth/login', data),
@@ -188,6 +244,10 @@ export const adminAPI = {
     api.patch(`/admin/subscription-requests/${id}/reject`, data),
   getAuditLog: (params?: { page?: number; limit?: number }) =>
     api.get('/admin/audit-log', { params }),
+  getDiscountCodes: () => api.get('/admin/discount-codes'),
+  createDiscountCode: (data: { code: string; percentOff: number; usageLimit?: number; expiresAt?: string }) =>
+    api.post('/admin/discount-codes', data),
+  deactivateDiscountCode: (id: string) => api.patch(`/admin/discount-codes/${id}/deactivate`, {}),
 };
 
 export default api;
