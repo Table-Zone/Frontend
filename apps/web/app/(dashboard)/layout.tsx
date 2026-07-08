@@ -143,7 +143,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const isActive = pathname === itemPath || (itemPath === '/settings' && ['/subscription', '/profile'].includes(pathname));
             return (
               <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                <div className={`flex items-center rounded-xl transition-all ${
+                  sidebarOpen ? 'gap-3 px-3 py-2.5' : 'justify-center w-11 h-11 mx-auto'
+                } ${
                   isActive
                     ? 'bg-tz-primary text-white shadow-md shadow-tz-primary/25'
                     : 'text-muted-foreground hover:bg-tz-cream-dark dark:hover:bg-gray-800 hover:text-foreground'

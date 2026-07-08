@@ -87,17 +87,19 @@ export function ConfirmDialogProvider() {
 
             <p className="text-muted-foreground mb-6">{state.message}</p>
 
+            {/* Safe "go back" (dismiss) is the prominent orange button; the
+                destructive action is a quieter outline button. */}
             <div className="flex gap-3">
               <Button
-                variant="outline"
                 onClick={() => handleClose(false)}
-                className="flex-1 h-12 rounded-xl"
+                className={`flex-1 h-12 rounded-xl ${confirmStyles.info}`}
               >
                 {state.cancelLabel || 'Cancel'}
               </Button>
               <Button
+                variant="outline"
                 onClick={() => handleClose(true)}
-                className={`flex-1 h-12 rounded-xl ${confirmStyles[state.variant || 'warning']}`}
+                className="flex-1 h-12 rounded-xl"
               >
                 {state.confirmLabel || 'Confirm'}
               </Button>
