@@ -139,7 +139,6 @@ export default function TableCard({
   const isOccupied = displayStatus === 'occupied' || displayStatus === 'warning' || displayStatus === 'alert';
 
   const handleStart = async () => {
-    console.log('START CLICKED', { subscriptionActive, tableId: table.id });
     if (!subscriptionActive) {
       setShowSubscribe(true);
       return;

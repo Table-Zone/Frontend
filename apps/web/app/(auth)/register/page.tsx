@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User, Building2, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Building2, Loader2, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,7 +27,7 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', workspaceName: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', workspaceName: '', trialCode: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +40,7 @@ function RegisterForm() {
         email: form.email,
         password: form.password,
         workspaceName: form.workspaceName,
+        trialCode: form.trialCode || undefined,
       });
       setShowVerifyModal(true);
     } catch (err: any) {
@@ -124,6 +125,17 @@ function RegisterForm() {
                 onChange={(e) => setForm({ ...form, workspaceName: e.target.value })}
                 className="ps-10 h-12"
                 required
+              />
+            </div>
+
+            <div className="relative">
+              <Ticket className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder={lang === 'ar' ? 'كود التجربة المجانية (اختياري)' : 'Trial code (optional)'}
+                value={form.trialCode}
+                onChange={(e) => setForm({ ...form, trialCode: e.target.value.toUpperCase() })}
+                className="ps-10 h-12"
               />
             </div>
 

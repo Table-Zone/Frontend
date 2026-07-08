@@ -10,7 +10,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { authAPI } from '@/lib/api';
+import { authAPI, workspaceAPI } from '@/lib/api';
+
+// Land on the product the workspace is subscribed to (QR-only owners go to the menu designer)
+async function resolveLandingPath(userId: string, lastSlug: string | null): Promise<string> {
+  try {
+    const res = await workspaceAPI.getMyWorkspace(lastSlug || undefined);
+    const ws = res.data?.data?.workspace;
+    if (ws) {
+      const features: string[] = ws.subscription?.features || [];
+      const qrOnly = features.includes('qrcode') && !features.includes('tables');
+      const base = qrOnly && ws.ownerId === userId ? '/menu-design' : '/dashboard';
+      const slug = ws.slug || lastSlug;
+      return slug ? `${base}?workspaceSlug=${encodeURIComponent(slug)}` : base;
+    }
+  } catch {
+    // fall through to the default landing
+  }
+  return lastSlug ? `/dashboard?workspaceSlug=${encodeURIComponent(lastSlug)}` : '/dashboard';
+}
 
 function LoginForm() {
   const { t } = useLanguage();
@@ -55,10 +73,8 @@ function LoginForm() {
         router.push('/admin');
       } else {
         const lastSlug = typeof window !== 'undefined' ? localStorage.getItem('currentWorkspaceSlug') : null;
-        if (lastSlug) {
-          router.push(`/dashboard?workspaceSlug=${encodeURIComponent(lastSlug)}`);
-        } else if (user.hasWorkspace) {
-          router.push('/dashboard');
+        if (lastSlug || user.hasWorkspace) {
+          router.push(await resolveLandingPath(user.id, lastSlug));
         } else {
           router.push('/create-workspace');
         }

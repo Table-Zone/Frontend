@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Settings, Clock, Globe, Save, AlertTriangle, Moon, Sun, Monitor, Building2, Bell, BellOff } from 'lucide-react';
+import { Settings, Clock, Globe, Save, AlertTriangle, Moon, Sun, Monitor, Building2, Bell, BellOff, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -23,7 +23,7 @@ interface SettingsData {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { t, isRTL, setLang, lang } = useLanguage();
   const { theme, setTheme } = useTheme();
   const { showToast } = useToast();
@@ -349,6 +349,15 @@ export default function SettingsPage() {
             {isSaving ? t.loading : t.save}
           </Button>
         )}
+
+        <Button
+          variant="ghost"
+          onClick={() => { logout(); window.location.href = '/login'; }}
+          className="w-full h-12 rounded-xl bg-tz-red/10 text-tz-red hover:bg-tz-red/20 hover:text-tz-red gap-2 text-base"
+        >
+          <LogOut className="w-4 h-4" />
+          {t.logout}
+        </Button>
       </div>
     </div>
   );
