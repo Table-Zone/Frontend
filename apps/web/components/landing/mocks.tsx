@@ -369,3 +369,47 @@ export function PhoneMock({ tabs = PHONE_TABS }: { tabs?: DemoTab[] }) {
     </div>
   );
 }
+
+export interface TimerMockTable { name: string; status: keyof typeof STATUS_META; secs: number }
+
+export function TimerPhoneMock({ tables }: { tables: TimerMockTable[] }) {
+  const { t, lang, isRTL } = useLanguage();
+  const chrome = PHONE_CHROME[lang];
+  const activeCount = tables.filter((tb) => tb.status !== 'free').length;
+  return (
+    <div dir={isRTL ? 'rtl' : 'ltr'} style={{ width: 196, background: '#1A1A1A', borderRadius: 38, padding: 10, boxShadow: '0 28px 60px rgba(44,24,16,0.30), 0 8px 20px rgba(44,24,16,0.14)', position: 'relative', flexShrink: 0 }}>
+      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', width: 64, height: 18, background: '#1A1A1A', borderRadius: 999, zIndex: 3 }}></div>
+      <div style={{ background: '#FAFAF8', borderRadius: 30, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 400 }}>
+        {/* Status bar */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px 5px', fontSize: 10, fontWeight: 700, color: '#1A1A1A', flexShrink: 0, background: '#fff' }}>
+          <span>{chrome.time}</span>
+          <span style={{ fontSize: 7, letterSpacing: 1 }}>●●● ▮</span>
+        </div>
+
+        {/* App header */}
+        <div style={{ padding: '6px 12px 8px', borderBottom: '1px solid #EBEBEB', flexShrink: 0, background: '#fff', textAlign: 'center' }}>
+          <div style={{ fontSize: 7.5, fontWeight: 700, color: '#BBB', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.appName}</div>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: TZ.espresso, marginTop: 1 }}>{t.tablesTimer}</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, background: TZ.orangeTint, borderRadius: 999, padding: '2px 8px', fontSize: 8.5, fontWeight: 700, color: TZ.orangeDk }}>
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: TZ.orange }}></span>
+            {activeCount}/{tables.length} {t.occupied}
+          </div>
+        </div>
+
+        {/* Table timer grid */}
+        <div style={{ flex: 1, background: '#fff', padding: '9px 10px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7, alignContent: 'start', overflow: 'hidden' }}>
+          {tables.map((tb, i) => <MiniCard key={i} name={tb.name} status={tb.status} secs={tb.secs} />)}
+        </div>
+
+        {/* QR menu cross-promo bar */}
+        <div style={{ margin: '0 10px 10px', background: TZ.espresso, color: '#fff', borderRadius: 12, padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9.5, fontWeight: 700, flexShrink: 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <svg viewBox="0 0 24 24" width={11} height={11} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/></svg>
+            {t.menuDesign}
+          </span>
+          <span style={{ background: TZ.orange, borderRadius: 999, padding: '2px 7px', fontSize: 8.5 }}>{t.active}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
