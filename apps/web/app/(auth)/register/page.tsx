@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { authAPI } from '@/lib/api';
+import LoginPromo from '@/components/auth/LoginPromo';
 
 function RegisterForm() {
   const { t, lang } = useLanguage();
@@ -51,113 +52,156 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tz-cream via-white to-tz-cream-dark flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <div className="bg-white rounded-3xl shadow-xl p-8 border border-tz-cream-dark">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-tz-primary/10 mb-4">
-              <User className="w-8 h-8 text-tz-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-tz-espresso">{t.register}</h1>
-            <p className="text-muted-foreground mt-1">{t.appName}</p>
-          </div>
+    <div className="min-h-screen grid lg:grid-cols-[1.05fr_0.95fr]">
+      <LoginPromo />
 
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm text-center">
-              {error}
-            </div>
-          )}
+      <main className="flex flex-col items-center justify-center p-6 sm:p-12 bg-gradient-to-b from-white to-tz-cream">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-[404px]"
+        >
+          <form onSubmit={handleSubmit}>
+            <h1 className="text-[34px] font-extrabold tracking-tight text-tz-espresso">{t.register}</h1>
+            <p className="text-[15px] text-muted-foreground mt-2 mb-8">{t.registerSubtitle}</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <User className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
-              <Input
-                type="text"
-                placeholder={t.name}
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="ps-10 h-12"
-                required
-              />
-            </div>
+            {error && (
+              <div className="mb-4 px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-semibold text-center">
+                {error}
+              </div>
+            )}
 
-            <div className="relative">
-              <Mail className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
-              <Input
-                type="email"
-                placeholder={t.email}
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="ps-10 h-12"
-                required
-              />
+            {/* Name */}
+            <div className="mb-4">
+              <label htmlFor="name" className="block text-[13px] font-bold text-tz-espresso mb-2">
+                {t.name}
+              </label>
+              <div className="relative">
+                <User className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder={t.name}
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="ps-11 h-12 rounded-xl bg-white focus-visible:ring-tz-primary/20 focus-visible:border-tz-primary"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="relative">
-              <Lock className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                placeholder={t.password}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                className="px-10 h-12"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute top-1/2 -translate-y-1/2 end-3 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
+            {/* Email */}
+            <div className="mb-4">
+              <label htmlFor="email" className="block text-[13px] font-bold text-tz-espresso mb-2">
+                {t.email}
+              </label>
+              <div className="relative">
+                <Mail className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="ps-11 h-12 rounded-xl bg-white focus-visible:ring-tz-primary/20 focus-visible:border-tz-primary"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="relative">
-              <Building2 className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
-              <Input
-                type="text"
-                placeholder={t.workspaceName}
-                value={form.workspaceName}
-                onChange={(e) => setForm({ ...form, workspaceName: e.target.value })}
-                className="ps-10 h-12"
-                required
-              />
+            {/* Password */}
+            <div className="mb-4">
+              <label htmlFor="password" className="block text-[13px] font-bold text-tz-espresso mb-2">
+                {t.password}
+              </label>
+              <div className="relative">
+                <Lock className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="ps-11 pe-11 h-12 rounded-xl bg-white focus-visible:ring-tz-primary/20 focus-visible:border-tz-primary"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute top-1/2 -translate-y-1/2 end-3 text-muted-foreground hover:text-foreground"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
-            <div className="relative">
-              <Ticket className="absolute top-1/2 -translate-y-1/2 start-3 w-5 h-5 text-muted-foreground pointer-events-none" />
-              <Input
-                type="text"
-                placeholder={lang === 'ar' ? 'كود التجربة المجانية (اختياري)' : 'Trial code (optional)'}
-                value={form.trialCode}
-                onChange={(e) => setForm({ ...form, trialCode: e.target.value.toUpperCase() })}
-                className="ps-10 h-12"
-              />
+            {/* Workspace name */}
+            <div className="mb-4">
+              <label htmlFor="workspaceName" className="block text-[13px] font-bold text-tz-espresso mb-2">
+                {t.workspaceName}
+              </label>
+              <div className="relative">
+                <Building2 className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="workspaceName"
+                  type="text"
+                  placeholder={t.workspaceName}
+                  value={form.workspaceName}
+                  onChange={(e) => setForm({ ...form, workspaceName: e.target.value })}
+                  className="ps-11 h-12 rounded-xl bg-white focus-visible:ring-tz-primary/20 focus-visible:border-tz-primary"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Trial code */}
+            <div className="mb-6">
+              <label htmlFor="trialCode" className="block text-[13px] font-bold text-tz-espresso mb-2">
+                {lang === 'ar' ? 'كود التجربة المجانية' : 'Trial code'}
+                <span className="font-semibold text-muted-foreground"> ({lang === 'ar' ? 'اختياري' : 'optional'})</span>
+              </label>
+              <div className="relative">
+                <Ticket className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
+                <Input
+                  id="trialCode"
+                  type="text"
+                  placeholder={lang === 'ar' ? 'كود التجربة المجانية (اختياري)' : 'Trial code (optional)'}
+                  value={form.trialCode}
+                  onChange={(e) => setForm({ ...form, trialCode: e.target.value.toUpperCase() })}
+                  className="ps-11 h-12 rounded-xl bg-white focus-visible:ring-tz-primary/20 focus-visible:border-tz-primary"
+                />
+              </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-12 bg-tz-primary hover:bg-tz-primary-dark text-white text-base"
+              className="w-full h-[52px] rounded-xl bg-tz-primary hover:bg-tz-primary-dark text-white text-base font-extrabold shadow-[0_12px_24px_rgba(199,91,18,0.3)]"
               disabled={isLoading}
             >
               {isLoading ? t.loading : t.register}
             </Button>
-          </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground text-center mt-6">
               {t.haveAccount}{' '}
-              <Link href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'} className="text-tz-primary hover:underline font-medium">
+              <Link
+                href={redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login'}
+                className="text-tz-primary hover:text-tz-primary-dark font-extrabold"
+              >
                 {t.login}
               </Link>
             </p>
-          </div>
+          </form>
+        </motion.div>
+
+        <div className="w-full max-w-[404px] mt-8 pt-5 border-t border-tz-espresso/10 flex items-center justify-center gap-2 flex-wrap text-[12.5px] font-semibold text-muted-foreground">
+          <Link href="/privacy" className="hover:text-foreground">{t.landing.footerPrivacy}</Link>
+          <span className="opacity-40">•</span>
+          <Link href="/terms" className="hover:text-foreground">{t.landing.footerTerms}</Link>
+          <span className="opacity-40">•</span>
+          <span>© 2026 {t.appName}</span>
         </div>
-      </motion.div>
+      </main>
 
       <Dialog open={showVerifyModal} onOpenChange={setShowVerifyModal}>
         <DialogContent className="sm:rounded-2xl" onInteractOutside={(e) => e.preventDefault()}>
