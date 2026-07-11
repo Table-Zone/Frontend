@@ -56,12 +56,12 @@ function RegisterForm() {
     <div className="relative min-h-screen grid lg:grid-cols-[1.05fr_0.95fr] overflow-hidden">
       <LoginPromo />
 
-      <main className="relative flex flex-col items-center justify-start pt-20 lg:justify-center lg:pt-12 p-6 sm:px-12 sm:pb-12 bg-[linear-gradient(165deg,#FFFBF6_0%,#FCEEDD_46%,#F7DFC6_100%)]">
+      <main className="relative flex flex-col items-center justify-start lg:justify-center lg:pt-12 p-6 sm:px-12 sm:pb-12 bg-[linear-gradient(165deg,#FAF7F2_0%,#FAF5EE_52%,#F5ECDD_100%)]">
         {/* Brand header — mobile only (the promo panel carries the logo on desktop) */}
         <motion.div
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="lg:hidden flex flex-col items-center gap-2.5 mb-10"
+          className="lg:hidden flex flex-col items-center gap-2.5 mb-7"
         >
           <motion.span
             className="w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-[0_10px_22px_rgba(199,91,18,0.26)]"
@@ -217,7 +217,7 @@ function RegisterForm() {
           </motion.form>
         </motion.div>
 
-        <div className="relative z-10 w-full max-w-[404px] mt-8 pt-5 border-t border-tz-espresso/10 flex items-center justify-center gap-2 flex-wrap text-[12.5px] font-semibold text-muted-foreground">
+        <div className="relative z-10 w-full max-w-[404px] mt-auto lg:mt-8 pt-5 border-t border-tz-espresso/10 flex items-center justify-center gap-2 flex-wrap text-[12.5px] font-semibold text-muted-foreground">
           <Link href="/privacy" className="hover:text-foreground">{t.landing.footerPrivacy}</Link>
           <span className="opacity-40">•</span>
           <Link href="/terms" className="hover:text-foreground">{t.landing.footerTerms}</Link>
