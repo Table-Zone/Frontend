@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { TZ, STATUS_META, fmtTime, QRSvg, MiniCard, PhoneMock, DEMO_MENUS } from '@/components/landing/mocks';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { subscriptionAPI, getImageUrl } from '@/lib/api';
 import {
   PublicPlan,
@@ -216,12 +216,25 @@ function QRMenuCard() {
 }
 
 export default function LandingPage() {
-  const { t, isRTL, setLang } = useLanguage();
+  const { t, lang, isRTL, setLang } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [billingPeriod, setBillingPeriod] = useState('monthly');
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!langOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLangOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+  }, [langOpen]);
 
   const INIT_TABLES = [
     { nameKey: 'mockTable1' as const, status: 'occupied' as const, secs: 1742 },
@@ -290,7 +303,7 @@ export default function LandingPage() {
           .pricing-grid { grid-template-columns:1fr !important; max-width:400px !important; }
           .footer-grid { grid-template-columns:1fr 1fr !important; }
           .nav-links-center { display:none !important; }
-          .nav-btn { padding:7px 12px !important; font-size:12px !important; }
+          .nav-actions { display:none !important; }
         }
       `}</style>
 
@@ -309,19 +322,48 @@ export default function LandingPage() {
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button onClick={() => setLang(isRTL ? 'en' : 'ar')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.7, padding: 6, display: 'grid', placeItems: 'center', transition: 'opacity .15s' }} aria-label="Toggle language"
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '0.7'}>
-              <svg viewBox="0 0 122.88 92.91" style={{ width: 22, height: 22, fill: TZ.espresso }} xmlns="http://www.w3.org/2000/svg">
-                <path d="M20.15,83.63,31.63,73.4a2.89,2.89,0,0,1,1.91-.73h27.8a.92.92,0,0,0,.93-.93V65.9H68v5.84a6.71,6.71,0,0,1-6.68,6.68H34.62L19.3,92.07a2.87,2.87,0,0,1-4.9-2V78.42H6.69A6.71,6.71,0,0,1,0,71.74V28.59a6.76,6.76,0,0,1,6.69-6.68H43.35v5.75H6.69a1,1,0,0,0-.94.93V71.74a.91.91,0,0,0,.28.65,1,1,0,0,0,.66.28H17.27a2.88,2.88,0,0,1,2.88,2.88v8.08Zm.21-19.48L29.6,36.24h8.83l9.24,27.91H40.35L38.8,59.07H29.15l-1.51,5.08ZM30.79,53.24h6.37L34,41.81,30.79,53.24ZM76.63,13.35h8.7V11.11a.69.69,0,0,1,.69-.69h4.65a.68.68,0,0,1,.68.69v2.24h9.76a.68.68,0,0,1,.68.69V18.5a.68.68,0,0,1-.68.68H99.56a26.3,26.3,0,0,1-.91,3.88l0,.06a26.07,26.07,0,0,1-1.74,4.15,32.34,32.34,0,0,1-2.14,3.43c-.67,1-1.41,1.9-2.2,2.83a35.78,35.78,0,0,0,3.68,3.83,41.43,41.43,0,0,0,5.09,3.74.68.68,0,0,1,.21.94l-2.39,3.73a.69.69,0,0,1-1,.2,45.88,45.88,0,0,1-5.58-4.08l0,0a41.42,41.42,0,0,1-4-4.1C87.3,38.93,86.15,40,85,41l0,0c-1.36,1.12-2.79,2.2-4.47,3.36a.69.69,0,0,1-1-.17L77,40.53a.69.69,0,0,1,.17-1c1.66-1.14,3-2.19,4.36-3.28,1.16-1,2.28-2,3.49-3.16a44.82,44.82,0,0,1-2.77-4.45A28.84,28.84,0,0,1,80,22.9a.68.68,0,0,1,.47-.84l4.27-1.19a.68.68,0,0,1,.84.47A22.62,22.62,0,0,0,89,28.7L90.27,27a26.33,26.33,0,0,0,1.51-2.47l0,0A19.43,19.43,0,0,0,93,21.62a24,24,0,0,0,.66-2.44h-17a.69.69,0,0,1-.69-.68V14a.69.69,0,0,1,.69-.69Zm27,56.82L88.26,56.51H61.54a6.73,6.73,0,0,1-6.69-6.68V6.69a6.71,6.71,0,0,1,2-4.72l.2-.18A6.67,6.67,0,0,1,61.54,0h54.65a6.69,6.69,0,0,1,4.71,2l.19.2a6.69,6.69,0,0,1,1.79,4.51V49.83a6.73,6.73,0,0,1-6.69,6.68h-7.7V68.13a2.88,2.88,0,0,1-4.91,2ZM91.26,51.49l11.47,10.23V53.64a2.88,2.88,0,0,1,2.88-2.88h10.58a.92.92,0,0,0,.65-.28.91.91,0,0,0,.29-.65V6.69a1,1,0,0,0-.22-.58L116.84,6a1,1,0,0,0-.65-.29H61.54A.94.94,0,0,0,61,6L60.89,6a.92.92,0,0,0-.28.65V49.83a.92.92,0,0,0,.93.93H89.35a2.86,2.86,0,0,1,1.91.73Z"/>
-              </svg>
-            </button>
-            <Link href="/login" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
-              {t.login}
-            </Link>
-            <Link href="/register" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
-              {t.landing.getStarted}
-            </Link>
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button onClick={() => setLangOpen(o => !o)} aria-haspopup="listbox" aria-expanded={langOpen} aria-label="Change language"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#fff', border: `1px solid rgba(44,24,16,0.14)`, borderRadius: 999, cursor: 'pointer', padding: '8px 12px', color: TZ.espresso, fontWeight: 700, fontSize: 14, transition: 'background .15s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(44,24,16,0.04)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{lang === 'ar' ? '🇸🇦' : '🇬🇧'}</span>
+                <span>{lang === 'ar' ? 'AR' : 'EN'}</span>
+                <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: 'none', stroke: TZ.espresso, strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', opacity: 0.55, transform: langOpen ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              {langOpen && (
+                <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: 0, minWidth: 168, background: '#fff', border: `1px solid rgba(44,24,16,0.12)`, borderRadius: 14, boxShadow: '0 16px 40px rgba(44,24,16,0.16)', padding: 6, zIndex: 60, overflow: 'hidden' }}>
+                  {([['en', '🇬🇧', 'English'], ['ar', '🇸🇦', 'العربية']] as ['en' | 'ar', string, string][]).map(([code, flag, label]) => {
+                    const selected = lang === code;
+                    return (
+                      <button key={code} role="option" aria-selected={selected}
+                        onClick={() => { setLang(code); setLangOpen(false); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: isRTL ? 'right' : 'left', background: selected ? 'rgba(199,91,18,0.09)' : 'transparent', border: 'none', borderRadius: 10, cursor: 'pointer', padding: '10px 12px', color: TZ.espresso, fontWeight: 700, fontSize: 14, transition: 'background .12s' }}
+                        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'rgba(44,24,16,0.05)'; }}
+                        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                        <span style={{ fontSize: 18, lineHeight: 1 }}>{flag}</span>
+                        <span style={{ flex: 1 }}>{label}</span>
+                        {selected && (
+                          <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'none', stroke: TZ.orange, strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
+                {t.login}
+              </Link>
+              <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
+                {t.landing.getStarted}
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
