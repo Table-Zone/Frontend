@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff, User, Building2, Loader2, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,16 +53,38 @@ function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-[1.05fr_0.95fr]">
+    <div className="relative min-h-screen grid lg:grid-cols-[1.05fr_0.95fr] overflow-hidden">
       <LoginPromo />
 
-      <main className="flex flex-col items-center justify-center p-6 sm:p-12 bg-gradient-to-b from-white to-tz-cream">
+      <main className="relative flex flex-col items-center justify-start pt-20 lg:justify-center lg:pt-12 p-6 sm:px-12 sm:pb-12 bg-[linear-gradient(165deg,#FFFBF6_0%,#FCEEDD_46%,#F7DFC6_100%)]">
+        {/* Brand header — mobile only (the promo panel carries the logo on desktop) */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-[404px]"
+          className="lg:hidden flex flex-col items-center gap-2.5 mb-10"
         >
-          <form onSubmit={handleSubmit}>
+          <motion.span
+            className="w-[46px] h-[46px] rounded-[13px] overflow-hidden shadow-[0_10px_22px_rgba(199,91,18,0.26)]"
+            animate={{ scale: [1, 1.015, 1] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Image src="/logo.jpg" alt={t.appName} width={46} height={46} className="w-full h-full object-cover" />
+          </motion.span>
+          <span className="font-extrabold text-[19px] leading-none tracking-tight text-tz-espresso">
+            {t.appName}
+          </span>
+        </motion.div>
+
+        <motion.div
+          variants={{ show: { transition: { staggerChildren: 0.12, delayChildren: 0.05 } } }}
+          initial="hidden"
+          animate="show"
+          className="relative z-10 w-full max-w-[404px]"
+        >
+          <motion.form
+            variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0 } }}
+            onSubmit={handleSubmit}
+          >
             <h1 className="text-[34px] font-extrabold tracking-tight text-tz-espresso">{t.register}</h1>
             <p className="text-[15px] text-muted-foreground mt-2 mb-8">{t.registerSubtitle}</p>
 
@@ -191,10 +214,10 @@ function RegisterForm() {
                 {t.login}
               </Link>
             </p>
-          </form>
+          </motion.form>
         </motion.div>
 
-        <div className="w-full max-w-[404px] mt-8 pt-5 border-t border-tz-espresso/10 flex items-center justify-center gap-2 flex-wrap text-[12.5px] font-semibold text-muted-foreground">
+        <div className="relative z-10 w-full max-w-[404px] mt-8 pt-5 border-t border-tz-espresso/10 flex items-center justify-center gap-2 flex-wrap text-[12.5px] font-semibold text-muted-foreground">
           <Link href="/privacy" className="hover:text-foreground">{t.landing.footerPrivacy}</Link>
           <span className="opacity-40">•</span>
           <Link href="/terms" className="hover:text-foreground">{t.landing.footerTerms}</Link>
