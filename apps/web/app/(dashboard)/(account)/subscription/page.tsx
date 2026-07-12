@@ -27,7 +27,12 @@ interface Plan {
 interface Subscription {
   status: string;
   plan: string;
+  planLabelAr?: string;
+  planLabelEn?: string;
+  isTrial?: boolean;
+  trialDays?: number | null;
   expiresAt: string | null;
+  daysRemaining?: number | null;
   totalStaffSeats: number;
   extraStaffSeats: number;
 }
@@ -192,6 +197,7 @@ export default function SubscriptionPage() {
 
   const statusColors: Record<string, string> = {
     active: 'bg-tz-green/10 text-tz-green',
+    trial: 'bg-tz-blue/10 text-tz-blue',
     grace: 'bg-tz-amber/10 text-tz-amber',
     lapsed: 'bg-tz-red/10 text-tz-red',
     cancelled: 'bg-gray-100 text-gray-500',
@@ -200,11 +206,18 @@ export default function SubscriptionPage() {
 
   const statusLabels: Record<string, string> = {
     active: t.active,
+    trial: isRTL ? 'تجربة مجانية' : 'Free Trial',
     grace: isRTL ? 'فترة سماح' : 'Grace',
     lapsed: t.lapsed,
     cancelled: isRTL ? 'ملغى' : 'Cancelled',
     pending: t.pending,
   };
+
+  const planLabel = subscription
+    ? (isRTL ? subscription.planLabelAr : subscription.planLabelEn) ||
+      (subscription.plan === 'monthly' ? t.monthly : subscription.plan === 'trial' ? (isRTL ? 'تجربة مجانية' : 'Free Trial') : t.quarterly)
+    : '';
+
 
   const ArrowIcon = isRTL ? ArrowRight : ArrowRight;
 
@@ -224,7 +237,7 @@ export default function SubscriptionPage() {
         </div>
       )}
 
-      {/* Active Subscription Banner */}
+      {/* Active / Trial Subscription Banner */}
       {subscription?.status === 'active' && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -240,8 +253,30 @@ export default function SubscriptionPage() {
             </p>
             <p className="text-sm text-tz-green/70">
               {isRTL
-                ? `الخطة: ${subscription.plan === 'monthly' ? 'شهري' : 'ربع سنوي'} · ${subscription.totalStaffSeats} مقاعد`
-                : `Plan: ${subscription.plan} · ${subscription.totalStaffSeats} seats`}
+                ? `الخطة: ${planLabel} · ${subscription.totalStaffSeats} مقاعد`
+                : `Plan: ${planLabel} · ${subscription.totalStaffSeats} seats`}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
+      {subscription?.status === 'trial' && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 p-4 rounded-2xl bg-tz-blue/10 border border-tz-blue/20 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-full bg-tz-blue flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-tz-blue">
+              {isRTL ? 'أنت على خطة تجريبية' : 'You are on a free trial'}
+            </p>
+            <p className="text-sm text-tz-blue/70">
+              {isRTL
+                ? `تجربة مجانية لمدة 7 أيام · ${subscription.daysRemaining ?? 0} ${subscription.daysRemaining === 1 ? 'يوم متبقي' : 'أيام متبقية'}`
+                : `7-day free trial · ${subscription.daysRemaining ?? 0} day${subscription.daysRemaining === 1 ? '' : 's'} left`}
             </p>
           </div>
         </motion.div>
@@ -262,8 +297,15 @@ export default function SubscriptionPage() {
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">{t.plan}</span>
-              <span className="font-medium">{subscription.plan === 'monthly' ? t.monthly : t.quarterly}</span>
+              <span className="font-medium">{planLabel}</span>
             </div>
+
+            {subscription.isTrial && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{isRTL ? 'مدة التجربة' : 'Trial duration'}</span>
+                <span className="font-medium">{isRTL ? '7 أيام' : '7 days'}</span>
+              </div>
+            )}
 
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -277,9 +319,18 @@ export default function SubscriptionPage() {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
-                  {isRTL ? 'تاريخ الانتهاء' : 'Expires'}
+                  {subscription.isTrial ? (isRTL ? 'تنتهي التجربة' : 'Trial ends') : (isRTL ? 'تاريخ الانتهاء' : 'Expires')}
                 </span>
                 <span className="font-medium">{new Date(subscription.expiresAt).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}</span>
+              </div>
+            )}
+
+            {subscription.isTrial && subscription.daysRemaining != null && (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">{isRTL ? 'الأيام المتبقية' : 'Days remaining'}</span>
+                <span className={`font-bold ${subscription.daysRemaining <= 2 ? 'text-tz-red' : 'text-tz-blue'}`}>
+                  {subscription.daysRemaining} {isRTL ? 'يوم' : 'days'}
+                </span>
               </div>
             )}
 
@@ -380,10 +431,21 @@ export default function SubscriptionPage() {
         )}
       </div>
 
-      {/* Plans (for new subscription or renewal) */}
+      {/* Plans (for new subscription, renewal, or upgrade from trial) */}
       {(!subscription || subscription.status !== 'active') && step === 'view' && (
         <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-sm border border-tz-cream-dark dark:border-gray-700 mb-6">
-          <h2 className="text-lg font-bold mb-4">{isRTL ? 'الخطط المتاحة' : 'Available Plans'}</h2>
+          <h2 className="text-lg font-bold mb-1">
+            {subscription?.status === 'trial'
+              ? (isRTL ? 'خطط الاشتراك' : 'Subscription Plans')
+              : (isRTL ? 'الخطط المتاحة' : 'Available Plans')}
+          </h2>
+          {subscription?.status === 'trial' && (
+            <p className="text-sm text-muted-foreground mb-4">
+              {isRTL
+                ? 'يمكنك الاشتراك في أي وقت قبل انتهاء التجربة المجانية'
+                : 'You can subscribe anytime before your free trial ends'}
+            </p>
+          )}
 
           {/* Billing Period Toggle */}
           <div className="flex items-center justify-center mb-6">

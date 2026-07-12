@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard, Settings, Users, CreditCard, UserCircle,
-  LogOut, Menu, X, ChevronLeft, ChevronRight, Shield, QrCode,
+  LayoutDashboard, Settings, Users, Clock, CreditCard,
+  LogOut, Menu, X, ChevronLeft, ChevronRight, QrCode, Shield, Ticket, Package, Wallet, Tag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,26 +75,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return path;
   };
 
-  const baseNavItems = isAdmin
+  // Product links, subscribed product first (stable sort keeps Tables Timer first on ties)
+  const productNavItems = [
+    { href: makeHref('/dashboard'), icon: Clock, label: t.tablesTimer, feature: 'tables' },
+    ...(isOwner ? [{ href: makeHref('/menu-design'), icon: QrCode, label: t.menuDesign, feature: 'qrcode' }] : []),
+  ].sort((a, b) => Number(planFeatures.includes(b.feature)) - Number(planFeatures.includes(a.feature)));
+
+  const navItems = isAdmin
     ? [
-        { href: makeHref('/admin'), icon: LayoutDashboard, label: isRTL ? 'لوحة التحكم' : 'Dashboard' },
-        { href: makeHref('/settings'), icon: Settings, label: t.settings },
+        { href: makeHref('/admin'), icon: LayoutDashboard, label: isRTL ? 'طلبات الاشتراك' : 'Requests' },
+        { href: makeHref('/admin/trial-codes'), icon: Ticket, label: isRTL ? 'أكواد التجربة' : 'Trial Codes' },
+        { href: makeHref('/admin/discount-codes'), icon: Tag, label: isRTL ? 'أكواد الخصم' : 'Discount Codes' },
+        { href: makeHref('/admin/subscriptions'), icon: CreditCard, label: isRTL ? 'الاشتراكات' : 'Subscriptions' },
+        { href: makeHref('/admin/users'), icon: Users, label: isRTL ? 'المستخدمين' : 'Users' },
+        { href: makeHref('/admin/services'), icon: Package, label: isRTL ? 'الخدمات' : 'Services' },
+        { href: makeHref('/admin/finance'), icon: Wallet, label: isRTL ? 'المالية' : 'Finance' },
       ]
     : [
-        { href: makeHref('/dashboard'), icon: LayoutDashboard, label: t.dashboard },
-        { href: makeHref('/settings'), icon: Settings, label: t.settings },
+        ...productNavItems,
         { href: makeHref('/team'), icon: Users, label: t.members },
-        { href: makeHref('/subscription'), icon: CreditCard, label: t.subscription },
-        { href: makeHref('/profile'), icon: UserCircle, label: t.profile },
+        { href: makeHref('/settings'), icon: Settings, label: t.settings },
       ];
-
-  const navItems = isOwner
-    ? [
-        ...baseNavItems.slice(0, 1),
-        { href: makeHref('/menu-design'), icon: QrCode, label: t.menuDesign },
-        ...baseNavItems.slice(1),
-      ]
-    : baseNavItems;
 
   const ChevronIcon = isRTL ? ChevronLeft : ChevronRight;
 
@@ -139,10 +140,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const itemPath = item.href.split('?')[0];
-            const isActive = pathname === itemPath;
+            const isActive = pathname === itemPath || (itemPath === '/settings' && ['/subscription', '/profile'].includes(pathname));
             return (
               <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
-                <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${
+                <div className={`flex items-center rounded-xl transition-all ${
+                  sidebarOpen ? 'gap-3 px-3 py-2.5' : 'justify-center w-11 h-11 mx-auto'
+                } ${
                   isActive
                     ? 'bg-tz-primary text-white shadow-md shadow-tz-primary/25'
                     : 'text-muted-foreground hover:bg-tz-cream-dark dark:hover:bg-gray-800 hover:text-foreground'
@@ -160,25 +163,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           })}
         </nav>
 
-        <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800 space-y-1" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          <AnimatePresence>
-            {sidebarOpen && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="flex items-center gap-3 px-3 py-2 min-w-0">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <Button variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-destructive"
-            onClick={() => { logout(); window.location.href = '/login'; }}>
-            <LogOut className="w-5 h-5" />
+        <div className="p-3 border-t border-tz-cream-dark dark:border-gray-800" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+          <div className={`flex items-center gap-2 min-w-0 ${sidebarOpen ? '' : 'justify-center'}`}>
             <AnimatePresence>
               {sidebarOpen && (
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-sm">{t.logout}</motion.span>
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="flex-1 text-sm font-medium truncate px-3">{user.name}</motion.p>
               )}
             </AnimatePresence>
-          </Button>
+            <Button variant="ghost" size="icon" aria-label={t.logout} title={t.logout}
+              className="shrink-0 rounded-xl bg-tz-red/10 text-tz-red hover:bg-tz-red/20 hover:text-tz-red"
+              onClick={() => { logout(); window.location.href = '/login'; }}>
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </motion.aside>
 

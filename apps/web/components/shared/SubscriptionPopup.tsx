@@ -6,45 +6,24 @@ import { X, Upload, Check, Building2, Hash, CreditCard, UserCircle, Tag } from '
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { subscriptionAPI } from '@/lib/api';
+import { getPlanBullets, extractPeriod, PERIOD_LABELS } from '@/lib/plan-utils';
 
 interface Plan {
   id: string;
   name: string;
   labelAr: string;
   labelEn: string;
+  descriptionAr?: string;
+  descriptionEn?: string;
   priceSar: number;
   baseStaffSeats: number;
   durationDays: number;
   extraStaffSeatPriceSar: number;
   features: string[];
-}
-
-const PERIOD_LABELS: Record<string, { en: string; ar: string }> = {
-  monthly:   { en: 'Monthly',   ar: 'شهري' },
-  quarterly: { en: 'Quarterly', ar: '3 أشهر' },
-  yearly:    { en: 'Yearly',    ar: 'سنوي' },
-};
-
-const FEATURE_BULLETS: Record<string, { en: string[]; ar: string[] }> = {
-  tables: {
-    en: ['Smart table timers', 'Track table status', 'Usage time alerts', 'Technical support'],
-    ar: ['مؤقتات ذكية للطاولات', 'تتبع حالة الطاولات', 'تنبيهات وقت الاستخدام', 'دعم فني'],
-  },
-  qrcode: {
-    en: ['Digital QR menu', '4 ready-made templates', 'Customize colors & logo', 'Manage products & categories'],
-    ar: ['قائمة رقمية بتصميم QR', '4 قوالب تصميم جاهزة', 'تخصيص الألوان والشعار', 'إدارة المنتجات والتصنيفات'],
-  },
-};
-
-function getPlanBullets(features: string[], isRTL: boolean): string[] {
-  return features.flatMap((f) => {
-    const bullets = FEATURE_BULLETS[f];
-    return bullets ? (isRTL ? bullets.ar : bullets.en) : [];
-  });
-}
-
-function extractPeriod(planName: string): string {
-  return planName.split('-')[0] ?? planName;
+  texts?: {
+    benefitsAr?: string[];
+    benefitsEn?: string[];
+  };
 }
 
 interface SubscriptionPopupProps {
@@ -73,7 +52,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
       const fetched: Plan[] = res.data.data.plans;
       setPlans(fetched);
       if (fetched.length > 0) {
-        setBillingPeriod(extractPeriod(fetched[0].name));
+        setBillingPeriod(extractPeriod(fetched[0]));
       }
     });
     subscriptionAPI.getBankDetails().then((res) => {
@@ -133,8 +112,8 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
     navigator.clipboard.writeText(text);
   };
 
-  const billingPeriods = Array.from(new Set(plans.map((p) => extractPeriod(p.name))));
-  const plansForPeriod = plans.filter((p) => extractPeriod(p.name) === billingPeriod);
+  const billingPeriods = Array.from(new Set(plans.map((p) => extractPeriod(p))));
+  const plansForPeriod = plans.filter((p) => extractPeriod(p) === billingPeriod);
   const mostPopularId = plansForPeriod.reduce<Plan | null>((best, p) => {
     if (!best) return p;
     if (p.features.length > best.features.length) return p;
@@ -212,7 +191,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
               <div className="grid sm:grid-cols-2 gap-4">
                 {plansForPeriod.map((plan) => {
                   const isPopular = plan.id === mostPopularId;
-                  const bullets = getPlanBullets(plan.features, isRTL);
+                  const bullets = getPlanBullets(plan, isRTL);
                   return (
                     <motion.div
                       key={plan.id}

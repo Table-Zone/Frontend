@@ -299,7 +299,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
 
   const cats = menu.categories.filter((cat: any) => cat.items.some((i: any) => i.isAvailable !== false));
   const [activeCat, setActiveCat] = useState<string>(cats[0]?.id || '');
-  const altName = (c: any) => (isEnglish ? c?.name : c?.nameEn); // letterspaced caption
+  const altName = (_c: any) => null; // Arabic-only menus: no second-language caption
 
   // Whether a category should render as the photo card grid (vs the dotted list).
   // The owner can force this per category via displayStyle ('grid' | 'list');

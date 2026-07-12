@@ -248,6 +248,57 @@ export const adminAPI = {
   createDiscountCode: (data: { code: string; percentOff: number; usageLimit?: number; expiresAt?: string }) =>
     api.post('/admin/discount-codes', data),
   deactivateDiscountCode: (id: string) => api.patch(`/admin/discount-codes/${id}/deactivate`, {}),
+
+  // Trial codes
+  getTrialCodes: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    api.get('/admin/trial-codes', { params }),
+  generateTrialCodes: (count: number, notes?: string) =>
+    api.post('/admin/trial-codes/generate', { count, notes }),
+  updateTrialCodeNote: (id: string, notes: string) =>
+    api.patch(`/admin/trial-codes/${id}/notes`, { notes }),
+  deleteTrialCode: (id: string) => api.delete(`/admin/trial-codes/${id}`),
+
+  // Subscriptions
+  getSubscriptions: (params?: { page?: number; limit?: number; search?: string; filter?: string; sortBy?: string }) =>
+    api.get('/admin/subscriptions', { params }),
+  getSubscriptionStats: () => api.get('/admin/subscriptions/stats'),
+
+  // Users
+  getUsers: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
+    api.get('/admin/users', { params }),
+  getUserDetail: (id: string) => api.get(`/admin/users/${id}`),
+  updateUser: (id: string, data: any) => api.patch(`/admin/users/${id}`, data),
+  suspendUser: (id: string) => api.patch(`/admin/users/${id}/suspend`),
+  activateUser: (id: string) => api.patch(`/admin/users/${id}/activate`),
+  deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
+
+  // Services
+  getServices: () => api.get('/admin/services'),
+  getService: (id: string) => api.get(`/admin/services/${id}`),
+  createService: (data: any) => api.post('/admin/services', data),
+  updateService: (id: string, data: any) => api.patch(`/admin/services/${id}`, data),
+  deleteService: (id: string) => api.delete(`/admin/services/${id}`),
+  reorderServices: (order: Array<{ id: string; sortOrder: number }>) =>
+    api.patch('/admin/services/reorder', { order }),
+  uploadServiceImage: (id: string, formData: FormData) =>
+    api.post(`/admin/services/${id}/image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+  uploadServiceIcon: (id: string, formData: FormData) =>
+    api.post(`/admin/services/${id}/icon`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  // Finance
+  getFinanceDashboard: () => api.get('/admin/finance/dashboard'),
+  getFinanceTransactions: (params?: { page?: number; limit?: number; type?: string }) =>
+    api.get('/admin/finance/transactions', { params }),
+  getExpenses: (params?: { page?: number; limit?: number }) =>
+    api.get('/admin/finance/expenses', { params }),
+  createExpense: (data: any) => api.post('/admin/finance/expenses', data),
+  deleteExpense: (id: string) => api.delete(`/admin/finance/expenses/${id}`),
+  getFinanceReports: (period?: string) =>
+    api.get('/admin/finance/reports', { params: { period } }),
 };
 
 export default api;

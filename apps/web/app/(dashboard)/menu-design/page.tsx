@@ -285,8 +285,10 @@ export default function MenuDesignPage() {
           setWorkspaceId(workspace.id);
           setWorkspaceSlug(workspace.slug);
           setWorkspaceName(workspace.name || workspace.slug || '');
+          const status = workspace.subscription?.status;
           const hasQr = workspace.subscription?.features?.includes('qrcode') ?? false;
-          setSubscriptionActive(hasQr);
+          const isUsable = (status === 'active' || status === 'trial') && hasQr;
+          setSubscriptionActive(isUsable);
           const menuRes = await qrMenuAPI.getMenu(workspace.id);
           const realMenu = menuRes.data?.data?.menu || null;
           if (realMenu) {

@@ -2,265 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Flame } from 'lucide-react';
+import { TZ, STATUS_META, fmtTime, QRSvg, MiniCard, PhoneMock, DEMO_MENUS } from '@/components/landing/mocks';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState, useEffect } from 'react';
-import { subscriptionAPI } from '@/lib/api';
+import { useState, useEffect, useRef } from 'react';
+import { subscriptionAPI, getImageUrl } from '@/lib/api';
+import {
+  PublicPlan,
+  PERIOD_LABELS,
+  getPlansForPeriod,
+  getAvailablePeriods,
+  getPlanBullets,
+  getMostPopularPlan,
+} from '@/lib/plan-utils';
 
-const TZ = {
-  orange: '#C75B12',
-  orangeDk: '#9A4309',
-  orangeLt: '#E87E3A',
-  orangeTint: '#FBE4D0',
-  cream: '#FAF7F2',
-  cream2: '#F2EBE0',
-  espresso: '#1E1B18',
-  muted: '#7A736A',
-  green: '#2E7D52',
-  greenBg: 'rgba(46,125,82,0.10)',
-  greenBd: 'rgba(46,125,82,0.28)',
-  blue: '#2563A8',
-  blueBg: 'rgba(37,99,168,0.10)',
-  blueBd: 'rgba(37,99,168,0.28)',
-  amber: '#B45309',
-  amberBg: 'rgba(180,83,9,0.10)',
-  amberBd: 'rgba(180,83,9,0.28)',
-  red: '#B91C1C',
-  redBg: 'rgba(185,28,28,0.10)',
-  redBd: 'rgba(185,28,28,0.28)',
-};
-
-const STATUS_META = {
-  free:     { label: 'فارغة',  color: TZ.green, bg: TZ.greenBg, bd: TZ.greenBd },
-  occupied: { label: 'مشغولة', color: TZ.blue,  bg: TZ.blueBg,  bd: TZ.blueBd  },
-  warning:  { label: 'تحذير',  color: TZ.amber, bg: TZ.amberBg, bd: TZ.amberBd },
-  alert:    { label: 'تجاوز',  color: TZ.red,   bg: TZ.redBg,   bd: TZ.redBd   },
-};
-
-function fmtTime(secs: number) {
-  const over = secs < 0;
-  const abs = Math.abs(secs);
-  const m = Math.floor(abs / 60);
-  const s = abs % 60;
-  return `${over ? '+' : ''}${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-}
-
-function QRSvg({ size = 64, seed = 7 }: { size?: number; seed?: number }) {
-  const N = 17;
-  let st = seed;
-  const rand = () => { st = (st * 9301 + 49297) % 233280; return st / 233280; };
-  const cells: React.ReactElement[] = [];
-  for (let r = 0; r < N; r++) {
-    for (let c = 0; c < N; c++) {
-      const inFinder = (r < 6 && c < 6) || (r < 6 && c >= N - 6) || (r >= N - 6 && c < 6);
-      let fill = false;
-      if (inFinder) {
-        const lr = r < 6 ? r : r - (N - 6);
-        const lc = c < 6 ? c : c - (N - 6);
-        fill = (lr === 0 || lr === 5 || lc === 0 || lc === 5) || (lr >= 2 && lr <= 3 && lc >= 2 && lc <= 3);
-      } else {
-        fill = rand() > 0.48;
-      }
-      if (fill) cells.push(<rect key={`${r}-${c}`} x={c} y={r} width={1} height={1} fill={TZ.espresso} />);
-    }
-  }
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${N} ${N}`} shapeRendering="crispEdges">
-      <rect width={N} height={N} fill="#fff" />
-      {cells}
-    </svg>
-  );
-}
-
-function MiniCard({ name, status, secs }: { name: string; status: keyof typeof STATUS_META; secs: number }) {
-  const m = STATUS_META[status];
-  const over = secs < 0;
-  return (
-    <div style={{ background: '#fff', borderRadius: 14, border: `1.5px solid ${m.bd}`, padding: '10px 11px', display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <div style={{ fontSize: 11.5, fontWeight: 700, color: TZ.espresso }}>{name}</div>
-      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, width: 'fit-content', background: m.bg, borderRadius: 999, padding: '2px 7px', fontSize: 10, fontWeight: 700, color: m.color }}>
-        <span style={{ width: 5, height: 5, borderRadius: '50%', background: m.color, flexShrink: 0 }}></span>
-        {m.label}
-      </div>
-      <div style={{ fontFamily: 'monospace', fontSize: 15, fontWeight: 800, color: over ? TZ.red : (status === 'free' ? TZ.muted : m.color), letterSpacing: '-0.02em', lineHeight: 1 }}>
-        {status === 'free' ? '––:––' : fmtTime(secs)}
-      </div>
-    </div>
-  );
-}
-
-const PHONE_TABS = [
-  {
-    label: 'البرجر',
-    sections: [
-      {
-        heading: '~ الأكثر مبيعًا ~',
-        headingColor: '#9B7730',
-        items: [
-          { name: 'برجر سموكي لحم',   price: '١٨ ر.س', desc: 'لحم بقري، صوص، خس', img: '/Smokey_beef.jpg', cal: '٥٨٠ سعرة' },
-          { name: 'برجر سموكي دجاج',  price: '٢٨ ر.س', desc: 'دجاج مقرمش، مايونيز مدخّن، مخلل', img: '/smoky_chick.webp', cal: '٦٢٠ سعرة' },
-        ],
-      },
-      {
-        heading: 'كلاسيك',
-        headingColor: '#B85C3A',
-        items: [
-          { name: 'برجر لحم كلاسيك',  price: '٢٤ ر.س', desc: 'لحم بقري، جبن شيدر، بصل', img: '/meat_burg.jpg', cal: '٦٥٠ سعرة' },
-          { name: 'برجر كرسبي دجاج',  price: '٣٨ ر.س', desc: 'دجاج كريسبي، جبن، صوص', img: '/chicken_burg.webp', cal: '٧١٠ سعرة' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'اطباق جانبية',
-    sections: [
-      {
-        heading: '~ أطباق جانبية ~',
-        headingColor: '#9B7730',
-        items: [
-          { name: 'بطاطس مقلية', price: '١٢ ر.س', desc: 'بطاطس كريسبي مع كاتشب', img: '/fries.jpg', cal: '٣٢٠ سعرة' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'مشروبات',
-    sections: [
-      {
-        heading: '~ مشروباتنا ~',
-        headingColor: '#9B7730',
-        items: [
-          { name: 'مشروبات غازية', price: '٨ ر.س', desc: 'كولا، بيبسي، سبرايت', img: "/Soft_drinks.jpg", cal: '١٤٠ سعرة' },
-        ],
-      },
-    ],
-  },
-];
-
-const CAFE_TABS = [
-  {
-    label: 'المشروبات الساخنة',
-    sections: [
-      {
-        heading: '~ الأكثر طلبًا ~',
-        headingColor: '#6B4226',
-        items: [
-          { name: 'لاتيه', price: '١٨ ر.س', desc: 'إسبريسو مع حليب مبخّر ', img: '/Latte.jpg', cal: '١٨٠ سعرة' },
-          { name: 'ايس دريب', price: '٢٠ ر.س', desc: 'محصول يمني', img: '/iceCoffee.jpg', cal: '١٥٠ سعرة' },
-        ],
-      },
-      {
-        heading: 'قهوة مختصة',
-        headingColor: '#9B7730',
-        items: [
-          { name: 'V60', price: '١٢ ر.س', desc: 'محصول اثيوبي', img: '/hotcoffee.jpg', cal: '٤٠ سعرة' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'الحلويات',
-    sections: [
-      {
-        heading: '~ طازج يوميًا ~',
-        headingColor: '#9B7730',
-        items: [
-          { name: 'كوكيز', price: '١٤ ر.س', desc: 'طازج يوميًا من الفرن', img: '/cookies.jpg', cal: '٣٨٠ سعرة' },
-          { name:  'تشيز كيك مدريد', price: '٢٢ ر.س', desc: 'كريمي وبارد', img: '/cheesecake.jpg', cal: '٤٢٠ سعرة' },
-        ],
-      },
-    ],
-  },
-  {
-    label: 'بارد',
-    sections: [
-      {
-        heading: '~ مشروبات باردة ~',
-        headingColor: '#6B4226',
-        items: [
-          { name: ' آيس تي خوخ', price: '٢٠ ر.س', desc: 'يوقيك من حر الصيف', img: '/IceTea.jpg', cal: '٢٠٠ سعرة' },
-          { name: 'فريدو', price: '١٨ ر.س', desc: 'اسبريسو مبخر', img: '/Freddo.jpg', cal: '٢٢٠ سعرة' },
-        ],
-      },
-    ],
-  },
-];
-
-
-function PhoneMenuItem({ name, price, desc, img /*, cal */ }: { name: string; price: string; desc: string; img: string | null; cal?: string }) {
-  return (
-    <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start', marginBottom: 6 }}>
-      {img && (
-        <img src={img} alt={name} style={{ width: 40, height: 40, borderRadius: 6, flexShrink: 0, objectFit: 'cover' }} />
-      )}
-      <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
-          <div style={{ fontSize: 7.5, fontWeight: 800, color: '#1A1A1A', letterSpacing: '0.05em', lineHeight: 1.3 }}>{name}</div>
-          <div style={{ fontSize: 8.5, fontWeight: 700, color: '#333', flexShrink: 0 }}>{price}</div>
-        </div>
-        <div style={{ fontSize: 7, color: '#777', lineHeight: 1.45, marginTop: 2 }}>{desc}</div>
-      </div>
-      {/* cal &&
-        <div style={{ position: 'absolute', bottom: 0, left: 0, display: 'flex', alignItems: 'center', gap: 2, padding: '1.5px 4px' }}>
-          <Flame size={7} color="#E8621A" fill="#E8621A" />
-          <span style={{ fontSize: 6, fontWeight: 700, color: '#C75B12', lineHeight: 1 }}>{cal}</span>
-        </div>
-      */}
-    </div>
-  );
-}
-
-function PhoneMock({ tabs = PHONE_TABS }: { tabs?: typeof PHONE_TABS }) {
-  const [tab, setTab] = useState(0);
-  const safeTab = Math.min(tab, tabs.length - 1);
-  const current = tabs[safeTab];
-  return (
-    <div dir="rtl" style={{ width: 196, background: '#1A1A1A', borderRadius: 38, padding: 10, boxShadow: '0 28px 60px rgba(44,24,16,0.30), 0 8px 20px rgba(44,24,16,0.14)', position: 'relative', flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', width: 64, height: 18, background: '#1A1A1A', borderRadius: 999, zIndex: 3 }}></div>
-      <div style={{ background: '#FAFAF8', borderRadius: 30, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: 400 }}>
-        {/* Status bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 18px 5px', fontSize: 10, fontWeight: 700, color: '#1A1A1A', flexShrink: 0, background: '#fff' }}>
-          <span>٩:٤١</span>
-          <span style={{ fontSize: 7, letterSpacing: 1 }}>●●● ▮</span>
-        </div>
-
-        {/* Menu picker */}
-        <div style={{ padding: '7px 11px 6px', borderBottom: '1px solid #EBEBEB', flexShrink: 0 }}>
-          <div style={{ fontSize: 7, color: '#BBB', marginBottom: 2 }}></div>
-          <div style={{ border: '1px solid #CDCDCD', borderRadius: 7, padding: '4px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 9.5, fontWeight: 700, color: '#1A1A1A' }}>
-            <span>الرياض ، حي المونسية</span>
-            <span style={{ fontSize: 8.5, color: '#888', lineHeight: 1 }}>⌃⌄</span>
-          </div>
-        </div>
-
-        {/* Category tabs */}
-        <div style={{ display: 'flex', padding: '5px 11px 0', borderBottom: '1px solid #EBEBEB', gap: 2, flexShrink: 0 }}>
-          {tabs.map((t, i) => (
-            <button key={i} onClick={() => setTab(i)} style={{ padding: '3px 7px 5px', fontSize: 8.5, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer', color: safeTab === i ? '#1A1A1A' : '#999', borderBottom: safeTab === i ? '1.5px solid #1A1A1A' : '1.5px solid transparent', flexShrink: 0, transition: 'color .15s' }}>{t.label}</button>
-          ))}
-        </div>
-
-        {/* Content — switches per tab */}
-        <div style={{ flex: 1, overflowY: 'auto', background: '#fff', padding: '9px 11px 8px' }}>
-          {current.sections.map((section, si) => (
-            <div key={si}>
-              <div style={{ textAlign: 'center', fontSize: 10.5, fontWeight: 800, color: section.headingColor, fontStyle: 'italic', marginBottom: 8, letterSpacing: '-0.01em' }}>
-                {section.heading}
-              </div>
-              {section.items.map((item, ii) => (
-                <div key={ii}>
-                  <PhoneMenuItem {...item} />
-                  {ii < section.items.length - 1 && <div style={{ borderTop: '1px solid #F0EDEA', margin: '4px 0 6px' }}></div>}
-                </div>
-              ))}
-              {si < current.sections.length - 1 && <div style={{ borderTop: '1px solid #F0EDEA', margin: '6px 0' }}></div>}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const IcoCheck  = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" {...p}><polyline points="20 6 9 17 4 12"/></svg>;
 const IcoClock  = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" {...p}><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>;
@@ -272,22 +26,49 @@ const IcoUsers  = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24"
 const IcoChart  = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg>;
 const IcoEdit   = (p: React.SVGProps<SVGSVGElement>) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 
+const ADMIN_DEMO = {
+  ar: {
+    navOverview: 'نظرة عامة',
+    navMenus: 'القوائم',
+    title: 'إدارة القوائم',
+    addItem: 'إضافة صنف',
+    stats: [{ v: '٢٣', l: 'صنف نشط', c: TZ.green }, { v: '٤', l: 'مخفي', c: TZ.muted }, { v: '٣', l: 'فئة', c: TZ.blue }],
+    items: [
+      { name: 'برجر لحم كلاسيك',  cat: 'رئيسية',  price: '٢٤ ر.س', img: '/meat_burg.jpg' },
+      { name: 'برجر سموكي دجاج',  cat: 'رئيسية',  price: '١٨ ر.س', img: '/smoky_chick.webp' },
+      { name: 'بطاطس مقلية',      cat: 'جانبية',  price: '١٢ ر.س', img: '/fries.jpg' },
+      { name: 'برجر كرسبي دجاج',  cat: 'رئيسية',  price: '٣٨ ر.س', img: '/chicken_burg.webp' },
+      { name: 'مشروبات غازية',    cat: 'مشروبات', price: '٨ ر.س',  img: '/Soft_drinks.jpg' },
+    ],
+  },
+  en: {
+    navOverview: 'Overview',
+    navMenus: 'Menus',
+    title: 'Menu Management',
+    addItem: 'Add Item',
+    stats: [{ v: '23', l: 'active items', c: TZ.green }, { v: '4', l: 'hidden', c: TZ.muted }, { v: '3', l: 'categories', c: TZ.blue }],
+    items: [
+      { name: 'Classic Beef Burger',   cat: 'Mains',  price: '24 SAR', img: '/meat_burg.jpg' },
+      { name: 'Smoky Chicken Burger',  cat: 'Mains',  price: '18 SAR', img: '/smoky_chick.webp' },
+      { name: 'French Fries',          cat: 'Sides',  price: '12 SAR', img: '/fries.jpg' },
+      { name: 'Crispy Chicken Burger', cat: 'Mains',  price: '38 SAR', img: '/chicken_burg.webp' },
+      { name: 'Soft Drinks',           cat: 'Drinks', price: '8 SAR',  img: '/Soft_drinks.jpg' },
+    ],
+  },
+};
+
 function AdminDashMock() {
+  const { lang, isRTL } = useLanguage();
+  const demo = ADMIN_DEMO[lang];
   const [activeNav, setActiveNav] = useState('menus');
   const [toggles, setToggles] = useState<Record<number, boolean>>({ 0: true, 1: true, 2: false, 3: true, 4: true });
 
   const navItems = [
-    { id: 'overview', icon: <IcoChart style={{ width: 11, height: 11 }} />, label: 'نظرة عامة' },
-    { id: 'menus',    icon: <IcoQR    style={{ width: 11, height: 11 }} />, label: 'القوائم'   },
+    { id: 'overview', icon: <IcoChart style={{ width: 11, height: 11 }} />, label: demo.navOverview },
+    { id: 'menus',    icon: <IcoQR    style={{ width: 11, height: 11 }} />, label: demo.navMenus   },
   ];
 
-  const menuItems = [
-    { name: 'برجر لحم كلاسيك',  cat: 'رئيسية',  price: '٢٤ ر.س', img: '/meat_burg.jpg' },
-    { name: 'برجر سموكي دجاج',  cat: 'رئيسية',  price: '١٨ ر.س', img: '/smoky_chick.webp' },
-    { name: 'بطاطس مقلية',      cat: 'جانبية',  price: '١٢ ر.س', img: '/fries.jpg' },
-    { name: 'برجر كرسبي دجاج',  cat: 'رئيسية',  price: '٣٨ ر.س', img: '/chicken_burg.webp' },
-    { name: 'مشروبات غازية',    cat: 'مشروبات', price: '٨ ر.س',  img: '/Soft_drinks.jpg' },
-  ];
+  const menuItems = demo.items;
 
   return (
     <div style={{ borderRadius: 14, overflow: 'hidden', border: '1px solid rgba(44,24,16,0.10)', boxShadow: '0 12px 40px rgba(44,24,16,0.13)', background: '#F7F5F2', width: '100%' }}>
@@ -303,7 +84,7 @@ function AdminDashMock() {
       </div>
 
       {/* App shell */}
-      <div style={{ display: 'flex', height: 300 }} dir="rtl">
+      <div style={{ display: 'flex', height: 300 }} dir={isRTL ? 'rtl' : 'ltr'}>
         {/* Sidebar */}
         <div style={{ width: 100, background: TZ.espresso, flexShrink: 0, display: 'flex', flexDirection: 'column', padding: '12px 0' }}>
           <div style={{ padding: '0 12px 12px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 8 }}>
@@ -315,7 +96,7 @@ function AdminDashMock() {
             </div>
           </div>
           {navItems.map(n => (
-            <button key={n.id} onClick={() => setActiveNav(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 10, fontWeight: 700, background: activeNav === n.id ? 'rgba(199,91,18,0.18)' : 'transparent', color: activeNav === n.id ? TZ.orangeLt : 'rgba(250,247,242,0.55)', borderRight: activeNav === n.id ? `2px solid ${TZ.orange}` : '2px solid transparent', cursor: 'pointer', transition: 'all .15s', textAlign: 'right', border: 'none', width: '100%' }}>
+            <button key={n.id} onClick={() => setActiveNav(n.id)} style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '7px 12px', fontSize: 10, fontWeight: 700, background: activeNav === n.id ? 'rgba(199,91,18,0.18)' : 'transparent', color: activeNav === n.id ? TZ.orangeLt : 'rgba(250,247,242,0.55)', borderInlineStart: activeNav === n.id ? `2px solid ${TZ.orange}` : '2px solid transparent', cursor: 'pointer', transition: 'all .15s', textAlign: 'start', border: 'none', width: '100%' }}>
               <span style={{ color: activeNav === n.id ? TZ.orangeLt : 'rgba(250,247,242,0.4)', flexShrink: 0 }}>{n.icon}</span>
               {n.label}
             </button>
@@ -328,15 +109,15 @@ function AdminDashMock() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Top bar */}
           <div style={{ background: '#fff', borderBottom: '1px solid #EAE7E3', padding: '8px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontWeight: 800, fontSize: 11.5, color: TZ.espresso }}>إدارة القوائم</div>
+            <div style={{ fontWeight: 800, fontSize: 11.5, color: TZ.espresso }}>{demo.title}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: TZ.orange, color: '#fff', borderRadius: 6, padding: '4px 9px', fontSize: 9, fontWeight: 700, cursor: 'pointer' }}>
               <span style={{ fontSize: 12, lineHeight: 1, marginTop: -1 }}>+</span>
-              إضافة صنف
+              {demo.addItem}
             </div>
           </div>
           {/* Stats strip */}
           <div style={{ background: '#fff', borderBottom: '1px solid #EAE7E3', padding: '6px 14px', display: 'flex', gap: 14 }}>
-            {[{ v: '٢٣', l: 'صنف نشط', c: TZ.green }, { v: '٤', l: 'مخفي', c: TZ.muted }, { v: '٣', l: 'فئة', c: TZ.blue }].map((s, i) => (
+            {demo.stats.map((s, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span style={{ fontWeight: 800, fontSize: 12, color: s.c }}>{s.v}</span>
                 <span style={{ fontSize: 8.5, color: TZ.muted }}>{s.l}</span>
@@ -368,17 +149,7 @@ function AdminDashMock() {
   );
 }
 
-interface Plan {
-  id: string;
-  name: string;
-  labelAr: string;
-  labelEn: string;
-  priceSar: number;
-  baseStaffSeats: number;
-  durationDays: number;
-  extraStaffSeatPriceSar: number;
-  features: string;
-}
+interface Plan extends PublicPlan {}
 
 const partners = [
   { name: 'Appy', img: '/appy.jpg' },
@@ -390,25 +161,17 @@ const partners = [
 
 const shell: React.CSSProperties = { width: '100%', maxWidth: 1240, margin: '0 auto', padding: '0 28px' };
 
-function Eyebrow({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 12px', background: TZ.orangeTint, color: TZ.orangeDk, borderRadius: 999, fontSize: 13, fontWeight: 700 }}>
-      <span style={{ width: 6, height: 6, borderRadius: '50%', background: TZ.orange, animation: 'pulseDot 1.8s ease-in-out infinite' }}></span>
-      {children}
-    </div>
-  );
-}
-
 function QRMenuCard() {
+  const { t, lang, isRTL } = useLanguage();
   const [venue, setVenue] = useState<'restaurant' | 'cafe'>('restaurant');
-  const tabs = venue === 'restaurant' ? PHONE_TABS : CAFE_TABS;
+  const tabs = DEMO_MENUS[lang][venue];
   return (
     <div style={{ position: 'relative' }}>
       {/* Sticker — outside the overflow:hidden card so it's never clipped */}
       <div style={{ position: 'absolute', top: 10, left: -6, zIndex: 10, transform: 'rotate(-4deg)', transformOrigin: 'left center' }}>
         <div style={{ background: '#FFF8E1', border: '1.5px solid #F0C040', borderRadius: 8, padding: '5px 11px', boxShadow: '2px 3px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{ fontSize: 13 }}>✏️</span>
-          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7A5C00', lineHeight: 1.3, direction: 'rtl' }}>قائمتك قابلة<br />للتخصيص بالكامل</span>
+          <span style={{ fontSize: 9.5, fontWeight: 800, color: '#7A5C00', lineHeight: 1.3, direction: isRTL ? 'rtl' : 'ltr' }}>{t.landing.qrStickerLine1}<br />{t.landing.qrStickerLine2}</span>
         </div>
       </div>
 
@@ -419,22 +182,22 @@ function QRMenuCard() {
             <IcoQR style={{ width: 15, height: 15 }} />
           </div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>قائمة QR</div>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.65)', marginTop: 1 }}>منيو رقمي للزبائن</div>
+            <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>{t.landing.qrCardTitle}</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.65)', marginTop: 1 }}>{t.landing.qrCardSubtitle}</div>
           </div>
         </div>
       </div>
 
       {/* Venue toggle — own row so the phone never overlaps it */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 20px 0' }}>
-        <div style={{ display: 'flex', background: TZ.cream2, borderRadius: 999, padding: 4, gap: 2 }} dir="rtl">
+        <div style={{ display: 'flex', background: TZ.cream2, borderRadius: 999, padding: 4, gap: 2 }} dir={isRTL ? 'rtl' : 'ltr'}>
           {(['restaurant', 'cafe'] as const).map((v) => (
             <button
               key={v}
               onClick={() => setVenue(v)}
               style={{ padding: '6px 16px', borderRadius: 999, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .18s', background: venue === v ? TZ.orange : 'transparent', color: venue === v ? '#fff' : TZ.muted, boxShadow: venue === v ? '0 2px 6px rgba(199,91,18,0.30)' : 'none' }}
             >
-              {v === 'restaurant' ? ' مطعم' : ' كوفي'}
+              {v === 'restaurant' ? t.landing.venueRestaurant : t.landing.venueCafe}
             </button>
           ))}
         </div>
@@ -444,7 +207,7 @@ function QRMenuCard() {
         <PhoneMock tabs={tabs} />
         <div style={{ background: TZ.cream, borderRadius: 14, padding: 12, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginTop: 20, border: `1px solid rgba(44,24,16,0.08)` }}>
           <QRSvg size={72} seed={17} />
-          <div style={{ fontSize: 9.5, fontWeight: 700, color: TZ.espresso, textAlign: 'center', lineHeight: 1.4 }}>امسح<br />للقائمة</div>
+          <div style={{ fontSize: 9.5, fontWeight: 700, color: TZ.espresso, textAlign: 'center', lineHeight: 1.4 }}>{t.landing.scanLine1}<br />{t.landing.scanLine2}</div>
         </div>
       </div>
     </div>
@@ -453,18 +216,31 @@ function QRMenuCard() {
 }
 
 export default function LandingPage() {
-  const { t, isRTL, setLang } = useLanguage();
+  const { t, lang, isRTL, setLang } = useLanguage();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
   const [plansError, setPlansError] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'quarterly'>('monthly');
+  const [billingPeriod, setBillingPeriod] = useState('monthly');
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!langOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLangOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onKey); };
+  }, [langOpen]);
 
   const INIT_TABLES = [
-    { name: 'طاولة ١', status: 'occupied' as const, secs: 1742 },
-    { name: 'طاولة ٢', status: 'warning' as const,  secs: 187  },
-    { name: 'طاولة ٣', status: 'free' as const,     secs: 1800 },
-    { name: 'طاولة ٤', status: 'alert' as const,    secs: -94  },
+    { nameKey: 'mockTable1' as const, status: 'occupied' as const, secs: 1742 },
+    { nameKey: 'mockTable2' as const, status: 'warning' as const,  secs: 187  },
+    { nameKey: 'mockTable3' as const, status: 'free' as const,     secs: 1800 },
+    { nameKey: 'mockTable4' as const, status: 'alert' as const,    secs: -94  },
   ];
   const [tables, setTables] = useState(INIT_TABLES);
   const [timerSecs, setTimerSecs] = useState({ occupied: 896, warning: 214, alert: -62 });
@@ -484,10 +260,10 @@ export default function LandingPage() {
   }, []);
 
   const timerCards = [
-    { status: 'free',     time: '––:––',                   desc: 'الطاولة فارغة وجاهزة لجلسة جديدة' },
-    { status: 'occupied', time: fmtTime(timerSecs.occupied), desc: 'جلسة نشطة  ، المؤقت يعدّ تنازلياً' },
-    { status: 'warning',  time: fmtTime(timerSecs.warning),  desc: 'أقل من ٥ دقائق' },
-    { status: 'alert',    time: fmtTime(timerSecs.alert),    desc: 'تجاوز الوقت' },
+    { status: 'free',     time: '––:––',                     desc: t.landing.timerDescFree },
+    { status: 'occupied', time: fmtTime(timerSecs.occupied), desc: t.landing.timerDescOccupied },
+    { status: 'warning',  time: fmtTime(timerSecs.warning),  desc: t.landing.timerDescWarning },
+    { status: 'alert',    time: fmtTime(timerSecs.alert),    desc: t.landing.timerDescAlert },
   ];
 
 
@@ -501,17 +277,19 @@ export default function LandingPage() {
   };
   useEffect(() => { fetchPlans(); }, []);
 
-  const menuPlan   = plans.find((p) => p.name === `${billingPeriod}-menu`);
-  const tablesPlan = plans.find((p) => p.name === `${billingPeriod}-tables`);
-  const qrcodePlan = plans.find((p) => p.name === `${billingPeriod}-qrcode`);
+  const availablePeriods = getAvailablePeriods(plans);
+  const activePeriod = availablePeriods.includes(billingPeriod)
+    ? billingPeriod
+    : (availablePeriods[0] as 'monthly' | 'quarterly' | undefined) || billingPeriod;
+  const plansForPeriod = getPlansForPeriod(plans, activePeriod);
+  const mostPopularPlan = getMostPopularPlan(plansForPeriod);
 
   return (
-    <div dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", background: TZ.cream, color: TZ.espresso, minHeight: '100vh' }}>
+    <div dir={isRTL ? 'rtl' : 'ltr'} style={{ fontFamily: "'Tajawal', sans-serif", background: TZ.cream, color: TZ.espresso, minHeight: '100vh' }}>
       <style>{`
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-33.333%); } }
         .marquee-track { display:flex; width:max-content; animation:marquee 18s linear infinite; will-change:transform; }
         .marquee-track:hover { animation-play-state:paused; }
-        @keyframes pulseDot { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.4; transform:scale(1.4); } }
         @keyframes blinkRed { 0%,100% { opacity:1; } 50% { opacity:.3; } }
         @keyframes spinLoader { to { transform: rotate(360deg); } }
         .nav-link { font-size:14px; font-weight:600; color:${TZ.espresso}; opacity:.8; text-decoration:none; transition:opacity .15s; }
@@ -525,7 +303,7 @@ export default function LandingPage() {
           .pricing-grid { grid-template-columns:1fr !important; max-width:400px !important; }
           .footer-grid { grid-template-columns:1fr 1fr !important; }
           .nav-links-center { display:none !important; }
-          .nav-btn { padding:7px 12px !important; font-size:12px !important; }
+          .nav-actions { display:none !important; }
         }
       `}</style>
 
@@ -539,17 +317,53 @@ export default function LandingPage() {
             Table Zone
           </div>
           <div className="nav-links-center" style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
-            {([['#qr', 'QR Menu'], ['#pricing', 'الأسعار'], ['#partners', 'شركاؤنا']] as [string, string][]).map(([href, label]) => (
+            {([['#qr', t.landing.navQrMenu], ['#pricing', t.landing.navPricing], ['#partners', t.landing.navPartners]] as [string, string][]).map(([href, label]) => (
               <a key={href} href={href} className="nav-link">{label}</a>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Link href="/login" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
-              {t.login}
-            </Link>
-            <Link href="/register" className="nav-btn" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
-              {isRTL ? 'ابدأ الآن' : 'Get Started'}
-            </Link>
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button onClick={() => setLangOpen(o => !o)} aria-haspopup="listbox" aria-expanded={langOpen} aria-label="Change language"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#fff', border: `1px solid rgba(44,24,16,0.14)`, borderRadius: 999, cursor: 'pointer', padding: '8px 12px', color: TZ.espresso, fontWeight: 700, fontSize: 14, transition: 'background .15s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(44,24,16,0.04)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = '#fff'}>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{lang === 'ar' ? '🇸🇦' : '🇬🇧'}</span>
+                <span>{lang === 'ar' ? 'AR' : 'EN'}</span>
+                <svg viewBox="0 0 24 24" style={{ width: 14, height: 14, fill: 'none', stroke: TZ.espresso, strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round', opacity: 0.55, transform: langOpen ? 'rotate(180deg)' : 'none', transition: 'transform .18s' }}>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </button>
+              {langOpen && (
+                <div role="listbox" style={{ position: 'absolute', top: 'calc(100% + 8px)', insetInlineEnd: 0, minWidth: 168, background: '#fff', border: `1px solid rgba(44,24,16,0.12)`, borderRadius: 14, boxShadow: '0 16px 40px rgba(44,24,16,0.16)', padding: 6, zIndex: 60, overflow: 'hidden' }}>
+                  {([['en', '🇬🇧', 'English'], ['ar', '🇸🇦', 'العربية']] as ['en' | 'ar', string, string][]).map(([code, flag, label]) => {
+                    const selected = lang === code;
+                    return (
+                      <button key={code} role="option" aria-selected={selected}
+                        onClick={() => { setLang(code); setLangOpen(false); }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', textAlign: isRTL ? 'right' : 'left', background: selected ? 'rgba(199,91,18,0.09)' : 'transparent', border: 'none', borderRadius: 10, cursor: 'pointer', padding: '10px 12px', color: TZ.espresso, fontWeight: 700, fontSize: 14, transition: 'background .12s' }}
+                        onMouseEnter={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'rgba(44,24,16,0.05)'; }}
+                        onMouseLeave={e => { if (!selected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}>
+                        <span style={{ fontSize: 18, lineHeight: 1 }}>{flag}</span>
+                        <span style={{ flex: 1 }}>{label}</span>
+                        {selected && (
+                          <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, fill: 'none', stroke: TZ.orange, strokeWidth: 3, strokeLinecap: 'round', strokeLinejoin: 'round' }}>
+                            <path d="M5 12l5 5L20 7" />
+                          </svg>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
+                {t.login}
+              </Link>
+              <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', padding: '10px 18px', borderRadius: 999, fontWeight: 700, fontSize: 14, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
+                {t.landing.getStarted}
+              </Link>
+            </div>
           </div>
         </div>
       </nav>
@@ -559,15 +373,15 @@ export default function LandingPage() {
         <div style={shell}>
           <div style={{ textAlign: 'center', maxWidth: 720, margin: '0 auto 52px' }}>
             <h1 style={{ fontSize: 'clamp(40px,4.8vw,70px)', lineHeight: 1.05, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em', margin: '0 0 18px' }}>
-              كل مايحتاجه عملائك<br /><span style={{ color: TZ.orange }}>تحت مظلة واحدة</span>
+              {t.landing.heroTitle}<br /><span style={{ color: TZ.orange }}>{t.landing.heroTitleHighlight}</span>
             </h1>
             <p style={{ fontSize: 'clamp(16px,1.3vw,19px)', color: TZ.muted, lineHeight: 1.7, maxWidth: 560, margin: '0 auto 30px' }}>
-              مؤقتات الطاولة لإدارة وقت طاولاتك، وقائمة QR تتيح لزبائنك تصفح المنيو من جوالهم .
+              {t.landing.heroDesc}
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 24 }}>
               <Link href="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '18px 32px', borderRadius: 999, fontWeight: 700, fontSize: 17, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>
-                {isRTL ? 'ابدأ الآن' : 'Start Now'}
-                <IcoArrow style={{ width: 16, height: 16, transform: 'scaleX(-1)', flexShrink: 0 }} />
+                {t.landing.startNow}
+                <IcoArrow style={{ width: 16, height: 16, transform: isRTL ? 'scaleX(-1)' : 'none', flexShrink: 0 }} />
               </Link>
               <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', padding: '18px 32px', borderRadius: 999, fontWeight: 700, fontSize: 17, background: '#fff', color: TZ.espresso, border: `1px solid rgba(44,24,16,0.14)`, textDecoration: 'none' }}>
                 {t.login}
@@ -585,16 +399,16 @@ export default function LandingPage() {
                     <IcoClock style={{ width: 15, height: 15 }} />
                   </div>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>مؤقتات الطاولات</div>
-                    <div style={{ fontSize: 10, color: 'rgba(250,247,242,.55)', marginTop: 1 }}>لوحة المشغّل</div>
+                    <div style={{ fontWeight: 800, fontSize: 13, color: '#fff' }}>{t.landing.timerCardTitle}</div>
+                    <div style={{ fontSize: 10, color: 'rgba(250,247,242,.55)', marginTop: 1 }}>{t.landing.timerCardSubtitle}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.10)', borderRadius: 8, padding: '5px 10px', fontSize: 10, fontWeight: 700, color: 'rgba(250,247,242,.8)' }}>
-                  <IcoBell style={{ width: 11, height: 11 }} />تنبيه جديد
+                  <IcoBell style={{ width: 11, height: 11 }} />{t.landing.timerCardAlert}
                 </div>
               </div>
               <div style={{ padding: 14, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {tables.map((t, i) => <MiniCard key={i} {...t} />)}
+                {tables.map((tb, i) => <MiniCard key={i} name={t.landing[tb.nameKey]} status={tb.status} secs={tb.secs} />)}
               </div>
               <div style={{ padding: '0 14px 14px' }}>
               </div>
@@ -610,9 +424,8 @@ export default function LandingPage() {
       <section id="timers" style={{ padding: '88px 0', background: TZ.cream, borderTop: '1px solid rgba(44,24,16,0.08)' }}>
         <div style={shell}>
           <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto 52px' }}>
-            <div style={{ marginBottom: 16 }}><Eyebrow>المنتج الأول · مؤقتات الطاولات</Eyebrow></div>
-            <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>تابع كل طاولة، لحظة بلحظة</h2>
-            <p style={{ fontSize: 17, color: TZ.muted, lineHeight: 1.7 }}>أربع حالات واضحة تحافظ على سير الخدمة بدون ارتباك.</p>
+            <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{t.landing.timersTitle}</h2>
+            <p style={{ fontSize: 17, color: TZ.muted, lineHeight: 1.7 }}>{t.landing.timersDesc}</p>
           </div>
           <div className="timer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
             {timerCards.map((c, i) => {
@@ -624,13 +437,13 @@ export default function LandingPage() {
                 >
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, width: 'fit-content', background: m.bg, borderRadius: 999, padding: '4px 10px' }}>
                     <span style={{ width: 7, height: 7, borderRadius: '50%', background: m.color, flexShrink: 0, ...(c.status === 'alert' ? { animation: 'blinkRed 1.2s infinite' } : {}) }}></span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.label}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{t.landing[m.labelKey]}</span>
                   </div>
                   <div style={{ width: 96, height: 96, borderRadius: '50%', background: `linear-gradient(135deg,${m.bg},transparent)`, border: `3px solid ${m.bd}`, display: 'grid', placeItems: 'center', margin: '0 auto' }}>
                     <span style={{ fontFamily: 'monospace', fontSize: 19, fontWeight: 800, color: c.status === 'free' ? TZ.muted : m.color, letterSpacing: '-0.02em' }}>{c.time}</span>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: TZ.espresso, marginBottom: 4 }}>{m.label}</div>
+                    <div style={{ fontWeight: 800, fontSize: 15, color: TZ.espresso, marginBottom: 4 }}>{t.landing[m.labelKey]}</div>
                     <p style={{ fontSize: 13, color: TZ.muted, lineHeight: 1.55 }}>{c.desc}</p>
                   </div>
                 </div>
@@ -646,22 +459,21 @@ export default function LandingPage() {
         <div style={shell}>
           <div className="qr-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60, alignItems: 'center' }}>
             <div>
-              <div style={{ marginBottom: 18 }}><Eyebrow>المنتج الثاني · قائمة QR</Eyebrow></div>
-              <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>منيو رقمي لزبائنك</h2>
+              <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{t.landing.qrSectionTitle}</h2>
               <p style={{ fontSize: 17, color: TZ.muted, marginBottom: 32, lineHeight: 1.7 }}>
-                ضع رمز QR على كل طاولة — يمسحه الزبون ويتصفح قائمتك كاملة من جواله. الأسعار والأصناف تتحدث فوراً من لوحتك.
+                {t.landing.qrSectionDesc}
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 {[
-                  { n: '١', t: 'ولّد كود QR لكل طاولة', d: 'نولّد أكواداً فريدة لطاولاتك — اطبعها أو ضعها في حامل.' },
-                  { n: '٢', t: 'الزبون يمسح ويتصفح', d: 'تفتح القائمة مباشرة في المتصفح، بدون تطبيق أو تسجيل.' },
-                  { n: '٣', t: 'قائمة دائماً محدّثة', d: 'تعديل الأسعار والأصناف يظهر فوراً لجميع الطاولات.' },
+                  { title: t.landing.qrStep1Title, desc: t.landing.qrStep1Desc },
+                  { title: t.landing.qrStep2Title, desc: t.landing.qrStep2Desc },
+                  { title: t.landing.qrStep3Title, desc: t.landing.qrStep3Desc },
                 ].map((s, i) => (
                   <div key={i} style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: TZ.orange, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{s.n}</div>
+                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: TZ.orange, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{(i + 1).toLocaleString(isRTL ? 'ar-EG' : 'en-US')}</div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 15, color: TZ.espresso, marginBottom: 2 }}>{s.t}</div>
-                      <p style={{ fontSize: 14, color: TZ.muted, lineHeight: 1.6 }}>{s.d}</p>
+                      <div style={{ fontWeight: 700, fontSize: 15, color: TZ.espresso, marginBottom: 2 }}>{s.title}</div>
+                      <p style={{ fontSize: 14, color: TZ.muted, lineHeight: 1.6 }}>{s.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -678,7 +490,7 @@ export default function LandingPage() {
       <section id="partners" className="py-12 overflow-hidden" style={{ background: TZ.cream, borderTop: '1px solid rgba(44,24,16,0.08)', borderBottom: '1px solid rgba(44,24,16,0.08)' }}>
         <div className="max-w-6xl mx-auto px-6 mb-6 text-center">
           <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-            {isRTL ? 'شركاؤنا' : 'Our Partners'}
+            {t.landing.ourPartners}
           </p>
         </div>
         <div className="overflow-hidden" dir="ltr">
@@ -696,130 +508,142 @@ export default function LandingPage() {
       <section id="pricing" style={{ padding: '88px 0', background: TZ.cream }}>
         <div style={shell}>
           <div style={{ textAlign: 'center', maxWidth: 700, margin: '0 auto 56px' }}>
-            <div style={{ marginBottom: 16 }}><Eyebrow>الأسعار</Eyebrow></div>
             <h2 style={{ fontSize: 'clamp(30px,3.6vw,48px)', fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>
-              {isRTL ? 'ابدأ الآن ونظم عملك' : 'Start Now '}
+              {t.landing.pricingTitle}
             </h2>
             {/* Billing Period Toggle */}
+            {availablePeriods.length > 0 && (
             <div style={{ display: 'inline-flex', alignItems: 'center', background: '#fff', borderRadius: 16, padding: 6, border: '1px solid rgba(44,24,16,0.08)', gap: 4, marginTop: 12 }}>
+              {availablePeriods.map((period) => {
+                const label = PERIOD_LABELS[period];
+                return (
               <button
-                onClick={() => setBillingPeriod('monthly')}
-                style={{ padding: '10px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .2s', ...(billingPeriod === 'monthly' ? { background: TZ.orange, color: '#fff', boxShadow: '0 2px 8px rgba(199,91,34,0.25)' } : { background: 'transparent', color: TZ.muted }) }}
+                key={period}
+                onClick={() => setBillingPeriod(period)}
+                style={{ padding: '10px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .2s', ...(activePeriod === period ? { background: TZ.orange, color: '#fff', boxShadow: '0 2px 8px rgba(199,91,34,0.25)' } : { background: 'transparent', color: TZ.muted }) }}
               >
-                {isRTL ? 'شهري' : 'Monthly'}
+                {label ? (isRTL ? label.ar : label.en) : period}
               </button>
-              <button
-                onClick={() => setBillingPeriod('quarterly')}
-                style={{ padding: '10px 22px', borderRadius: 12, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', transition: 'all .2s', ...(billingPeriod === 'quarterly' ? { background: TZ.orange, color: '#fff', boxShadow: '0 2px 8px rgba(199,91,34,0.25)' } : { background: 'transparent', color: TZ.muted }) }}
-              >
-                {isRTL ? '3 أشهر' : 'Quarterly'}
-              </button>
+                );
+              })}
             </div>
+            )}
           </div>
 
           {plansLoading ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', gap: 16 }}>
               <div style={{ width: 40, height: 40, borderRadius: '50%', border: `4px solid ${TZ.orange}`, borderTopColor: 'transparent', animation: 'spinLoader 0.8s linear infinite' }}></div>
-              <p style={{ fontSize: 14, color: TZ.muted }}>جاري تحميل الخطط...</p>
+              <p style={{ fontSize: 14, color: TZ.muted }}>{t.landing.loadingPlans}</p>
             </div>
           ) : plansError ? (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 0', gap: 16 }}>
-              <p style={{ fontSize: 14, color: TZ.muted }}>تعذر تحميل الخطط</p>
-              <button onClick={fetchPlans} style={{ padding: '10px 24px', borderRadius: 999, background: TZ.orange, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', border: 'none' }}>حاول مجدداً</button>
+              <p style={{ fontSize: 14, color: TZ.muted }}>{t.landing.failedToLoad}</p>
+              <button onClick={fetchPlans} style={{ padding: '10px 24px', borderRadius: 999, background: TZ.orange, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer', border: 'none' }}>{t.landing.tryAgain}</button>
             </div>
           ) : (
-            <div className="pricing-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18, maxWidth: 980, margin: '0 auto' }}>
-              {/* Menu only */}
-              {menuPlan && (
-                <div style={{ background: '#fff', border: '1px solid rgba(44,24,16,0.08)', borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? menuPlan.labelAr : menuPlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'قائمة QR' : 'QR Menu'}</h3>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{menuPlan.priceSar}</span>
-                    <span style={{ fontSize: 13, color: TZ.muted }}>SAR</span>
-                  </div>
-                  <p style={{ fontSize: 14, color: TZ.muted, marginBottom: 20 }}>{menuPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    {[
-                      isRTL ? 'قائمة رقمية بتصميم QR' : 'Digital QR menu',
-                      isRTL ? '4 قوالب تصميم جاهزة' : '4 ready-made design templates',
-                      isRTL ? 'تخصيص الألوان والشعار' : 'Customize colors & logo',
-                      isRTL ? 'إدارة المنتجات والتصنيفات' : 'Manage products & categories',
-                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
-                      isRTL ? 'دعم فني' : 'Technical support',
-                    ].map((f, k) => (
-                      <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: TZ.espresso }}>
-                        <span style={{ width: 18, height: 18, borderRadius: '50%', background: TZ.orangeTint, color: TZ.orangeDk, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                          <IcoCheck style={{ width: 10, height: 10 }} />
+            <div
+              className="pricing-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${Math.min(Math.max(plansForPeriod.length, 1), 3)}, 1fr)`,
+                gap: 18,
+                maxWidth: Math.min(plansForPeriod.length, 3) * 340,
+                margin: '0 auto',
+              }}
+            >
+              {plansForPeriod.map((plan) => {
+                const isPopular = mostPopularPlan?.id === plan.id;
+                const bullets = getPlanBullets(plan, isRTL);
+                const title = isRTL ? plan.labelAr : plan.labelEn;
+                const subtitle = (isRTL ? plan.descriptionAr : plan.descriptionEn)?.trim();
+                const cardBg = isPopular ? TZ.espresso : '#fff';
+                const textColor = isPopular ? '#FAF7F2' : TZ.espresso;
+                const mutedColor = isPopular ? 'rgba(250,247,242,0.6)' : TZ.muted;
+
+                return (
+                  <div
+                    key={plan.id}
+                    style={{
+                      background: cardBg,
+                      border: isPopular ? 'none' : '1px solid rgba(44,24,16,0.08)',
+                      borderRadius: 24,
+                      padding: 32,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      transform: isPopular ? 'translateY(-12px)' : 'none',
+                      boxShadow: isPopular ? '0 24px 60px rgba(44,24,16,0.14)' : 'none',
+                    }}
+                  >
+                    {isPopular && (
+                      <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: TZ.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+                        {t.landing.mostPopular}
+                      </div>
+                    )}
+                    {plan.imageUrl && (
+                      <img
+                        src={getImageUrl(plan.imageUrl)}
+                        alt=""
+                        style={{ width: '100%', height: 120, objectFit: 'cover', borderRadius: 16, marginBottom: 16 }}
+                      />
+                    )}
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isPopular ? TZ.orangeLt : TZ.muted, marginBottom: 6 }}>
+                      {plan.durationDays} {t.landing.days}
+                    </div>
+                    <h3 style={{ fontSize: 22, fontWeight: 800, color: textColor, margin: '0 0 8px' }}>{title}</h3>
+                    {subtitle && (
+                      <p style={{ fontSize: 14, color: mutedColor, margin: '0 0 14px', lineHeight: 1.5 }}>{subtitle}</p>
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 44, fontWeight: 900, color: textColor, letterSpacing: '-0.02em' }}>{plan.priceSar}</span>
+                      <span style={{ fontSize: 13, color: mutedColor }}>{t.landing.sar}</span>
+                      {plan.displayPriceSar && plan.displayPriceSar > plan.priceSar && (
+                        <span style={{ fontSize: 14, color: mutedColor, textDecoration: 'line-through' }}>
+                          {plan.displayPriceSar} {t.landing.sar}
                         </span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: '1px solid rgba(44,24,16,0.14)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
-                </div>
-              )}
-              {/* Tables only */}
-              {tablesPlan && (
-                <div style={{ background: '#fff', border: '1px solid rgba(44,24,16,0.08)', borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.muted, marginBottom: 6 }}>{isRTL ? tablesPlan.labelAr : tablesPlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: TZ.espresso, margin: '0 0 14px' }}>{isRTL ? 'الطاولات' : 'Table Management'}</h3>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: TZ.espresso, letterSpacing: '-0.02em' }}>{tablesPlan.priceSar}</span>
-                    <span style={{ fontSize: 13, color: TZ.muted }}>SAR</span>
+                      )}
+                    </div>
+                    {plan.discountPercent ? (
+                      <p style={{ fontSize: 13, color: isPopular ? TZ.orangeLt : TZ.orange, marginBottom: 20, fontWeight: 700 }}>
+                        -{plan.discountPercent}%
+                      </p>
+                    ) : (
+                      <div style={{ marginBottom: 20 }} />
+                    )}
+                    <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                      {bullets.map((f, k) => (
+                        <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: isPopular ? 'rgba(250,247,242,0.85)' : TZ.espresso }}>
+                          <span style={{ width: 18, height: 18, borderRadius: '50%', background: isPopular ? 'rgba(224,122,63,0.25)' : TZ.orangeTint, color: isPopular ? TZ.orangeLt : TZ.orangeDk, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                            <IcoCheck style={{ width: 10, height: 10 }} />
+                          </span>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      href="/register"
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'center',
+                        padding: '14px 26px',
+                        borderRadius: 999,
+                        fontWeight: 700,
+                        fontSize: 15,
+                        background: isPopular ? TZ.orange : '#fff',
+                        color: isPopular ? '#fff' : TZ.espresso,
+                        border: isPopular ? 'none' : '1px solid rgba(44,24,16,0.14)',
+                        boxShadow: isPopular ? '0 8px 20px rgba(201,91,34,0.28)' : 'none',
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {t.landing.getStarted}
+                    </Link>
                   </div>
-                  <p style={{ fontSize: 14, color: TZ.muted, marginBottom: 20 }}>{tablesPlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    {[
-                      isRTL ? 'مؤقتات ذكية للطاولات' : 'Smart table timers',
-                      isRTL ? 'تتبع حالة الطاولات' : 'Track table status',
-                      isRTL ? 'تنبيهات وقت الاستخدام' : 'Usage time alerts',
-                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
-                      isRTL ? 'دعم فني' : 'Technical support',
-                    ].map((f, k) => (
-                      <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: TZ.espresso }}>
-                        <span style={{ width: 18, height: 18, borderRadius: '50%', background: TZ.orangeTint, color: TZ.orangeDk, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                          <IcoCheck style={{ width: 10, height: 10 }} />
-                        </span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: '#fff', color: TZ.espresso, border: '1px solid rgba(44,24,16,0.14)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
-                </div>
-              )}
-              {/* Menu + Tables combo */}
-              {qrcodePlan && (
-                <div style={{ background: TZ.espresso, borderRadius: 24, padding: 32, display: 'flex', flexDirection: 'column', position: 'relative', transform: 'translateY(-12px)', boxShadow: '0 24px 60px rgba(44,24,16,0.14)' }}>
-                  <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: TZ.orange, color: '#fff', fontSize: 12, fontWeight: 700, padding: '6px 14px', borderRadius: 999, whiteSpace: 'nowrap' }}>{isRTL ? 'الأكثر شيوعاً' : 'Most Popular'}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TZ.orangeLt, marginBottom: 6 }}>{isRTL ? qrcodePlan.labelAr : qrcodePlan.labelEn}</div>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#FAF7F2', margin: '0 0 14px' }}>{isRTL ? 'الطاولات + القائمة' : 'Tables + Menu'}</h3>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-                    <span style={{ fontSize: 44, fontWeight: 900, color: '#FAF7F2', letterSpacing: '-0.02em' }}>{qrcodePlan.priceSar}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(250,247,242,0.6)' }}>SAR</span>
-                  </div>
-                  <p style={{ fontSize: 14, color: 'rgba(250,247,242,0.6)', marginBottom: 20 }}>{qrcodePlan.durationDays} {isRTL ? 'يوم' : 'days'}</p>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 26px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
-                    {[
-                      isRTL ? 'كل مميزات خطة الطاولات' : 'All Table Management features',
-                      isRTL ? 'كل مميزات خطة القائمة' : 'All QR Menu features',
-                      isRTL ? 'تكامل كامل بين المنتجين' : 'Full integration between both',
-                      isRTL ? 'مقعد موظف واحد' : '1 staff seat',
-                      isRTL ? 'دعم فني' : 'Technical support',
-                    ].map((f, k) => (
-                      <li key={k} style={{ fontSize: 14, display: 'flex', gap: 8, alignItems: 'center', color: 'rgba(250,247,242,0.85)' }}>
-                        <span style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(224,122,63,0.25)', color: TZ.orangeLt, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-                          <IcoCheck style={{ width: 10, height: 10 }} />
-                        </span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/register" style={{ display: 'block', width: '100%', textAlign: 'center', padding: '14px 26px', borderRadius: 999, fontWeight: 700, fontSize: 15, background: TZ.orange, color: '#fff', boxShadow: '0 8px 20px rgba(201,91,34,0.28)', textDecoration: 'none' }}>{isRTL ? 'ابدأ الآن' : 'Get Started'}</Link>
-                </div>
-              )}
-              {!menuPlan && !tablesPlan && !qrcodePlan && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: TZ.muted, padding: '24px 0' }}>لا توجد خطط متاحة حالياً</div>
+                );
+              })}
+              {plansForPeriod.length === 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', color: TZ.muted, padding: '24px 0' }}>{t.landing.noPlans}</div>
               )}
             </div>
           )}
@@ -838,12 +662,12 @@ export default function LandingPage() {
                 </div>
                 Table Zone
               </div>
-              <p style={{ fontSize: 14, color: TZ.muted, maxWidth: 260, lineHeight: 1.6 }}>منصة سعودية لإدارة طاولات المطاعم والمقاهي — مؤقتات للطاولات وقائمة QR في مكان واحد.</p>
+              <p style={{ fontSize: 14, color: TZ.muted, maxWidth: 260, lineHeight: 1.6 }}>{t.landing.footerDesc}</p>
             </div>
             {([
-              { title: 'المنتج', links: [['المؤقتات', '#timers'], ['قائمة QR', '#qr'], ['الأسعار', '#pricing']] },
-              { title: 'الشركة', links: [['عنّا', '#'], ['شركاؤنا', '#partners'], ['تواصل معنا', 'https://wa.me/966501549458']] },
-              { title: 'الدعم',  links: [['مركز المساعدة', '#'], ['شروط الخدمة', '/terms'], ['سياسة الخصوصية', '/privacy'], ['اتفاقية الترخيص', '/eula']] },
+              { title: t.landing.footerColProduct, links: [[t.landing.footerTimers, '#timers'], [t.landing.navQrMenu, '#qr'], [t.landing.navPricing, '#pricing']] },
+              { title: t.landing.footerColCompany, links: [[t.landing.footerAbout, '#'], [t.landing.navPartners, '#partners'], [t.landing.footerContact, 'https://wa.me/966501549458']] },
+              { title: t.landing.footerColSupport, links: [[t.landing.footerHelp, '#'], [t.landing.footerTerms, '/terms'], [t.landing.footerPrivacy, '/privacy'], [t.landing.footerEula, '/eula']] },
             ] as { title: string; links: [string, string][] }[]).map((col, i) => (
               <div key={i}>
                 <h4 style={{ fontSize: 13, fontWeight: 700, color: TZ.espresso, marginBottom: 12 }}>{col.title}</h4>
@@ -855,16 +679,8 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 20, borderTop: `1px solid rgba(44,24,16,0.07)`, fontSize: 12, color: TZ.muted }}>
-            <span>© ٢٠٢٦ Table Zone · جميع الحقوق محفوظة</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <span>صنع بـ ♥ في الرياض</span>
-              <button onClick={() => setLang(isRTL ? 'en' : 'ar')} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.6, padding: 0 }} aria-label="Toggle language">
-                <svg viewBox="0 0 122.88 92.91" style={{ width: 24, height: 24, fill: TZ.muted }} xmlns="http://www.w3.org/2000/svg">
-                  <path d="M20.15,83.63,31.63,73.4a2.89,2.89,0,0,1,1.91-.73h27.8a.92.92,0,0,0,.93-.93V65.9H68v5.84a6.71,6.71,0,0,1-6.68,6.68H34.62L19.3,92.07a2.87,2.87,0,0,1-4.9-2V78.42H6.69A6.71,6.71,0,0,1,0,71.74V28.59a6.76,6.76,0,0,1,6.69-6.68H43.35v5.75H6.69a1,1,0,0,0-.94.93V71.74a.91.91,0,0,0,.28.65,1,1,0,0,0,.66.28H17.27a2.88,2.88,0,0,1,2.88,2.88v8.08Zm.21-19.48L29.6,36.24h8.83l9.24,27.91H40.35L38.8,59.07H29.15l-1.51,5.08ZM30.79,53.24h6.37L34,41.81,30.79,53.24ZM76.63,13.35h8.7V11.11a.69.69,0,0,1,.69-.69h4.65a.68.68,0,0,1,.68.69v2.24h9.76a.68.68,0,0,1,.68.69V18.5a.68.68,0,0,1-.68.68H99.56a26.3,26.3,0,0,1-.91,3.88l0,.06a26.07,26.07,0,0,1-1.74,4.15,32.34,32.34,0,0,1-2.14,3.43c-.67,1-1.41,1.9-2.2,2.83a35.78,35.78,0,0,0,3.68,3.83,41.43,41.43,0,0,0,5.09,3.74.68.68,0,0,1,.21.94l-2.39,3.73a.69.69,0,0,1-1,.2,45.88,45.88,0,0,1-5.58-4.08l0,0a41.42,41.42,0,0,1-4-4.1C87.3,38.93,86.15,40,85,41l0,0c-1.36,1.12-2.79,2.2-4.47,3.36a.69.69,0,0,1-1-.17L77,40.53a.69.69,0,0,1,.17-1c1.66-1.14,3-2.19,4.36-3.28,1.16-1,2.28-2,3.49-3.16a44.82,44.82,0,0,1-2.77-4.45A28.84,28.84,0,0,1,80,22.9a.68.68,0,0,1,.47-.84l4.27-1.19a.68.68,0,0,1,.84.47A22.62,22.62,0,0,0,89,28.7L90.27,27a26.33,26.33,0,0,0,1.51-2.47l0,0A19.43,19.43,0,0,0,93,21.62a24,24,0,0,0,.66-2.44h-17a.69.69,0,0,1-.69-.68V14a.69.69,0,0,1,.69-.69Zm27,56.82L88.26,56.51H61.54a6.73,6.73,0,0,1-6.69-6.68V6.69a6.71,6.71,0,0,1,2-4.72l.2-.18A6.67,6.67,0,0,1,61.54,0h54.65a6.69,6.69,0,0,1,4.71,2l.19.2a6.69,6.69,0,0,1,1.79,4.51V49.83a6.73,6.73,0,0,1-6.69,6.68h-7.7V68.13a2.88,2.88,0,0,1-4.91,2ZM91.26,51.49l11.47,10.23V53.64a2.88,2.88,0,0,1,2.88-2.88h10.58a.92.92,0,0,0,.65-.28.91.91,0,0,0,.29-.65V6.69a1,1,0,0,0-.22-.58L116.84,6a1,1,0,0,0-.65-.29H61.54A.94.94,0,0,0,61,6L60.89,6a.92.92,0,0,0-.28.65V49.83a.92.92,0,0,0,.93.93H89.35a2.86,2.86,0,0,1,1.91.73Z"/>
-                </svg>
-              </button>
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingTop: 20, borderTop: `1px solid rgba(44,24,16,0.07)`, fontSize: 12, color: TZ.muted }}>
+            <span>{t.landing.footerCopyright}</span>
           </div>
         </div>
       </footer>

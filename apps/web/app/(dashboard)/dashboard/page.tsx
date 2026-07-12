@@ -195,7 +195,8 @@ export default function DashboardPage() {
     }
   };
 
-  const subscriptionActive = workspace?.subscription?.status === 'active';
+  const subscriptionActive =
+    workspace?.subscription?.status === 'active' || workspace?.subscription?.status === 'trial';
 
   if (isLoading) {
     return (
