@@ -377,7 +377,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
             <div className="pt-6">
               {isGrid(cat) ? (
                 /* ---- Champagne photo card grid (pastries) ---- */
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-start">
                   {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                     <div key={item.id} className="rounded-3xl overflow-hidden shadow-sm" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
                       <div className="flex items-center justify-center p-5" style={{ backgroundColor: tint, height: 168 }}>
