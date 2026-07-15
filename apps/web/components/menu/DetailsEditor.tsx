@@ -23,15 +23,19 @@ interface DetailsEditorProps {
 }
 
 export function DetailsEditor({ pairs, setPairs, isRTL }: DetailsEditorProps) {
-  const updatePair = (idx: number, field: keyof MenuDetailPair, value: string) => {
-    const next = pairs.map((p, i) => (i === idx ? { ...p, [field]: value } : p));
-    setPairs(next);
+  // Labels/values aren't split by language — one field feeds both slots so the
+  // public menu shows the same text regardless of the viewer's language.
+  const updateLabel = (idx: number, value: string) => {
+    setPairs(pairs.map((p, i) => (i === idx ? { ...p, key: value, keyEn: value } : p)));
+  };
+  const updateValue = (idx: number, value: string) => {
+    setPairs(pairs.map((p, i) => (i === idx ? { ...p, value, valueEn: value } : p)));
   };
 
   return (
     <div className="space-y-2">
       <p className="text-xs font-medium text-gray-500">
-        {isRTL ? 'التفاصيل (عربي / إنجليزي)' : 'Details (Arabic / English)'}
+        {isRTL ? 'التفاصيل' : 'Details'}
       </p>
       <div className="flex flex-wrap gap-1.5">
         {PRESETS.map((p) => (
@@ -39,48 +43,33 @@ export function DetailsEditor({ pairs, setPairs, isRTL }: DetailsEditorProps) {
             key={p.keyEn}
             type="button"
             onClick={() => {
-              if (!pairs.find((x) => x.keyEn === p.keyEn)) {
-                setPairs([...pairs, { key: p.key, keyEn: p.keyEn, value: '', valueEn: '' }]);
+              const label = isRTL ? p.key : p.keyEn;
+              if (!pairs.find((x) => x.key === label || x.keyEn === label)) {
+                setPairs([...pairs, { key: label, keyEn: label, value: '', valueEn: '' }]);
               }
             }}
             className="text-[10px] px-2 py-1 rounded-full border bg-white hover:bg-gray-50 transition-colors"
-            style={{ opacity: pairs.find((x) => x.keyEn === p.keyEn) ? 0.4 : 1 }}
+            style={{ opacity: pairs.find((x) => x.key === (isRTL ? p.key : p.keyEn) || x.keyEn === (isRTL ? p.key : p.keyEn)) ? 0.4 : 1 }}
           >
             + {isRTL ? p.key : p.keyEn}
           </button>
         ))}
       </div>
       {pairs.map((pair, idx) => (
-        <div key={`detail-${idx}-${pair.keyEn || pair.key || 'new'}`} className="space-y-2 p-3 border rounded-lg bg-white">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div key={`detail-${idx}`} className="p-3 border rounded-lg bg-white">
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 items-center">
             <input
               type="text"
-              placeholder={isRTL ? 'اسم التفصيل (عربي)' : 'Label (Arabic)'}
-              value={pair.key}
-              onChange={(e) => updatePair(idx, 'key', e.target.value)}
+              placeholder={isRTL ? 'اسم التفصيل' : 'Label'}
+              value={pair.key || pair.keyEn}
+              onChange={(e) => updateLabel(idx, e.target.value)}
               className="px-2 py-1 border rounded text-sm"
             />
             <input
               type="text"
-              placeholder={isRTL ? 'اسم التفصيل (إنجليزي)' : 'Label (English)'}
-              value={pair.keyEn}
-              onChange={(e) => updatePair(idx, 'keyEn', e.target.value)}
-              className="px-2 py-1 border rounded text-sm"
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
-            <input
-              type="text"
-              placeholder={isRTL ? 'القيمة (عربي)' : 'Value (Arabic)'}
-              value={pair.value}
-              onChange={(e) => updatePair(idx, 'value', e.target.value)}
-              className="px-2 py-1 border rounded text-sm"
-            />
-            <input
-              type="text"
-              placeholder={isRTL ? 'القيمة (إنجليزي)' : 'Value (English)'}
-              value={pair.valueEn}
-              onChange={(e) => updatePair(idx, 'valueEn', e.target.value)}
+              placeholder={isRTL ? 'القيمة' : 'Value'}
+              value={pair.value || pair.valueEn}
+              onChange={(e) => updateValue(idx, e.target.value)}
               className="px-2 py-1 border rounded text-sm"
             />
             <Button

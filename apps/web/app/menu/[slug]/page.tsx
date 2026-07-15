@@ -377,7 +377,7 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
             <div className="pt-6">
               {isGrid(cat) ? (
                 /* ---- Champagne photo card grid (pastries) ---- */
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 items-start">
                   {cat.items.filter((item: any) => item.isAvailable !== false).map((item: any) => (
                     <div key={item.id} className="rounded-3xl overflow-hidden shadow-sm" style={{ backgroundColor: cardSurface, border: `1px solid ${border}` }}>
                       <div className="flex items-center justify-center p-5" style={{ backgroundColor: tint, height: 168 }}>
@@ -391,8 +391,14 @@ function NoirTemplate({ menu, isEnglish }: { menu: MenuData; isEnglish: boolean 
                         <div className="min-w-0 flex-1 text-start">
                           <h4 className="font-bold text-[15px] leading-snug break-words" style={{ color: textColor }}>{pickItemName(item, isEnglish)}</h4>
                           {pickItemDescription(item, isEnglish) && (
-                            <p className="text-xs italic mt-0.5 leading-relaxed line-clamp-1" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
+                            <p className="text-xs italic mt-0.5 leading-relaxed break-words" style={{ color: muted }}>{pickItemDescription(item, isEnglish)}</p>
                           )}
+                          <ItemDetailTags
+                            details={item.details}
+                            isEnglish={isEnglish}
+                            className="flex flex-wrap gap-1.5 mt-2"
+                            spanClassName="text-[10px] font-semibold px-2 py-0.5 rounded-full border border-current/20 opacity-70"
+                          />
                         </div>
                         <span className="shrink-0 whitespace-nowrap text-sm font-bold" style={{ color: headline }}>{item.price} {riyal}</span>
                       </div>
