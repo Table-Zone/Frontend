@@ -78,15 +78,14 @@ function RegisterForm() {
       type: 'password',
       question: ar ? 'اختر كلمة مرور' : 'Choose a password',
       hint: ar
-        ? '٨ أحرف على الأقل، مع حرف كبير وصغير ورقم ورمز'
-        : 'At least 8 characters, with upper & lower case, a number and a symbol',
+        ? '٨ أحرف على الأقل، مع حرف كبير وصغير ورقم'
+        : 'At least 8 characters, with upper & lower case and a number',
       placeholder: '••••••••',
       validate: (v) => {
         if (v.length < 8) return ar ? 'كلمة المرور يجب أن تكون ٨ أحرف على الأقل' : 'Password must be at least 8 characters';
         if (!/[a-z]/.test(v)) return ar ? 'يجب أن تحتوي على حرف صغير' : 'Must contain a lowercase letter';
         if (!/[A-Z]/.test(v)) return ar ? 'يجب أن تحتوي على حرف كبير' : 'Must contain an uppercase letter';
         if (!/[0-9]/.test(v)) return ar ? 'يجب أن تحتوي على رقم' : 'Must contain a number';
-        if (!/[^a-zA-Z0-9]/.test(v)) return ar ? 'يجب أن تحتوي على رمز خاص' : 'Must contain a special character';
         return '';
       },
     },
