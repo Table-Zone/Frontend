@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, User, Loader2, Ticket, ArrowUp, CornerDownLeft, Check } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, User, Loader2, Ticket, ArrowUp, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -198,14 +198,19 @@ function RegisterForm() {
         </motion.div>
 
         <div className="relative z-10 w-full max-w-[440px]">
-          {/* step counter */}
-          <div className="flex items-center gap-2 mb-6 text-[13px] font-bold text-tz-primary">
-            <span className="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-md bg-tz-primary/10">
-              {step + 1}
-            </span>
-            <span className="text-muted-foreground font-semibold">
-              {ar ? `من ${steps.length}` : `of ${steps.length}`}
-            </span>
+          {/* progress circles */}
+          <div className="flex items-center gap-2 mb-6">
+            {steps.map((s, i) => (
+              <motion.span
+                key={s.key}
+                initial={false}
+                animate={{ width: i === step ? 26 : 9 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                className={`h-[9px] rounded-full ${
+                  i < step ? 'bg-tz-primary' : i === step ? 'bg-tz-primary' : 'bg-tz-espresso/15'
+                }`}
+              />
+            ))}
           </div>
 
           <AnimatePresence mode="wait" custom={direction}>
@@ -281,12 +286,6 @@ function RegisterForm() {
                     ar ? 'التالي' : 'OK'
                   )}
                 </Button>
-                {!isLoading && (
-                  <span className="hidden sm:flex items-center gap-1.5 text-[12.5px] font-semibold text-muted-foreground">
-                    <CornerDownLeft className="w-3.5 h-3.5" />
-                    {ar ? 'اضغط Enter' : 'press Enter'}
-                  </span>
-                )}
               </div>
             </motion.div>
           </AnimatePresence>
