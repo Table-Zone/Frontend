@@ -44,7 +44,7 @@ function RegisterForm() {
     icon: typeof User;
     type: 'text' | 'email' | 'password';
     question: string;
-    hint?: string;
+    hint?: string | ((v: string) => string);
     placeholder: string;
     optional?: boolean;
     validate: (v: string) => string;
@@ -54,7 +54,7 @@ function RegisterForm() {
       icon: User,
       type: 'text',
       question: ar ? 'لنبدأ باسمك' : "Let's start with your name",
-      hint: ar ? 'سيكون هذا اسم مساحة عملك أيضاً' : 'This will also be your workspace name',
+      hint: (v: string) => (v.trim() ? (ar ? 'اسم جميل!' : 'Good name!') : ''),
       placeholder: ar ? 'اكتب اسمك هنا...' : 'Type your name here...',
       validate: (v) => (v.trim() ? '' : ar ? 'الرجاء إدخال اسمك' : 'Please enter your name'),
     },
@@ -225,9 +225,9 @@ function RegisterForm() {
                 {current.question}
                 {!current.optional && <span className="text-tz-primary"> *</span>}
               </h1>
-              {current.hint && (
-                <p className="text-[14.5px] text-muted-foreground mt-2.5">{current.hint}</p>
-              )}
+              <p className="text-[14.5px] text-muted-foreground mt-2.5 min-h-[20px]">
+                {typeof current.hint === 'function' ? current.hint(value) : current.hint}
+              </p>
 
               <div className="relative mt-7">
                 <StepIcon className="absolute top-1/2 -translate-y-1/2 start-3.5 w-5 h-5 text-muted-foreground pointer-events-none" />
