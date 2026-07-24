@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Check, Wallet, Ticket, Users, Clock, Loader2, Tag } from 'lucide-react';
+import { Copy, Check, Wallet, Ticket, Users, Clock, Loader2, Tag, Gift } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { marketerAPI } from '@/lib/marketer-api';
 
 interface Code {
   id: string;
+  kind: 'discount' | 'trial';
   code: string;
-  percentOff: number;
+  percentOff: number | null;
   usageLimit: number | null;
   usedCount: number;
   remaining: number | null;
@@ -159,6 +160,7 @@ export default function MarketerDashboard() {
             {codes.map((c) => {
               const limit = c.usageLimit ?? 0;
               const pct = limit ? Math.min((c.usedCount / limit) * 100, 100) : 0;
+              const isTrial = c.kind === 'trial';
               return (
                 <div key={c.id} className="bg-white rounded-2xl p-4 border border-tz-cream-dark">
                   <div className="flex items-center justify-between">
@@ -176,10 +178,17 @@ export default function MarketerDashboard() {
                         )}
                       </button>
                     </div>
-                    <Badge className="bg-tz-primary/10 text-tz-primary border-0 gap-1">
-                      <Tag className="w-3 h-3" />
-                      {c.percentOff}% {t('خصم', 'off')}
-                    </Badge>
+                    {isTrial ? (
+                      <Badge className="bg-green-100 text-green-700 border-0 gap-1">
+                        <Gift className="w-3 h-3" />
+                        {t('تجربة مجانية', 'Free trial')}
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-tz-primary/10 text-tz-primary border-0 gap-1">
+                        <Tag className="w-3 h-3" />
+                        {c.percentOff}% {t('خصم', 'off')}
+                      </Badge>
+                    )}
                   </div>
 
                   <div className="mt-3">
@@ -194,12 +203,17 @@ export default function MarketerDashboard() {
                       )}
                     </div>
                     <div className="h-2 rounded-full bg-tz-cream-dark overflow-hidden">
-                      <div className="h-full bg-tz-primary rounded-full" style={{ width: `${pct}%` }} />
+                      <div
+                        className={`h-full rounded-full ${isTrial ? 'bg-green-500' : 'bg-tz-primary'}`}
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
 
                   <p className="text-xs text-muted-foreground mt-2">
-                    {c.conversions} {t('عملية مؤكدة (عمولة)', 'paid conversions (commission)')}
+                    {isTrial
+                      ? t('تجربة مجانية 7 أيام — شاركه في تسويقك (بدون عمولة)', '7-day free trial — share it in your marketing (no commission)')
+                      : `${c.conversions} ${t('عملية مؤكدة (عمولة)', 'paid conversions (commission)')}`}
                   </p>
                 </div>
               );

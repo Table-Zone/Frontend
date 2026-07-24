@@ -256,8 +256,10 @@ export const adminAPI = {
     api.post('/admin/marketers', data),
   setMarketerActive: (id: string, isActive: boolean) =>
     api.patch(`/admin/marketers/${id}/active`, { isActive }),
-  issueMarketerCode: (id: string, data: { code?: string; percentOff: number; usageLimit?: number }) =>
-    api.post(`/admin/marketers/${id}/codes`, data),
+  issueMarketerCode: (
+    id: string,
+    data: { kind?: 'discount' | 'trial'; code?: string; percentOff?: number; usageLimit?: number }
+  ) => api.post(`/admin/marketers/${id}/codes`, data),
   markMarketerCommissionsPaid: (id: string, commissionIds?: string[]) =>
     api.post(`/admin/marketers/${id}/commissions/pay`, { commissionIds }),
 

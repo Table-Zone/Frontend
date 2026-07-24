@@ -37,6 +37,14 @@ interface DetailCode {
   conversions: number;
   isActive: boolean;
 }
+interface DetailTrialCode {
+  id: string;
+  code: string;
+  usageLimit: number | null;
+  usedCount: number;
+  remaining: number | null;
+  isActive: boolean;
+}
 interface DetailCommission {
   id: string;
   customerName: string;
@@ -48,6 +56,7 @@ interface DetailCommission {
 }
 interface MarketerDetail extends Marketer {
   codes: DetailCode[];
+  trialCodes: DetailTrialCode[];
   commissions: DetailCommission[];
 }
 
@@ -68,7 +77,12 @@ export default function AdminMarketersPage() {
 
   const [detail, setDetail] = useState<MarketerDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [codeForm, setCodeForm] = useState({ code: '', percentOff: 10 });
+  const [codeForm, setCodeForm] = useState<{
+    kind: 'discount' | 'trial';
+    code: string;
+    percentOff: number;
+    usageLimit: number;
+  }>({ kind: 'discount', code: '', percentOff: 10, usageLimit: 50 });
   const [issuing, setIssuing] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -136,12 +150,20 @@ export default function AdminMarketersPage() {
     if (!detail) return;
     setIssuing(true);
     try {
+      const isTrial = codeForm.kind === 'trial';
       await adminAPI.issueMarketerCode(detail.id, {
+        kind: codeForm.kind,
         code: codeForm.code || undefined,
-        percentOff: Number(codeForm.percentOff),
+        percentOff: isTrial ? undefined : Number(codeForm.percentOff),
+        usageLimit: Number(codeForm.usageLimit) || undefined,
       });
-      showToast(t('تم إصدار الكود (بحد 50 استخدام)', 'Code issued (50-use cap)'), 'success');
-      setCodeForm({ code: '', percentOff: 10 });
+      showToast(
+        isTrial
+          ? t('تم إصدار كود التجربة', 'Trial code issued')
+          : t('تم إصدار كود الخصم', 'Discount code issued'),
+        'success'
+      );
+      setCodeForm({ kind: codeForm.kind, code: '', percentOff: 10, usageLimit: 50 });
       openDetail(detail.id);
       fetchMarketers();
     } catch (err: any) {
@@ -317,7 +339,30 @@ export default function AdminMarketersPage() {
 
               {/* Issue code */}
               <div className="bg-tz-cream rounded-xl p-3 mb-5">
-                <p className="text-sm font-medium text-tz-espresso mb-2">{t('إصدار كود جديد (بحد 50 استخدام)', 'Issue new code (50-use cap)')}</p>
+                <p className="text-sm font-medium text-tz-espresso mb-2">{t('إصدار كود جديد', 'Issue new code')}</p>
+
+                {/* Kind toggle: discount (earns commission) vs free trial */}
+                <div className="inline-flex rounded-lg border border-tz-cream-dark bg-white p-0.5 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setCodeForm({ ...codeForm, kind: 'discount' })}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      codeForm.kind === 'discount' ? 'bg-tz-primary text-white' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t('خصم %', 'Discount %')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCodeForm({ ...codeForm, kind: 'trial' })}
+                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      codeForm.kind === 'trial' ? 'bg-green-600 text-white' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {t('تجربة مجانية', 'Free trial')}
+                  </button>
+                </div>
+
                 <div className="flex flex-wrap gap-2 items-center">
                   <Input
                     placeholder={t('كود مخصص (اختياري)', 'Custom code (optional)')}
@@ -325,22 +370,43 @@ export default function AdminMarketersPage() {
                     onChange={(e) => setCodeForm({ ...codeForm, code: e.target.value.toUpperCase() })}
                     className="flex-1 min-w-[140px] h-9"
                   />
+                  {codeForm.kind === 'discount' && (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        value={codeForm.percentOff}
+                        onChange={(e) => setCodeForm({ ...codeForm, percentOff: Number(e.target.value) })}
+                        className="w-20 h-9"
+                      />
+                      <span className="text-sm text-muted-foreground">% {t('خصم', 'off')}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"
-                      min={0}
-                      max={100}
-                      value={codeForm.percentOff}
-                      onChange={(e) => setCodeForm({ ...codeForm, percentOff: Number(e.target.value) })}
-                      className="w-20 h-9"
+                      min={1}
+                      max={100000}
+                      value={codeForm.usageLimit}
+                      onChange={(e) => setCodeForm({ ...codeForm, usageLimit: Number(e.target.value) })}
+                      className="w-24 h-9"
                     />
-                    <span className="text-sm text-muted-foreground">% {t('خصم', 'off')}</span>
+                    <span className="text-sm text-muted-foreground">{t('استخدام', 'uses')}</span>
                   </div>
                   <Button size="sm" onClick={issueCode} disabled={issuing} className="bg-tz-primary hover:bg-tz-primary/90 gap-1">
                     {issuing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     {t('إصدار', 'Issue')}
                   </Button>
                 </div>
+                {codeForm.kind === 'trial' && (
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    {t(
+                      'كود تجربة قابل للمشاركة — يمنح كل عميل تجربة مجانية 7 أيام حتى نفاد الحد. لا يُحتسب عمولة.',
+                      'Shareable trial code — gives each customer a 7-day free trial until the cap is hit. No commission.'
+                    )}
+                  </p>
+                )}
               </div>
 
               {/* Codes */}
@@ -359,6 +425,27 @@ export default function AdminMarketersPage() {
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {c.usedCount}/{c.usageLimit ?? '∞'} · {c.conversions} {t('عمولة', 'comm.')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Trial codes */}
+              <p className="text-sm font-medium text-tz-espresso mb-2">{t('أكواد التجربة', 'Trial codes')}</p>
+              <div className="space-y-2 mb-5">
+                {detail.trialCodes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">{t('لا توجد أكواد تجربة', 'No trial codes')}</p>
+                ) : detail.trialCodes.map((c) => (
+                  <div key={c.id} className="flex items-center justify-between bg-white border border-tz-cream-dark rounded-xl px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-sm text-tz-espresso">{c.code}</span>
+                      <button onClick={() => copyCode(c.code)} className="text-muted-foreground hover:text-tz-primary">
+                        {copied === c.code ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                      <Badge className="bg-green-100 text-green-700 border-0 text-[10px]">{t('تجربة', 'Trial')}</Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {c.usedCount}/{c.usageLimit ?? '∞'} {t('استخدام', 'uses')}
                     </span>
                   </div>
                 ))}

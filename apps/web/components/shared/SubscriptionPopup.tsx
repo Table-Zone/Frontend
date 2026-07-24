@@ -282,6 +282,27 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
                     <Check className="w-4 h-4" />
                   </Button>
                 </div>
+                {bankDetails.swift && (
+                  <div className="flex items-center gap-3">
+                    <Hash className="w-5 h-5 text-tz-primary" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">{isRTL ? 'كود سويفت' : 'SWIFT'}</p>
+                      <p className="font-medium font-mono text-sm">{bankDetails.swift}</p>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => copyToClipboard(bankDetails.swift)}>
+                      <Check className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Online payment coming soon notice */}
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-4 border border-amber-200 dark:border-amber-800/50">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                  {isRTL
+                    ? 'نعمل حالياً على توفير الدفع الإلكتروني، نعتذر عن الإزعاج. في الوقت الحالي يرجى التحويل البنكي.'
+                    : "We're working on providing online payment — sorry for the inconvenience. For now, please pay by bank transfer."}
+                </p>
               </div>
 
               {/* Discount Code */}
