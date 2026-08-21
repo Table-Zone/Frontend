@@ -141,7 +141,10 @@ export default function DashboardPage() {
 
     const initSocket = async () => {
       const { io } = await import('socket.io-client');
-      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001', {
+      // Trim: whitespace pasted into the env var makes socket.io parse the
+      // scheme as the host and dial https://https/
+      const socketUrl = (process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001').trim();
+      socket = io(socketUrl, {
         auth: { token: localStorage.getItem('access_token') },
       });
 
