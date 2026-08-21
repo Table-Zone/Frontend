@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  CreditCard, Users, Ticket, Package, Wallet, LayoutDashboard, Tag,
+  CreditCard, Users, Ticket, Package, Wallet, LayoutDashboard, Tag, Megaphone,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin', icon: LayoutDashboard, labelAr: 'طلبات الاشتراك', labelEn: 'Requests' },
   { href: '/admin/trial-codes', icon: Ticket, labelAr: 'أكواد التجربة', labelEn: 'Trial Codes' },
   { href: '/admin/discount-codes', icon: Tag, labelAr: 'أكواد الخصم', labelEn: 'Discount Codes' },
+  { href: '/admin/marketers', icon: Megaphone, labelAr: 'المسوّقون', labelEn: 'Marketers' },
   { href: '/admin/subscriptions', icon: CreditCard, labelAr: 'الاشتراكات', labelEn: 'Subscriptions' },
   { href: '/admin/users', icon: Users, labelAr: 'المستخدمين', labelEn: 'Users' },
   { href: '/admin/services', icon: Package, labelAr: 'الخدمات', labelEn: 'Services' },

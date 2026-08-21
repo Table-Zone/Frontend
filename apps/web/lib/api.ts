@@ -249,6 +249,20 @@ export const adminAPI = {
     api.post('/admin/discount-codes', data),
   deactivateDiscountCode: (id: string) => api.patch(`/admin/discount-codes/${id}/deactivate`, {}),
 
+  // Marketers
+  getMarketers: () => api.get('/admin/marketers'),
+  getMarketerDetail: (id: string) => api.get(`/admin/marketers/${id}`),
+  createMarketer: (data: { name: string; email: string; password: string; commissionPercent?: number }) =>
+    api.post('/admin/marketers', data),
+  setMarketerActive: (id: string, isActive: boolean) =>
+    api.patch(`/admin/marketers/${id}/active`, { isActive }),
+  issueMarketerCode: (
+    id: string,
+    data: { kind?: 'discount' | 'trial'; code?: string; percentOff?: number; usageLimit?: number }
+  ) => api.post(`/admin/marketers/${id}/codes`, data),
+  markMarketerCommissionsPaid: (id: string, commissionIds?: string[]) =>
+    api.post(`/admin/marketers/${id}/commissions/pay`, { commissionIds }),
+
   // Trial codes
   getTrialCodes: (params?: { page?: number; limit?: number; search?: string; status?: string }) =>
     api.get('/admin/trial-codes', { params }),

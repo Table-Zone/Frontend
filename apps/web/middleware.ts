@@ -7,7 +7,12 @@ export function middleware(request: NextRequest) {
 
   // Public paths that don't require auth
   const publicPaths = ['/', '/login', '/register', '/invite', '/verify-email', '/forgot-password', '/reset-password', '/admin-login', '/privacy', '/terms', '/eula'];
-  const isPublicPath = publicPaths.some((path) => pathname === path || pathname.startsWith('/invite/')) || pathname.startsWith('/menu/');
+  // The marketer portal uses its own localStorage token (not the access_token cookie),
+  // so it's exempt at the edge — the client-side marketer layout guards it.
+  const isPublicPath =
+    publicPaths.some((path) => pathname === path || pathname.startsWith('/invite/')) ||
+    pathname.startsWith('/menu/') ||
+    pathname.startsWith('/marketer');
 
   // Auth paths that should redirect to dashboard if already logged in
   const authPaths = ['/login', '/register'];
