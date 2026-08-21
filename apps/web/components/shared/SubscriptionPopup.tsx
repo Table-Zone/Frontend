@@ -5,7 +5,9 @@ import { motion } from 'framer-motion';
 import { X, Upload, Check, Building2, Hash, CreditCard, UserCircle, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import Image from 'next/image';
 import { subscriptionAPI } from '@/lib/api';
+import { BANK_DETAILS } from '@/lib/bank-details';
 import { getPlanBullets, extractPeriod, PERIOD_LABELS } from '@/lib/plan-utils';
 
 interface Plan {
@@ -36,7 +38,7 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
   const [step, setStep] = useState<'plans' | 'payment' | 'success'>('plans');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [bankDetails, setBankDetails] = useState<any>(null);
+  const bankDetails = BANK_DETAILS;
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [bankReference, setBankReference] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,9 +56,6 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
       if (fetched.length > 0) {
         setBillingPeriod(extractPeriod(fetched[0]));
       }
-    });
-    subscriptionAPI.getBankDetails().then((res) => {
-      setBankDetails(res.data.data);
     });
   }, []);
 
@@ -245,6 +244,16 @@ export default function SubscriptionPopup({ workspaceId, onClose }: Subscription
             <div className="space-y-6">
               {/* Bank Details */}
               <div className="bg-tz-cream rounded-2xl p-5 space-y-3">
+                <div className="flex justify-center">
+                  <Image
+                    src={bankDetails.qrImage}
+                    alt={isRTL ? 'رمز QR للتحويل البنكي' : 'Bank transfer QR code'}
+                    width={220}
+                    height={220}
+                    className="rounded-xl bg-white p-2 w-full max-w-[200px] h-auto"
+                    priority
+                  />
+                </div>
                 <div className="flex items-center gap-3">
                   <Building2 className="w-5 h-5 text-tz-primary" />
                   <div>

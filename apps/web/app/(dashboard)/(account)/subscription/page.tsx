@@ -10,7 +10,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/components/shared/Toast';
+import Image from 'next/image';
 import { subscriptionAPI, workspaceAPI } from '@/lib/api';
+import { BANK_DETAILS } from '@/lib/bank-details';
 
 interface Plan {
   id: string;
@@ -53,7 +55,7 @@ export default function SubscriptionPage() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [lastRequest, setLastRequest] = useState<Request | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [bankDetails, setBankDetails] = useState<any>(null);
+  const bankDetails = BANK_DETAILS;
   const [workspaceId, setWorkspaceId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -86,13 +88,11 @@ export default function SubscriptionPage() {
         setWorkspaceId(ws.id);
         setSubscription(ws.subscription);
 
-        const [plansRes, bankRes, reqRes] = await Promise.all([
+        const [plansRes, reqRes] = await Promise.all([
           subscriptionAPI.getPlans(),
-          subscriptionAPI.getBankDetails(),
           subscriptionAPI.getRequests(ws.id),
         ]);
         setPlans(plansRes.data.data.plans || []);
-        setBankDetails(bankRes.data.data);
         const allRequests = reqRes.data.data.requests || [];
         const last = allRequests[0] || null;
         setLastRequest(last);
@@ -618,6 +618,16 @@ function PaymentFormStep({ bankDetails, amount, receiptFile, setReceiptFile, ban
     <div className="space-y-6">
       {/* Bank Details */}
       <div className="bg-tz-cream dark:bg-gray-800 rounded-2xl p-5 space-y-3">
+        <div className="flex justify-center">
+          <Image
+            src={bankDetails.qrImage}
+            alt={isRTL ? 'رمز QR للتحويل البنكي' : 'Bank transfer QR code'}
+            width={220}
+            height={220}
+            className="rounded-xl bg-white p-2 w-full max-w-[200px] h-auto"
+            priority
+          />
+        </div>
         <div className="flex items-center gap-3">
           <Building2 className="w-5 h-5 text-tz-primary" />
           <div>
